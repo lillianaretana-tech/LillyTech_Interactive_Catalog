@@ -3,213 +3,240 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="author" content="LillyTech">
-<meta name="theme-color" content="#0E1220">
-<title>LillyTech Innovation Portfolio</title>
+<meta name="theme-color" content="#101421">
+<meta name="description" content="Catálogo interactivo premium del ecosistema LillyTech: soluciones, academias, asistentes IA, operaciones, seguridad, finanzas y bienestar.">
+<title>LillyTech Interactive Catalog</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650;9..144,750&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ink:#0E1220;--ink2:#171C2E;--paper:#F7F4ED;--paper2:#fff;--paper3:#EFEADF;
-  --brass:#C39A45;--brass2:#A07E2E;--brass3:#EBD9A6;--sage:#4F9E7A;--plum:#6D5A8C;--steel:#3E72B0;--rust:#C2503A;--amber:#E0922F;
-  --tx:#191F2E;--soft:#5C6478;--faint:#9098A8;--line:#E2DCCD;--shadow:0 24px 70px -28px rgba(14,18,32,.62);--ease:cubic-bezier(.22,.61,.36,1);
+  --ink:#101421;--ink2:#1a2030;--paper:#f8f3e9;--paper2:#fffdf8;--paper3:#efe7d7;
+  --tx:#171d2b;--soft:#637083;--faint:#98a1ad;--line:#e1d7c5;
+  --gold:#c69a3d;--gold2:#e6d29a;--green:#3f8f73;--blue:#3c72ad;--red:#b94f3f;
+  --violet:#66558d;--teal:#287f86;--rose:#b9697b;--amber:#d58a32;
+  --shadow:0 24px 80px -32px rgba(12,16,28,.68);--ease:cubic-bezier(.22,.61,.36,1);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;min-height:100%;font-family:'IBM Plex Sans',system-ui,sans-serif;color:var(--tx)}
-body{background:radial-gradient(140% 120% at 50% 0%,#333b57,#0E1220 68%);min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:14px;overflow:hidden}
-h1,h2,h3{font-family:'Fraunces',Georgia,serif;margin:0;line-height:1.08;letter-spacing:-.02em;font-weight:650}p{margin:0}b{font-weight:700}
-.stage{width:100%;max-width:455px;display:flex;flex-direction:column;align-items:center;gap:13px}
-.viewport{width:100%;aspect-ratio:10/16;max-height:76vh;max-height:76dvh;border-radius:18px;overflow:hidden;box-shadow:var(--shadow);background:var(--paper2);position:relative}
+html,body{margin:0;min-height:100%;font-family:"IBM Plex Sans",system-ui,sans-serif;color:var(--tx)}
+body{
+  min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;
+  padding:12px;overflow:hidden;background:
+    radial-gradient(80% 90% at 10% 0%,rgba(198,154,61,.23),transparent 48%),
+    radial-gradient(80% 90% at 90% 100%,rgba(40,127,134,.24),transparent 48%),
+    linear-gradient(155deg,#252b3d,#101421 70%);
+}
+h1,h2,h3{font-family:"Fraunces",Georgia,serif;margin:0;line-height:1.05;letter-spacing:0;font-weight:650}
+p{margin:0}a{color:inherit}
+button,a{font:inherit}.stage{width:100%;max-width:482px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.viewport{width:100%;aspect-ratio:10/16;max-height:77vh;max-height:77dvh;border-radius:18px;overflow:hidden;box-shadow:var(--shadow);background:var(--paper2);position:relative}
 .track{display:flex;height:100%;transition:transform .45s var(--ease);will-change:transform}
-.book{position:relative;width:100%;aspect-ratio:10/16;max-height:76vh;perspective:2600px}
-.book .page{position:absolute;inset:0;border-radius:16px;overflow:hidden;transform-origin:left center;transition:transform .72s var(--ease);background:var(--paper2);box-shadow:var(--shadow);cursor:pointer;backface-visibility:hidden;will-change:transform}
-.book .page::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,rgba(255,255,255,.33),transparent 36%);opacity:.42}
 .slide{min-width:100%;width:100%;height:100%;display:flex;flex-direction:column;position:relative;overflow:hidden;background:var(--paper2)}
-.scroll{overflow-y:auto;scrollbar-width:thin}
-.cover{background:linear-gradient(160deg,var(--ink),var(--ink2));color:var(--paper);align-items:center;justify-content:center;text-align:center;padding:38px 30px}
-.cover:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 20% 15%,rgba(195,154,69,.22),transparent 28%),radial-gradient(circle at 86% 76%,rgba(79,158,122,.18),transparent 34%);pointer-events:none}
-.seal{width:92px;height:92px;border-radius:26px;background:linear-gradient(150deg,var(--brass),var(--brass2));display:grid;place-items:center;color:#fff;font-family:'Fraunces',serif;font-weight:700;font-size:2.25rem;box-shadow:0 16px 38px -14px rgba(195,154,69,.72);margin-bottom:24px;position:relative}
-.eyebrow{font-size:.72rem;letter-spacing:.24em;text-transform:uppercase;color:var(--brass3);font-weight:700;margin-bottom:12px;position:relative}
-.cover h1{font-size:2.35rem;color:#fff;position:relative}.cover h1 span{color:var(--brass3)}
-.tagline{color:rgba(247,244,237,.78);margin-top:14px;font-size:1.02rem;line-height:1.45;max-width:28ch;position:relative}
-.hint{position:absolute;bottom:24px;left:0;right:0;color:rgba(247,244,237,.56);font-size:.82rem;display:flex;align-items:center;justify-content:center;gap:8px}
+.scroll{overflow-y:auto;scrollbar-width:thin}.scroll::-webkit-scrollbar{width:6px}.scroll::-webkit-scrollbar-thumb{background:#c7b99d;border-radius:99px}
+.cover,.backcover{background:linear-gradient(155deg,var(--ink),var(--ink2));color:var(--paper);align-items:center;justify-content:center;text-align:center;padding:38px 30px}
+.cover:before,.backcover:before{content:"";position:absolute;inset:0;background:
+  radial-gradient(circle at 18% 18%,rgba(230,210,154,.24),transparent 28%),
+  radial-gradient(circle at 84% 78%,rgba(63,143,115,.21),transparent 34%);pointer-events:none}
+.seal{width:90px;height:90px;border-radius:25px;background:linear-gradient(145deg,var(--gold),#9a7830);display:grid;place-items:center;color:#fff;font-family:"Fraunces",serif;font-size:2.18rem;font-weight:750;box-shadow:0 16px 40px -16px rgba(198,154,61,.78);margin-bottom:23px;position:relative}
+.eyebrow{font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold2);font-weight:700;margin-bottom:12px;position:relative}
+.cover h1{font-size:2.34rem;color:#fff;position:relative}.cover h1 span{color:var(--gold2)}
+.tagline{color:rgba(248,243,233,.78);margin-top:14px;font-size:1.01rem;line-height:1.45;max-width:29ch;position:relative}
+.hint{position:absolute;bottom:23px;left:0;right:0;color:rgba(248,243,233,.58);font-size:.82rem;display:flex;align-items:center;justify-content:center;gap:8px}
 .hint svg{width:18px;height:18px;animation:nudge 1.6s var(--ease) infinite}@keyframes nudge{0%,100%{transform:translateX(0)}50%{transform:translateX(5px)}}
-.exec{padding:30px 27px;background:var(--paper2)}.exec h2{font-size:1.75rem;margin-bottom:12px;color:var(--ink)}
-.exec .lead{font-size:1.02rem;line-height:1.55;color:var(--tx);margin-bottom:18px}
-.statement{background:linear-gradient(160deg,#fff,var(--paper));border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 14px 34px -26px rgba(14,18,32,.45);margin:14px 0}
-.statement strong{font-family:'Fraunces',serif;font-size:1.2rem;color:var(--ink)}
-.grid2{display:grid;gap:10px;margin-top:12px}.mini{background:var(--paper3);border:1px solid var(--line);border-radius:14px;padding:12px}.mini b{display:block;color:var(--ink);font-size:.93rem;margin-bottom:4px}.mini span{font-size:.82rem;color:var(--soft);line-height:1.35}
-.toc{background:var(--paper2);padding:28px 24px;overflow-y:auto}.toc h2{font-size:1.65rem;margin-bottom:4px}.toc .sub{color:var(--soft);font-size:.92rem;margin-bottom:17px;line-height:1.4}
-.toc ul{list-style:none;padding:0;margin:0;display:grid;gap:10px}.toc li{display:flex;align-items:center;gap:12px;background:var(--paper3);border:1px solid var(--line);border-radius:14px;padding:12px 14px;cursor:pointer;transition:transform .14s}.toc li:active{transform:scale(.98)}
-.tico{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:1.25rem;background:#fff;border:1px solid var(--line);flex:none}.toc b{font-size:.98rem;color:var(--ink)}.toc small{display:block;color:var(--soft);font-size:.78rem;line-height:1.25}.toc .n{margin-left:auto;font-family:'Fraunces',serif;font-size:1.22rem;color:var(--brass2)}
-.divider{align-items:center;justify-content:center;text-align:center;color:#fff;padding:42px 30px}.divider .dico{font-size:3.2rem;margin-bottom:12px}.divider .eyebrow{opacity:.9;margin-bottom:8px}.divider h2{font-size:2.05rem;color:#fff}.divider .cnt{margin-top:13px;font-size:.95rem;opacity:.82;line-height:1.4}
-.cphead{padding:22px 25px 15px;color:#fff;position:relative;flex:none}.cphead .kicker{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;opacity:.86;font-weight:700}.cphead h2{font-size:1.42rem;color:#fff;margin-top:6px;padding-right:46px}.cphead .ico{position:absolute;top:21px;right:23px;font-size:1.9rem}
-.cpbody{padding:19px 25px 16px;display:flex;flex-direction:column;gap:13px;flex:1;overflow-y:auto}.lead{font-size:.97rem;color:var(--tx);line-height:1.47}
-.block{background:var(--paper);border:1px solid var(--line);border-radius:15px;padding:13px}.bt{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--soft);font-weight:800;margin-bottom:7px}.block p,.block li{font-size:.86rem;color:var(--tx);line-height:1.4}.block ul{margin:0;padding-left:18px;display:grid;gap:4px}
-.chips{display:flex;flex-wrap:wrap;gap:7px}.chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 11px;font-size:.78rem;font-weight:600;color:var(--tx)}
-.cpfoot{padding:12px 25px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex:none}.brand{font-family:'Fraunces',serif;font-weight:700;color:var(--ink)}.brand span{color:var(--brass2)}.pg{font-size:.76rem;color:var(--faint);font-family:'Fraunces',serif}
-.method{padding:29px 27px;background:var(--paper2)}.method h2{font-size:1.7rem;margin-bottom:10px}.steps{display:grid;gap:9px;margin-top:14px}.step{display:flex;gap:11px;align-items:flex-start;background:var(--paper3);border:1px solid var(--line);border-radius:14px;padding:11px}.step i{width:28px;height:28px;border-radius:50%;background:var(--ink);color:#fff;font-style:normal;font-weight:700;display:grid;place-items:center;flex:none;font-size:.82rem}.step b{display:block;font-size:.9rem}.step span{display:block;color:var(--soft);font-size:.8rem;line-height:1.3;margin-top:2px}
-.backcover{background:linear-gradient(160deg,var(--ink),var(--ink2));color:var(--paper);align-items:center;justify-content:center;text-align:center;padding:38px 30px}.backcover h2{color:#fff;font-size:1.9rem}.backcover p{color:rgba(247,244,237,.72);margin-top:13px;max-width:27ch;line-height:1.45}.wa{margin-top:24px;background:#25D366;color:#fff;padding:13px 22px;border-radius:14px;font-weight:700;display:inline-flex;align-items:center;gap:10px;text-decoration:none}.wa svg{width:20px;height:20px}
-.bar{width:100%;max-width:310px;height:5px;border-radius:99px;background:rgba(247,244,237,.18);overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--brass3),var(--brass));border-radius:99px;transition:width .4s var(--ease);width:0}
-.controls{display:flex;align-items:center;gap:15px;color:rgba(247,244,237,.9)}.controls button{width:51px;height:51px;border-radius:50%;border:1px solid rgba(247,244,237,.25);background:rgba(247,244,237,.08);color:#fff;display:grid;place-items:center;cursor:pointer;transition:all .15s}.controls button:hover:not(:disabled){background:rgba(247,244,237,.18);transform:scale(1.05)}.controls button:disabled{opacity:.3;cursor:default}.controls button svg{width:23px;height:23px}.meta{text-align:center;min-width:140px}.meta .cat{font-size:.8rem;color:var(--brass3);font-weight:700}.meta .num{font-family:'Fraunces',serif;font-size:.9rem;color:rgba(247,244,237,.72)}
-.talent .cphead,.talent.divider{background:linear-gradient(135deg,#7a5c2a,#A07E2E)}.ops .cphead,.ops.divider{background:linear-gradient(135deg,#2f5689,#3E72B0)}.safety .cphead,.safety.divider{background:linear-gradient(135deg,#9a3f2c,#C2503A)}.rh .cphead,.rh.divider{background:linear-gradient(135deg,#3d7a5f,#4F9E7A)}.strategy .cphead,.strategy.divider{background:linear-gradient(135deg,#54447a,#6D5A8C)}.finance .cphead,.finance.divider{background:linear-gradient(135deg,#805424,#E0922F)}.well .cphead,.well.divider{background:linear-gradient(135deg,#1f6f52,#2f9b73)}
-@media (min-width:1024px) and (pointer:fine){.stage{max-width:472px}}@media (max-height:720px){.cover h1{font-size:2.05rem}.cphead h2{font-size:1.28rem}.controls button{width:46px;height:46px}}@media (prefers-reduced-motion:reduce){.track,.book .page{transition:none}}
+.page{padding:29px 26px;background:var(--paper2)}.page h2{font-size:1.72rem;margin-bottom:12px;color:var(--ink)}
+.lead{font-size:.98rem;line-height:1.5;color:var(--tx)}.muted{color:var(--soft)}
+.statement{background:linear-gradient(160deg,#fff,var(--paper));border:1px solid var(--line);border-radius:16px;padding:17px;margin:14px 0;box-shadow:0 15px 36px -28px rgba(16,20,33,.48)}
+.statement strong{font-family:"Fraunces",serif;font-size:1.16rem;color:var(--ink)}
+.grid2{display:grid;gap:10px;margin-top:13px}.mini{background:var(--paper3);border:1px solid var(--line);border-radius:14px;padding:12px}.mini b{display:block;color:var(--ink);font-size:.93rem;margin-bottom:4px}.mini span{font-size:.82rem;color:var(--soft);line-height:1.35}
+.toc{padding:26px 22px;background:var(--paper2);overflow-y:auto}.toc h2{font-size:1.62rem;margin-bottom:5px}.toc .sub{color:var(--soft);font-size:.9rem;line-height:1.38;margin-bottom:14px}
+.search{display:flex;gap:8px;margin-bottom:13px}.search input{width:100%;border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px 12px;color:var(--tx);outline:none}.search button{border:1px solid var(--line);background:var(--paper);border-radius:12px;padding:0 12px;color:var(--soft)}
+.toc-list{list-style:none;padding:0;margin:0;display:grid;gap:9px}.toc-item{display:flex;align-items:center;gap:11px;background:var(--paper3);border:1px solid var(--line);border-radius:14px;padding:11px 12px;cursor:pointer;transition:transform .14s}.toc-item:active{transform:scale(.985)}
+.toc-ico{width:37px;height:37px;border-radius:11px;display:grid;place-items:center;font-size:1.2rem;background:#fff;border:1px solid var(--line);flex:none}.toc-item b{font-size:.94rem;color:var(--ink)}.toc-item small{display:block;color:var(--soft);font-size:.76rem;line-height:1.24}.toc-count{margin-left:auto;font-family:"Fraunces",serif;font-size:1.12rem;color:#9a7830}
+.divider{align-items:center;justify-content:center;text-align:center;color:#fff;padding:42px 30px}.divider .dico{font-size:3rem;margin-bottom:12px}.divider h2{font-size:2rem;color:#fff}.divider .cnt{margin-top:13px;font-size:.95rem;opacity:.84;line-height:1.42}
+.featured{padding:25px 21px;background:var(--paper2);overflow-y:auto}.featured h2{font-size:1.5rem;margin-bottom:5px}.feature-grid{display:grid;gap:9px;margin-top:13px}.feature{display:flex;gap:11px;align-items:center;border:1px solid var(--line);background:var(--paper);border-radius:14px;padding:10px 11px;cursor:pointer}.feature .ico{width:36px;height:36px;border-radius:10px;background:#fff;display:grid;place-items:center;border:1px solid var(--line);flex:none}.feature b{font-size:.9rem}.feature span{display:block;color:var(--soft);font-size:.76rem}
+.tool .head{padding:22px 24px 15px;color:#fff;position:relative;flex:none}.tool .kicker{font-size:.69rem;letter-spacing:.13em;text-transform:uppercase;opacity:.88;font-weight:700}.tool h2{font-size:1.38rem;color:#fff;margin-top:7px;padding-right:48px}.tool .ico{position:absolute;top:20px;right:23px;font-size:1.95rem}
+.body{padding:17px 24px 14px;display:flex;flex-direction:column;gap:11px;flex:1;overflow-y:auto}.block{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px}.bt{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--soft);font-weight:800;margin-bottom:7px}.block p,.block li{font-size:.84rem;color:var(--tx);line-height:1.38}.block ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 10px;font-size:.75rem;font-weight:600;color:var(--tx)}.status{display:inline-flex;align-items:center;gap:6px;border-radius:999px;background:#fff;border:1px solid var(--line);padding:6px 10px;font-size:.75rem;font-weight:700;color:#2f6e59}.status:before{content:"";width:7px;height:7px;border-radius:50%;background:#37a977}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:12px;padding:10px 12px;text-decoration:none;font-weight:700;font-size:.84rem;border:1px solid var(--line);background:#fff;color:var(--ink)}.btn.primary{background:var(--ink);color:#fff;border-color:var(--ink)}.btn.disabled{opacity:.55;pointer-events:none}.btn svg{width:16px;height:16px}
+.foot{padding:11px 24px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;flex:none}.brand{font-family:"Fraunces",serif;font-weight:750;color:var(--ink)}.brand span{color:#9a7830}.pg{font-size:.74rem;color:var(--faint);font-family:"Fraunces",serif}
+.method .step{display:flex;gap:11px;align-items:flex-start;background:var(--paper3);border:1px solid var(--line);border-radius:14px;padding:11px;margin-top:9px}.method i{width:28px;height:28px;border-radius:50%;background:var(--ink);color:#fff;font-style:normal;font-weight:700;display:grid;place-items:center;flex:none;font-size:.82rem}.method b{display:block;font-size:.9rem}.method span{display:block;color:var(--soft);font-size:.8rem;line-height:1.3;margin-top:2px}
+.backcover h2{color:#fff;font-size:1.86rem;position:relative}.backcover p{color:rgba(248,243,233,.73);margin-top:13px;max-width:28ch;line-height:1.45;position:relative}.contact{display:grid;gap:9px;margin-top:24px;position:relative}.contact .btn{border-radius:14px}.contact .wa{background:#25d366;color:#fff;border-color:#25d366}.contact .mail{background:#fff;color:var(--ink)}
+.bar{width:100%;max-width:318px;height:5px;border-radius:99px;background:rgba(248,243,233,.18);overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold));border-radius:99px;transition:width .4s var(--ease);width:0}
+.controls{display:flex;align-items:center;gap:14px;color:rgba(248,243,233,.9)}.controls button{width:50px;height:50px;border-radius:50%;border:1px solid rgba(248,243,233,.25);background:rgba(248,243,233,.08);color:#fff;display:grid;place-items:center;cursor:pointer;transition:all .15s}.controls button:hover:not(:disabled){background:rgba(248,243,233,.18);transform:scale(1.04)}.controls button:disabled{opacity:.32;cursor:default}.controls button svg{width:22px;height:22px}.meta{text-align:center;min-width:140px}.meta .cat{font-size:.78rem;color:var(--gold2);font-weight:700}.meta .num{font-family:"Fraunces",serif;font-size:.9rem;color:rgba(248,243,233,.72)}
+.emp .head,.emp.divider{background:linear-gradient(135deg,#5c4b7c,var(--violet))}.ops .head,.ops.divider{background:linear-gradient(135deg,#305b8d,var(--blue))}.safe .head,.safe.divider{background:linear-gradient(135deg,#91402f,var(--red))}.rh .head,.rh.divider{background:linear-gradient(135deg,#2f765d,var(--green))}.academy .head,.academy.divider{background:linear-gradient(135deg,#8b6725,#b58a34)}.ia .head,.ia.divider{background:linear-gradient(135deg,#226b72,var(--teal))}.fin .head,.fin.divider{background:linear-gradient(135deg,#9a5e22,var(--amber))}.well .head,.well.divider{background:linear-gradient(135deg,#9c5367,var(--rose))}.fun .head,.fun.divider{background:linear-gradient(135deg,#513d7b,#7b5bc4)}
+@media (min-width:900px){.stage{max-width:500px}.viewport{max-height:79vh}.cover h1{font-size:2.45rem}}
+@media (max-height:720px){.tool h2{font-size:1.25rem}.body{gap:9px}.block{padding:10px}.controls button{width:45px;height:45px}.cover h1{font-size:2.08rem}}
+@media (prefers-reduced-motion:reduce){.track,.bar i,.hint svg{transition:none;animation:none}}
 </style>
 </head>
 <body>
 <div class="stage" id="stage">
-  <div class="bar"><i id="barFill"></i></div>
+  <div class="bar" aria-hidden="true"><i id="barFill"></i></div>
+  <div class="viewport" id="viewport"><div class="track" id="track"></div></div>
   <div class="controls">
     <button id="prev" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg></button>
-    <div class="meta"><div class="cat" id="metaCat">Portafolio</div><div class="num" id="metaNum">1 / 1</div></div>
+    <div class="meta"><div class="cat" id="metaCat">Catálogo</div><div class="num" id="metaNum">1 / 1</div></div>
     <button id="next" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></button>
   </div>
 </div>
 <script>
-const WHATSAPP="50688035571";
-const APPS = [
-  {theme:"t-leadership", ico:"\ud83c\udf93", cat:"Educaci\u00f3n", titulo:"LillyTech Facilities Academy", desc:"Hub principal de capacitaci\u00f3n corporativa donde las empresas acceden a Leadership Mastery, Cleanroom Mastery y futuros programas especializados para operaciones, manufactura y Facility Services.", tags:["Academia", "LMS", "Supabase", "Leadership", "Cleanroom"]},
-  {theme:"t-supervisor", ico:"\ud83d\udcc8", cat:"Operaciones", titulo:"Control Gerencial", desc:"Centro de control para seguimiento de proyectos, agenda operativa, indicadores, vencimientos y gesti\u00f3n gerencial.", tags:["Gerencia", "Proyectos", "Dashboard", "Operaciones"]},
-  {theme:"t-supervisor", ico:"\ud83e\udded", cat:"Operaciones", titulo:"Lilly Trazabilidad General", desc:"Plataforma para registrar, documentar y dar seguimiento a actividades, responsables, evidencias e historial operativo, garantizando la trazabilidad completa de los procesos.", tags:["Trazabilidad", "Seguimiento", "Operaciones", "Supabase"]},
-  {theme:"t-supervisor", ico:"\ud83d\udccd", cat:"Operaciones", titulo:"Lilly Tracker", desc:"Sistema central para el seguimiento de proyectos, pilotos, implementaciones y actividades estrat\u00e9gicas, con control de estados, responsables e indicadores.", tags:["Tracker", "Proyectos", "KPIs", "Gesti\u00f3n"]},
-  {theme:"t-supervisor", ico:"\ud83e\uddf4", cat:"Operaciones", titulo:"Gu\u00eda de Limpieza Segura", desc:"Herramienta de consulta r\u00e1pida para personal operativo con informaci\u00f3n de productos qu\u00edmicos, hojas SDS, pictogramas GHS, rombo NFPA, c\u00f3digo de colores, lectura de etiquetas y seguridad en el manejo de qu\u00edmicos.", tags:["Qu\u00edmicos", "SDS", "Seguridad", "GHS", "NFPA"]},
-  {theme:"t-supervisor", ico:"\u2705", cat:"Operaciones", titulo:"Audit Pro", desc:"Herramienta para inspecciones, evaluaci\u00f3n visual y registro de oportunidades.", tags:["Auditor\u00eda", "Reporte", "Control"]},
-  {theme:"t-supervisor", ico:"\ud83e\uddea", cat:"Operaciones", titulo:"Sistema de Inspecci\u00f3n Qu\u00edmica", desc:"Control para inspecci\u00f3n y seguimiento de qu\u00edmicos en operaci\u00f3n.", tags:["Qu\u00edmicos", "Seguridad", "Inspecci\u00f3n"]},
-  {theme:"t-supervisor", ico:"\ud83c\udf3f", cat:"Operaciones", titulo:"Control Mensual de Reciclaje", desc:"Registro de pesos, categor\u00edas de residuos y exportaci\u00f3n para seguimiento ambiental.", tags:["Reciclaje", "CSV", "Ambiente"]},
-  {theme:"t-supervisor", ico:"\ud83c\udfd6\ufe0f", cat:"Operaciones", titulo:"Control de Vacaciones", desc:"Sistema para administrar vacaciones, coberturas y datos de colaboradores.", tags:["RRHH", "Supabase", "Vacaciones"]},
-  {theme:"t-supervisor", ico:"\ud83c\udfab", cat:"Operaciones", titulo:"FaciliDesk \u2014 Sistema de Tiquetes", desc:"Sistema profesional de tiquetes para solicitudes, seguimiento t\u00e9cnico, m\u00e9tricas y control operativo.", tags:["Tiquetes", "Facilidades", "M\u00e9tricas"]},
-  {theme:"t-supervisor", ico:"\ud83d\udccb", cat:"Operaciones", titulo:"Passdown Digital", desc:"Sistema de traspaso de informaci\u00f3n entre turnos para novedades, pendientes e incidencias operativas.", tags:["Passdown", "Turnos", "Apps Script"]},
-  {theme:"t-supervisor", ico:"\ud83d\udcca", cat:"Operaciones", titulo:"Supervisor Tracking \u2014 Control de M\u00e9tricas", desc:"Sistema visual para seguimiento de entregas, cumplimiento y m\u00e9tricas de supervisores con alertas e hist\u00f3rico.", tags:["Supervisi\u00f3n", "Dashboard", "M\u00e9tricas"]},
-  {theme:"t-supervisor", ico:"\ud83d\udce6", cat:"Operaciones", titulo:"Inventario", desc:"Sistema digital para control de inventario, seguimiento de activos y organizaci\u00f3n operativa de suministros.", tags:["Inventario", "Control", "Operaciones"]},
-  {theme:"t-supervisor", ico:"\ud83d\udccb", cat:"Operaciones", titulo:"Pedido Mensual", desc:"Sistema para gesti\u00f3n y control de pedidos mensuales de suministros, facilitando la planificaci\u00f3n y seguimiento de requerimientos operativos.", tags:["Pedidos", "Inventario", "Operaciones"]},
-  {theme:"t-supervisor", ico:"\ud83d\udce6", cat:"Operaciones", titulo:"Pedido Mensual Cliente", desc:"Sistema para gesti\u00f3n de pedidos mensuales orientado a clientes, con seguimiento de solicitudes y control de requerimientos.", tags:["Pedidos", "Clientes", "Operaciones"]},
-  {theme:"t-supervisor", ico:"\ud83d\udd50", cat:"Operaciones", titulo:"Control de Asistencia", desc:"Sistema de control de asistencia con verificaci\u00f3n de ubicaci\u00f3n GPS para seguimiento de ingreso y salida del personal.", tags:["Asistencia", "GPS", "RRHH", "Supabase"]},
-  {theme:"t-supervisor", ico:"\ud83d\udee1\ufe0f", cat:"Operaciones", titulo:"GoodCatches", desc:"Plataforma para gesti\u00f3n de Good Catches, identificaci\u00f3n temprana de riesgos y fortalecimiento de la cultura de seguridad en el lugar de trabajo.", tags:["Seguridad", "Riesgos", "Good Catch", "EHS"]},
-  {theme:"t-safety", ico:"\ud83c\udfd7\ufe0f", cat:"Cotizadores", titulo:"3Rs Cotizador", desc:"Cotizador para remodelaciones y trabajos de construcci\u00f3n.", tags:["Cotizaci\u00f3n", "Construcci\u00f3n", "Ventas"]},
-  {theme:"t-safety", ico:"\ud83d\ude97", cat:"Cotizadores", titulo:"Calculadora de Costos Mec\u00e1nicos", desc:"Calculadora para generar estimaciones de servicios mec\u00e1nicos en Costa Rica.", tags:["Mec\u00e1nica", "Precios", "Costa Rica"]},
-  {theme:"t-customer", ico:"\ud83d\udcb0", cat:"Finanzas", titulo:"Clasificador Autom\u00e1tico de Presupuesto", desc:"Clasifica compras y gastos por categor\u00eda para control presupuestario.", tags:["Exactus", "CSV", "Presupuesto"]},
-  {theme:"t-customer", ico:"\ud83d\ude80", cat:"Finanzas", titulo:"LillyTech Business Planner", desc:"Plataforma inteligente para evaluar ideas de negocio, oportunidades de ingresos y estrategias de crecimiento empresarial.", tags:["Negocios", "Emprendimiento", "Ingresos", "Estrategia"]},
-  {theme:"t-leadership", ico:"\ud83c\udfc6", cat:"Educaci\u00f3n", titulo:"Cleanroom Mastery", desc:"Academia interactiva para el dominio de operaciones en Cleanrooms, incluyendo control de contaminaci\u00f3n, protocolos, seguridad, calidad y desempe\u00f1o profesional en ambientes controlados.", tags:["Cleanroom", "Mastery", "Capacitaci\u00f3n", "Industria"]},
-  {theme:"t-leadership", ico:"\ud83d\ude80", cat:"Educaci\u00f3n", titulo:"IA para el Trabajo Real", desc:"Programa de capacitaci\u00f3n dise\u00f1ado para ense\u00f1ar el uso pr\u00e1ctico de la Inteligencia Artificial en entornos laborales, mejorando productividad, comunicaci\u00f3n, an\u00e1lisis y automatizaci\u00f3n de tareas.", tags:["IA", "Capacitaci\u00f3n", "Empresas", "Productividad"]},
-  {theme:"t-leadership", ico:"\ud83d\ude80", cat:"Educaci\u00f3n", titulo:"Wordyssey", desc:"Plataforma gamificada de aprendizaje de ingl\u00e9s que combina historias interactivas, desaf\u00edos, pr\u00e1ctica adaptativa y seguimiento del progreso para desarrollar vocabulario de forma divertida y efectiva.", tags:["Ingl\u00e9s", "Gamificaci\u00f3n", "Aprendizaje", "Vocabulario"]},
-  {theme:"t-leadership", ico:"\ud83d\udcda", cat:"Educaci\u00f3n", titulo:"Clases Ingl\u00e9s con Bruno", desc:"Sistema interactivo de aprendizaje de ingl\u00e9s y pr\u00e1ctica por niveles.", tags:["Curso", "Idiomas", "Interactivo"]},
-  {theme:"t-leadership", ico:"\ud83d\udea6", cat:"Educaci\u00f3n", titulo:"Simulacro Examen de Licencia", desc:"Pr\u00e1ctica para examen de licencia de conducir en Costa Rica.", tags:["Licencia", "Pr\u00e1ctica", "Costa Rica"]},
-  {theme:"t-leadership", ico:"\ud83d\udc69\u200d\ud83c\udfeb", cat:"Educaci\u00f3n", titulo:"Asistente Docente", desc:"Asistente inteligente para docentes de escuela y colegio con apoyo en planificaci\u00f3n, actividades, evaluaciones y organizaci\u00f3n acad\u00e9mica.", tags:["Docentes", "Educaci\u00f3n", "IA"]},
-  {theme:"t-leadership", ico:"\ud83c\uddfa\ud83c\uddf8", cat:"Educaci\u00f3n", titulo:"Open AI Tutor", desc:"Tutor interactivo para profesores y estudiantes de ingl\u00e9s con apoyo en pr\u00e1ctica, ense\u00f1anza y desarrollo del idioma.", tags:["Ingl\u00e9s", "Tutor", "IA"]},
-  {theme:"t-guia", ico:"\ud83d\udcca", cat:"Bienestar", titulo:"App Transformaci\u00f3n 360\u00b0", desc:"App personal para h\u00e1bitos, medidas, alimentaci\u00f3n, ejercicio y progreso.", tags:["H\u00e1bitos", "Salud", "App"]},
-  {theme:"t-ia", ico:"\ud83e\udde0", cat:"Asistentes Inteligentes", titulo:"LillyTech Resource Builder", desc:"Asistente estrat\u00e9gica para crear clases, rutas de aprendizaje, contenido, automatizaciones y propuestas listas para usar.", tags:["Recursos", "IA", "Clases"]},
-
+const WHATSAPP = "50688035571";
+const EMAIL = "lillianaretana.tech@gmail.com";
+const ECOSYSTEMS = [
+  ["Soluciones Empresariales","emp","💼","Soluciones para dirección, estrategia, seguimiento ejecutivo y toma de decisiones."],
+  ["Operaciones y trazabilidad","ops","⚙️","Control diario, registros, pedidos, inventarios, turnos y seguimiento operativo."],
+  ["Seguridad, calidad y cumplimiento","safe","🛡️","Consulta segura, auditorías, EHS, químicos, riesgos y estándares de calidad."],
+  ["Recursos Humanos y gestión de personas","rh","👥","Asistencia, vacaciones, coberturas y datos del personal."],
+  ["Academias y capacitación","academy","🎓","Aprendizaje aplicado, academias internas, formación técnica e idiomas."],
+  ["IA y asistentes inteligentes","ia","🧠","Asistentes, recursos, productividad e inteligencia práctica para equipos."],
+  ["Finanzas, cotizadores y negocios","fin","💰","Cotizaciones, presupuesto, costos y planificación comercial."],
+  ["Bienestar y uso personal","well","🌱","Herramientas personales para hábitos, progreso y organización."],
+  ["Entretenimiento / experiencias","fun","✨","Experiencias interactivas, exploración y proyectos creativos."]
 ];
-
-const BUSINESS = {
-  "Desarrollo del talento": {ico:"🎓", theme:"talent", desc:"Capacitación, aprendizaje aplicado y preservación del conocimiento."},
-  "Operaciones y trazabilidad": {ico:"⚙️", theme:"ops", desc:"Control, seguimiento, inventarios, pedidos y ejecución diaria."},
-  "Seguridad, calidad y cumplimiento": {ico:"🛡️", theme:"safety", desc:"Estandarización, prevención, auditorías y consulta segura."},
-  "Recursos Humanos y gestión de personas": {ico:"👥", theme:"rh", desc:"Asistencia, vacaciones, certificaciones y control documental del personal."},
-  "Estrategia e inteligencia empresarial": {ico:"🧠", theme:"strategy", desc:"Planificación, análisis, productividad y construcción de recursos."},
-  "Finanzas y cotización": {ico:"💰", theme:"finance", desc:"Estimaciones, presupuestos y control de costos."},
-  "Bienestar y uso personal": {ico:"🌱", theme:"well", desc:"Herramientas personales orientadas a hábitos y seguimiento."}
-};
-const MAP = {
-  "LillyTech Facilities Academy":"Desarrollo del talento", "Cleanroom Mastery":"Desarrollo del talento", "IA para el Trabajo Real":"Desarrollo del talento", "Wordyssey":"Desarrollo del talento", "Clases Inglés con Bruno":"Desarrollo del talento", "Simulacro Examen de Licencia":"Desarrollo del talento", "Asistente Docente":"Desarrollo del talento", "Open AI Tutor":"Desarrollo del talento",
-  "Control Gerencial":"Operaciones y trazabilidad", "Lilly Trazabilidad General":"Operaciones y trazabilidad", "Lilly Tracker":"Operaciones y trazabilidad", "FaciliDesk — Sistema de Tiquetes":"Operaciones y trazabilidad", "Passdown Digital":"Operaciones y trazabilidad", "Supervisor Tracking — Control de Métricas":"Operaciones y trazabilidad", "Inventario":"Operaciones y trazabilidad", "Pedido Mensual":"Operaciones y trazabilidad", "Pedido Mensual Cliente":"Operaciones y trazabilidad", "Control Mensual de Reciclaje":"Operaciones y trazabilidad",
-  "Guía de Limpieza Segura":"Seguridad, calidad y cumplimiento", "Audit Pro":"Seguridad, calidad y cumplimiento", "Sistema de Inspección Química":"Seguridad, calidad y cumplimiento", "GoodCatches":"Seguridad, calidad y cumplimiento",
-  "Control de Vacaciones":"Recursos Humanos y gestión de personas", "Control de Asistencia":"Recursos Humanos y gestión de personas",
-  "LillyTech Resource Builder":"Estrategia e inteligencia empresarial", "LillyTech Business Planner":"Estrategia e inteligencia empresarial",
-  "3Rs Cotizador":"Finanzas y cotización", "Calculadora de Costos Mecánicos":"Finanzas y cotización", "Clasificador Automático de Presupuesto":"Finanzas y cotización",
-  "App Transformación 360°":"Bienestar y uso personal"
-};
-function areaOf(a){return MAP[a.titulo] || "Operaciones y trazabilidad";}
-function problemOf(a){
-  const t=a.titulo;
-  const dict={
-    "Guía de Limpieza Segura":"El personal operativo necesita respuestas inmediatas y confiables sobre químicos, etiquetas, SDS, pictogramas y prácticas seguras sin depender de buscar documentos dispersos.",
-    "Inventario":"Los suministros, consumos y movimientos pueden perder trazabilidad cuando se administran manualmente o en archivos separados.",
-    "Pedido Mensual":"La preparación de pedidos mensuales consume tiempo y puede generar errores de digitación, duplicidad o falta de seguimiento.",
-    "Control de Asistencia":"El registro de ingreso y salida requiere mayor trazabilidad, validación de ubicación y reportes confiables para supervisión y RRHH.",
-    "Cleanroom Mastery":"La operación en ambientes controlados exige capacitación constante, protocolos claros y conocimiento disponible para reducir errores críticos.",
-    "IA para el Trabajo Real":"Los equipos necesitan aprender IA con casos reales, no teoría aislada, para mejorar productividad y comunicación diaria.",
-    "Audit Pro":"Las auditorías necesitan estandarizar criterios, capturar evidencias y generar reportes útiles sin rehacer trabajo administrativo.",
-    "FaciliDesk — Sistema de Tiquetes":"Las solicitudes operativas se pueden perder o quedar sin seguimiento cuando se manejan por mensajes, llamadas o correos dispersos.",
-    "Passdown Digital":"Los cambios de turno requieren continuidad; la información crítica no debe depender de conversaciones informales.",
-    "GoodCatches":"Los riesgos tempranos necesitan una vía simple para registrarse, analizarse y convertirse en acciones preventivas.",
-    "LillyTech Facilities Academy":"Las empresas requieren una academia flexible para capacitar, certificar y actualizar conocimiento operativo de forma ordenada.",
-    "Lilly Trazabilidad General":"Las actividades, responsables y evidencias necesitan historial claro para seguimiento, auditoría y mejora continua.",
-    "Lilly Tracker":"Los pilotos, proyectos e implementaciones requieren visibilidad de estado, responsables, prioridades e indicadores.",
-    "Control Gerencial":"La gestión necesita una vista integrada de agenda, proyectos, vencimientos e indicadores para tomar decisiones rápidas.",
-    "Supervisor Tracking — Control de Métricas":"El seguimiento de supervisores necesita métricas claras, histórico y alertas para gestionar desempeño.",
-    "Control de Vacaciones":"La administración de vacaciones y coberturas se complica cuando no existe una vista centralizada y actualizada.",
-    "Sistema de Inspección Química":"Los químicos en operación requieren inspección, evidencia y control para prevenir riesgos y asegurar cumplimiento.",
-    "Control Mensual de Reciclaje":"Los datos ambientales necesitan registro ordenado para análisis, reportes y seguimiento mensual.",
-    "Wordyssey":"El aprendizaje de inglés necesita ser constante, atractivo y medible para sostener la práctica a largo plazo.",
-    "LillyTech Resource Builder":"Crear recursos, clases, propuestas y rutas de aprendizaje toma tiempo cuando no hay una estructura reutilizable.",
-    "LillyTech Business Planner":"Las ideas de negocio necesitan evaluación ordenada para decidir prioridades, oportunidades y próximos pasos.",
-    "Asistente Docente":"Los docentes requieren apoyo para planificar, crear actividades y organizar evaluaciones con menos carga administrativa.",
-    "Open AI Tutor":"Profesores y estudiantes necesitan práctica guiada, adaptable y disponible para reforzar el aprendizaje del idioma."
+const CONTACT = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent("Hola, vi el catálogo LillyTech y quiero información sobre una solución.")}`;
+const tools = [
+  {eco:"Academias y capacitación",icon:"🎓",title:"LillyTech Facilities Academy",url:"https://lillianaretana-tech.github.io/Academia_Hub/",desc:"Hub corporativo de capacitación que reúne programas para Facility Services, liderazgo, cleanrooms y operaciones.",tags:["Academia","LMS","Leadership","Cleanroom","Empresas"],featured:true},
+  {eco:"Seguridad, calidad y cumplimiento",icon:"🧼",title:"Portal Limpieza Segura",url:"https://lillianaretana-tech.github.io/Portal_limpieza_segura/",desc:"Portal operativo de consulta rápida para limpieza segura, productos químicos, SDS, pictogramas GHS, rombo NFPA, código de colores, lectura de etiquetas y procedimientos de seguridad.",tags:["Limpieza","Seguridad","Químicos","SDS","GHS","NFPA","EHS","Operaciones"],featured:true},
+  {eco:"Soluciones Empresariales",icon:"📈",title:"Control Gerencial",url:"https://lillianaretana-tech.github.io/ControlGerencial/",desc:"Centro de control para seguimiento de proyectos, agenda operativa, indicadores, vencimientos, accesos rápidos y gestión estratégica.",tags:["Gerencia","Proyectos","Dashboard","Operaciones"],featured:true},
+  {eco:"Seguridad, calidad y cumplimiento",icon:"🦺",title:"SBM Safety Academy",url:"https://lillianaretana-tech.github.io/SBM_Safety_Academy/",desc:"Academia de seguridad para reforzar cultura preventiva, prácticas EHS, estándares operativos y aprendizaje aplicado en campo.",tags:["Seguridad","Academia","EHS","Capacitación"],featured:true},
+  {eco:"Operaciones y trazabilidad",icon:"📦",title:"SBM Inventario",url:"https://lillianaretana-tech.github.io/sbm-inventario/",desc:"Sistema digital para control de inventario, seguimiento de activos y organización operativa de suministros.",tags:["Inventario","Control","Operaciones"],featured:true},
+  {eco:"Operaciones y trazabilidad",icon:"📋",title:"SBM Pedido Mensual",url:"https://lillianaretana-tech.github.io/SBM_Pedido_Mensual/",desc:"Sistema para gestión y control de pedidos mensuales de suministros, con planificación y seguimiento de requerimientos.",tags:["Pedidos","Inventario","Operaciones"],featured:true},
+  {eco:"Academias y capacitación",icon:"🚀",title:"Wordyssey",url:"https://lillianaretana-tech.github.io/Wordyssey/",desc:"Plataforma gamificada de aprendizaje de inglés con historias interactivas, desafíos, práctica adaptativa y seguimiento del progreso.",tags:["Inglés","Gamificación","Aprendizaje","Vocabulario"],featured:true},
+  {eco:"Academias y capacitación",icon:"🤖",title:"IA para el Trabajo Real",url:"https://lillianaretana-tech.github.io/IA_aprendizaje_trabajo/",desc:"Programa de capacitación para enseñar el uso práctico de IA en entornos laborales: productividad, comunicación, análisis y automatización.",tags:["IA","Capacitación","Empresas","Productividad"],featured:true},
+  {eco:"Operaciones y trazabilidad",icon:"🧭",title:"Lilly Trazabilidad General",url:"https://lillianaretana-tech.github.io/Lilly_trazabilidadgeneral/",desc:"Plataforma para registrar, documentar y dar seguimiento a actividades, responsables, evidencias e historial operativo.",tags:["Trazabilidad","Seguimiento","Operaciones","Supabase"]},
+  {eco:"Soluciones Empresariales",icon:"📍",title:"Lilly Tracker",url:"https://lillianaretana-tech.github.io/Lilly_tracker/",desc:"Sistema central para seguimiento de proyectos, pilotos, implementaciones y actividades estratégicas con estados, responsables e indicadores.",tags:["Tracker","Proyectos","KPIs","Gestión"]},
+  {eco:"Seguridad, calidad y cumplimiento",icon:"👁️",title:"Limpieza de Ojos",url:"https://lillianaretana-tech.github.io/SBM_limpiando_ojos/",desc:"Guía visual y práctica para lavado de ojos ante contacto accidental con químicos, orientada a respuesta rápida y seguridad operativa.",tags:["Emergencias","Seguridad","EHS","Químicos","Primeros auxilios"]},
+  {eco:"Seguridad, calidad y cumplimiento",icon:"✅",title:"Audit Pro",url:"Audit_pro.html",desc:"Herramienta para inspecciones, evaluación visual y registro de oportunidades.",tags:["Auditoría","Reporte","Control"]},
+  {eco:"Seguridad, calidad y cumplimiento",icon:"🧪",title:"Sistema de Inspección Química",url:"Sistema inspección químicos VF.html",desc:"Control para inspección, evidencia y seguimiento de productos químicos en operación.",tags:["Químicos","Seguridad","Inspección"]},
+  {eco:"Operaciones y trazabilidad",icon:"🌿",title:"Control Mensual de Reciclaje",url:"Reciclaje - Control Mensual.html",desc:"Registro de pesos, categorías de residuos y exportación para seguimiento ambiental.",tags:["Reciclaje","CSV","Ambiente"]},
+  {eco:"Recursos Humanos y gestión de personas",icon:"🏖️",title:"Control de Vacaciones",url:"Vacaciones.html",desc:"Sistema para administrar vacaciones, coberturas y datos de colaboradores.",tags:["RRHH","Supabase","Vacaciones"]},
+  {eco:"Operaciones y trazabilidad",icon:"📝",title:"LRV Tareas",url:"LRV_tareas.html",desc:"Organizador de tareas y pendientes para control diario.",tags:["Tareas","Productividad","Gestión"]},
+  {eco:"Operaciones y trazabilidad",icon:"🎫",title:"FaciliDesk — Sistema de Tiquetes",url:"Tiquetes.html",desc:"Sistema profesional de tiquetes para solicitudes, seguimiento técnico, métricas y control operativo.",tags:["Tiquetes","Facilidades","Métricas"]},
+  {eco:"Operaciones y trazabilidad",icon:"📋",title:"Passdown Digital",url:"https://script.google.com/macros/s/AKfycbzuPqYT4c1ABnupU1bWBKy4LyyhQG26JMmmRZIGaa0IytEtiUsx1RmrXHmsA5Oo5DKiRQ/exec",desc:"Sistema de traspaso de información entre turnos para novedades, pendientes e incidencias operativas.",tags:["Passdown","Turnos","Apps Script"]},
+  {eco:"Operaciones y trazabilidad",icon:"📊",title:"Supervisor Tracking — Control de Métricas",url:"Supervisor_tracking.html",desc:"Sistema visual para seguimiento de entregas, cumplimiento y métricas de supervisores con alertas e histórico.",tags:["Supervisión","Dashboard","Métricas"]},
+  {eco:"Operaciones y trazabilidad",icon:"📦",title:"Pedido Mensual Cliente",url:"https://lillianaretana-tech.github.io/Pedido_mensual_cliente/",desc:"Sistema para gestión de pedidos mensuales orientado a clientes, con seguimiento de solicitudes y requerimientos.",tags:["Pedidos","Clientes","Operaciones"]},
+  {eco:"Recursos Humanos y gestión de personas",icon:"🕐",title:"Control de Asistencia",url:"https://lillianaretana-tech.github.io/Control_asistencia_Codex/",desc:"Sistema de control de asistencia con verificación de ubicación GPS para seguimiento de ingreso y salida del personal.",tags:["Asistencia","GPS","RRHH","Supabase"]},
+  {eco:"Seguridad, calidad y cumplimiento",icon:"🛡️",title:"GoodCatches",url:"https://lillianaretana-tech.github.io/GoodCatches/",desc:"Plataforma para gestión de Good Catches, identificación temprana de riesgos y fortalecimiento de cultura preventiva.",tags:["Seguridad","Riesgos","Good Catch","EHS"]},
+  {eco:"Finanzas, cotizadores y negocios",icon:"🏗️",title:"3Rs Cotizador",url:"3Rs Cotizador.html",desc:"Cotizador para remodelaciones y trabajos de construcción.",tags:["Cotización","Construcción","Ventas"]},
+  {eco:"Finanzas, cotizadores y negocios",icon:"🧱",title:"Rommel Pro — Asistente de Obras",url:"Rommel_cotizador_personal.html",desc:"Asistente para presupuestos, materiales y gestión básica de obras.",tags:["Obras","Cotizador","Móvil"]},
+  {eco:"Finanzas, cotizadores y negocios",icon:"🚗",title:"Calculadora de Costos Mecánicos",url:"V5 calculadora_mecanica movil.html",desc:"Calculadora para generar estimaciones de servicios mecánicos en Costa Rica.",tags:["Mecánica","Precios","Costa Rica"]},
+  {eco:"Finanzas, cotizadores y negocios",icon:"💰",title:"Clasificador Automático de Presupuesto",url:"Presupuesto - clasificador automático.html",desc:"Clasifica compras y gastos por categoría para control presupuestario.",tags:["Exactus","CSV","Presupuesto"]},
+  {eco:"Soluciones Empresariales",icon:"🚀",title:"LillyTech Business Planner",url:"https://lillianaretana-tech.github.io/LillyTechbusiness/",desc:"Plataforma inteligente para evaluar ideas de negocio, oportunidades de ingresos y estrategias de crecimiento empresarial.",tags:["Negocios","Emprendimiento","Ingresos","Estrategia"]},
+  {eco:"Academias y capacitación",icon:"🏆",title:"Cleanroom Mastery",url:"https://lillianaretana-tech.github.io/Cleanroom_mastery/",desc:"Academia interactiva para dominio de operaciones en cleanrooms: contaminación, protocolos, seguridad, calidad y desempeño profesional.",tags:["Cleanroom","Mastery","Capacitación","Industria"]},
+  {eco:"Academias y capacitación",icon:"🚦",title:"Simulacro Examen de Licencia",url:"https://lillianaretana-tech.github.io/simulador-licencia-Costa_Rica/",desc:"Práctica interactiva para el examen de licencia de conducir en Costa Rica.",tags:["Licencia","Práctica","Costa Rica"]},
+  {eco:"Academias y capacitación",icon:"👩‍🏫",title:"Asistente Docente",url:"https://script.google.com/macros/s/AKfycbzifMzvQkM_z7webvBW8XRqNS1IPiO52Qx0jp99s9nMEPjdiTcTEAZ1z6ydaKkbRcYT2Q/exec",desc:"Asistente inteligente para docentes con apoyo en planificación, actividades, evaluaciones y organización académica.",tags:["Docentes","Educación","IA"]},
+  {eco:"Academias y capacitación",icon:"🇺🇸",title:"Open AI Tutor",url:"https://open-ai-tutor--lillianaretana.replit.app/",desc:"Tutor interactivo para profesores y estudiantes de inglés con apoyo en práctica, enseñanza y desarrollo del idioma.",tags:["Inglés","Tutor","IA"]},
+  {eco:"Bienestar y uso personal",icon:"📊",title:"App Transformación 360°",url:"App_Transformacion_360.html",desc:"App personal para hábitos, medidas, alimentación, ejercicio y progreso.",tags:["Hábitos","Salud","App"]},
+  {eco:"IA y asistentes inteligentes",icon:"🏠",title:"Lilly — Asistente del Hogar",url:"https://lillianaretana-tech.github.io/Asistente_hogar_LRV/",desc:"Asistente inteligente para hogar, tareas, inglés, recetas y presupuesto familiar.",tags:["IA","Hogar","Asistente"]},
+  {eco:"IA y asistentes inteligentes",icon:"🧠",title:"LillyTech Resource Builder",url:"https://lillianaretana-tech.github.io/Lillytech_resource/",desc:"Asistente estratégica para crear clases, rutas de aprendizaje, contenido, automatizaciones y propuestas listas para usar.",tags:["Recursos","IA","Clases"]},
+  {eco:"Entretenimiento / experiencias",icon:"✨",title:"Tu Brújula Astrológica",url:"https://lillianaretana-tech.github.io/astrologia/",desc:"Experiencia interactiva de orientación astrológica con análisis personalizados, exploración espiritual y autoconocimiento.",tags:["Astrología","Espiritualidad","Experiencia"]}
+];
+const ecoMeta = Object.fromEntries(ECOSYSTEMS.map(e => [e[0], {theme:e[1], icon:e[2], desc:e[3]}]));
+const slideIndex = {};
+const sheets = [];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+const chip = t => `<span class="chip">${esc(t)}</span>`;
+function openButton(t){
+  if(!t.url) return `<span class="btn disabled">Demo no disponible</span>`;
+  return `<a class="btn primary" href="${esc(t.url)}" target="_blank" rel="noopener">Abrir herramienta <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>`;
+}
+function problemOf(t){
+  const specific = {
+    "Portal Limpieza Segura":"El personal necesita consultar químicos, SDS, pictogramas y procedimientos sin buscar documentos dispersos ni depender de memoria.",
+    "SBM Safety Academy":"La cultura de seguridad requiere refuerzo constante, lenguaje claro y capacitación accesible desde cualquier dispositivo.",
+    "Control Gerencial":"La gestión necesita una vista integrada de agenda, proyectos, vencimientos e indicadores para decidir rápido.",
+    "SBM Inventario":"Los suministros pierden trazabilidad cuando el control vive en archivos separados o registros manuales.",
+    "SBM Pedido Mensual":"Los pedidos mensuales consumen tiempo y pueden generar errores, duplicidad o falta de seguimiento.",
+    "IA para el Trabajo Real":"Los equipos necesitan aprender IA con casos prácticos, no teoría desconectada del trabajo diario.",
+    "Wordyssey":"El aprendizaje de inglés requiere constancia, motivación y seguimiento para sostener la práctica.",
+    "FaciliDesk — Sistema de Tiquetes":"Las solicitudes se pierden cuando se administran por mensajes, llamadas o correos dispersos.",
+    "Passdown Digital":"La continuidad entre turnos no debe depender de conversaciones informales.",
+    "GoodCatches":"Los riesgos tempranos necesitan una vía simple para registrarse, analizarse y convertirse en acciones preventivas."
   };
-  return dict[t] || "El proceso requiere orden, trazabilidad y una herramienta práctica que reduzca trabajo manual, errores y dependencia de información dispersa.";
+  return specific[t.title] || "El proceso necesita orden, trazabilidad y una experiencia práctica que reduzca trabajo manual, errores e información dispersa.";
 }
-function valueOf(a){
-  const area=areaOf(a);
-  if(area.includes('Talento')) return ["Acelera la curva de aprendizaje", "Estandariza conocimiento", "Facilita capacitación continua"];
-  if(area.includes('Operaciones')) return ["Reduce trabajo manual", "Mejora trazabilidad", "Aumenta visibilidad operativa"];
-  if(area.includes('Seguridad')) return ["Reduce riesgos", "Estandariza criterios", "Fortalece cumplimiento"];
-  if(area.includes('Humanos')) return ["Ordena información del personal", "Facilita seguimiento", "Apoya decisiones de RRHH"];
-  if(area.includes('Estrategia')) return ["Convierte ideas en planes", "Mejora productividad", "Estructura decisiones"];
-  if(area.includes('Finanzas')) return ["Agiliza estimaciones", "Ordena costos", "Facilita presupuestos"];
-  return ["Mejora seguimiento", "Ordena información", "Facilita decisiones"];
+function valueOf(t){
+  if(t.eco.includes("Academias")) return ["Acelera la curva de aprendizaje","Estandariza conocimiento","Facilita capacitación continua"];
+  if(t.eco.includes("Operaciones")) return ["Reduce trabajo manual","Mejora trazabilidad","Aumenta visibilidad operativa"];
+  if(t.eco.includes("Seguridad")) return ["Reduce riesgos","Fortalece cumplimiento","Estandariza criterios de calidad y seguridad"];
+  if(t.eco.includes("Humanos")) return ["Ordena información del personal","Facilita seguimiento","Apoya decisiones de supervisión y RRHH"];
+  if(t.eco.includes("IA")) return ["Aumenta productividad","Estructura contenido y recursos","Convierte conocimiento en entregables reutilizables"];
+  if(t.eco.includes("Finanzas")) return ["Agiliza estimaciones","Ordena costos","Facilita presupuestos y decisiones comerciales"];
+  return ["Organiza información","Facilita decisiones","Mejora la experiencia de uso"];
 }
-function adaptOf(a){
-  const area=areaOf(a);
-  if(a.titulo.includes('Limpieza')) return ["Facilities", "Hoteles", "Hospitales", "Manufactura", "Laboratorios"];
-  if(area.includes('Talento')) return ["Capacitación corporativa", "Onboarding", "Academias internas", "Equipos operativos"];
-  if(area.includes('Operaciones')) return ["Facilities", "Bodegas", "Mantenimiento", "Producción", "Servicios"];
-  if(area.includes('Seguridad')) return ["EHS", "Calidad", "Operaciones", "Auditoría", "Cumplimiento"];
-  if(area.includes('Humanos')) return ["RRHH", "Supervisión", "Planillas", "Control documental"];
-  if(area.includes('Finanzas')) return ["Ventas", "Compras", "Presupuesto", "Estimaciones"];
-  return ["Empresas", "Equipos administrativos", "Emprendimientos"];
+function toolSlide(t){
+  const meta = ecoMeta[t.eco];
+  return `<div class="slide tool ${meta.theme}">
+    <div class="head"><div class="ico">${t.icon}</div><div class="kicker">${esc(t.eco)}</div><h2>${esc(t.title)}</h2></div>
+    <div class="body">
+      <p class="lead">${esc(t.desc)}</p>
+      <div class="block"><div class="bt">Problema que resuelve</div><p>${esc(problemOf(t))}</p></div>
+      <div class="block"><div class="bt">Valor para la organización</div><ul>${valueOf(t).map(v=>`<li>${esc(v)}</li>`).join("")}</ul></div>
+      <div class="block"><div class="bt">Estado</div><span class="status">${esc(t.status || "Disponible")}</span></div>
+      <div class="block"><div class="bt">Tags / componentes</div><div class="chips">${(t.tags||[]).map(chip).join("")}</div></div>
+      <div class="actions">${openButton(t)}<a class="btn" href="${CONTACT}" target="_blank" rel="noopener">Solicitar información</a></div>
+    </div>
+    <div class="foot"><span class="brand">Lilly<span>Tech</span></span><span class="pg">Catálogo interactivo</span></div>
+  </div>`;
 }
-const chip=t=>`<span class="chip">${t}</span>`;
-const sheets=[];
-sheets.push({cat:"Portafolio",html:`<div class="slide cover"><div class="seal">LT</div><div class="eyebrow">Innovation Portfolio</div><h1>Lilly<span>Tech</span></h1><p class="tagline">Soluciones inteligentes para operaciones, capacitación, seguridad y transformación digital.</p><div class="hint">Pasá la página <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div></div>`});
-sheets.push({cat:"Resumen ejecutivo",html:`<div class="slide exec scroll"><h2>Soluciones para problemas reales</h2><p class="lead">LillyTech nace de una visión práctica: observar procesos reales, identificar fricciones operativas y convertirlas en herramientas digitales simples, útiles y medibles.</p><div class="statement"><strong>No se trata de desarrollar aplicaciones por desarrollar.</strong><p class="lead" style="margin-top:8px;margin-bottom:0">Se trata de mejorar la forma en que las personas trabajan, aprenden, registran información, toman decisiones y dan seguimiento a sus responsabilidades.</p></div><div class="grid2"><div class="mini"><b>Enfoque</b><span>Automatización, IA y diseño de procesos aplicados a necesidades reales.</span></div><div class="mini"><b>Valor</b><span>Menos tiempo manual, menos errores, mayor trazabilidad y conocimiento disponible.</span></div><div class="mini"><b>Diferenciador</b><span>Experiencia operativa, administrativa y técnica integrada en una sola visión.</span></div></div></div>`});
-sheets.push({cat:"Metodología",html:`<div class="slide method scroll"><h2>Metodología de trabajo</h2><p class="lead">Cada solución inicia con una pregunta sencilla: ¿qué proceso está consumiendo tiempo, generando errores o dependiendo demasiado de personas específicas?</p><div class="steps"><div class="step"><i>1</i><div><b>Observar</b><span>Entender cómo se trabaja realmente, no solo cómo debería trabajarse.</span></div></div><div class="step"><i>2</i><div><b>Identificar</b><span>Detectar tareas repetitivas, datos dispersos, duplicidad y puntos de dolor.</span></div></div><div class="step"><i>3</i><div><b>Diseñar</b><span>Convertir el problema en una solución práctica y fácil de adoptar.</span></div></div><div class="step"><i>4</i><div><b>Automatizar</b><span>Usar IA, bases de datos, formularios, reportes y flujos digitales.</span></div></div><div class="step"><i>5</i><div><b>Medir</b><span>Documentar tiempo ahorrado, errores reducidos y valor generado.</span></div></div></div></div>`});
-sheets.push({cat:"Impacto",html:`<div class="slide exec scroll"><h2>Impacto que se puede medir</h2><p class="lead">Para presentar una solución a nivel ejecutivo, cada herramienta puede documentarse con indicadores antes y después.</p><div class="grid2"><div class="mini"><b>Tiempo</b><span>Horas reducidas en tareas manuales, reportes, consultas o consolidación.</span></div><div class="mini"><b>Calidad</b><span>Disminución de errores, omisiones, reprocesos y criterios no estandarizados.</span></div><div class="mini"><b>Conocimiento</b><span>Información crítica disponible para colaboradores, supervisores y líderes.</span></div><div class="mini"><b>Trazabilidad</b><span>Registros, evidencias, históricos y datos listos para revisión o auditoría.</span></div></div><div class="statement"><strong>Objetivo ejecutivo</strong><p class="lead" style="margin-top:8px;margin-bottom:0">Pasar de herramientas aisladas a un ecosistema de innovación operativa con impacto visible en productividad, capacitación y control.</p></div></div>`});
-const areas=Object.keys(BUSINESS);
-const catStart={};
-sheets.push({cat:"Índice",html:`<div class="slide toc"><h2>Áreas de solución</h2><div class="sub">${APPS.length} herramientas organizadas por problema de negocio. Tocá una categoría para saltar.</div><ul>${areas.map(a=>{const n=APPS.filter(x=>areaOf(x)===a).length;return `<li data-cat="${a}"><div class="tico">${BUSINESS[a].ico}</div><div><b>${a}</b><small>${BUSINESS[a].desc}</small></div><div class="n">${n}</div></li>`;}).join('')}</ul></div>`});
-areas.forEach(area=>{
-  const items=APPS.filter(a=>areaOf(a)===area); if(!items.length) return;
-  catStart[area]=sheets.length;
-  const b=BUSINESS[area];
-  sheets.push({cat:area,html:`<div class="slide divider ${b.theme}"><div class="dico">${b.ico}</div><div class="eyebrow">Área de solución</div><h2>${area}</h2><div class="cnt">${b.desc}<br>${items.length} herramienta${items.length>1?'s':''}</div></div>`});
-  items.forEach(a=>{
-    const b=BUSINESS[area]; const vals=valueOf(a); const ad=adaptOf(a);
-    sheets.push({cat:area,html:`<div class="slide ${b.theme}"><div class="cphead"><div class="ico">${a.ico}</div><div class="kicker">${area}</div><h2>${a.titulo}</h2></div><div class="cpbody"><p class="lead">${a.desc}</p><div class="block"><div class="bt">Problema que resuelve</div><p>${problemOf(a)}</p></div><div class="block"><div class="bt">Valor para la organización</div><ul>${vals.map(v=>`<li>${v}</li>`).join('')}</ul></div><div class="block"><div class="bt">Puede adaptarse a</div><div class="chips">${ad.map(chip).join('')}</div></div><div class="block"><div class="bt">Componentes</div><div class="chips">${(a.tags||[]).map(chip).join('')}</div></div></div><div class="cpfoot"><span class="brand">Lilly<span>Tech</span></span><span class="pg">Solución adaptable</span></div></div>`});
-  });
+function addSheet(cat, html){sheets.push({cat, html});}
+addSheet("Portada", `<div class="slide cover"><div class="seal">LT</div><div class="eyebrow">Interactive Catalog</div><h1>Lilly<span>Tech</span></h1><p class="tagline">Un ecosistema premium de soluciones digitales para presentar, compartir y abrir herramientas desde un solo lugar.</p><div class="hint">Pasá la página <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div></div>`);
+addSheet("Resumen ejecutivo", `<div class="slide page scroll"><h2>Soluciones para trabajo real</h2><p class="lead">LillyTech organiza herramientas, academias, asistentes IA y controles operativos en una experiencia ejecutiva navegable. El catálogo funciona como vitrina profesional y como acceso directo a cada solución.</p><div class="statement"><strong>De portal a presentación viva.</strong><p class="lead muted" style="margin-top:8px">La información actualizada del portal se combina con una estética tipo revista para mostrar valor, problema resuelto y botones funcionales.</p></div><div class="grid2"><div class="mini"><b>${tools.length} herramientas</b><span>Organizadas por ecosistema, con enlaces reales y fichas individuales.</span></div><div class="mini"><b>${ECOSYSTEMS.length} ecosistemas</b><span>Desde operaciones y seguridad hasta IA, finanzas, capacitación y bienestar.</span></div><div class="mini"><b>Uso comercial</b><span>Listo para presentar soluciones, compartir con clientes y reemplazar listados simples.</span></div></div></div>`);
+addSheet("Metodología", `<div class="slide page method scroll"><h2>Metodología</h2><p class="lead">Cada herramienta parte de una fricción real: tareas repetitivas, información dispersa, reportes manuales, capacitación difícil de sostener o procesos sin trazabilidad.</p><div class="step"><i>1</i><div><b>Observar</b><span>Entender cómo se trabaja realmente y qué bloquea la adopción.</span></div></div><div class="step"><i>2</i><div><b>Diseñar</b><span>Convertir el problema en una experiencia simple, clara y móvil.</span></div></div><div class="step"><i>3</i><div><b>Automatizar</b><span>Usar datos, formularios, IA, reportes y flujos digitales donde aportan valor.</span></div></div><div class="step"><i>4</i><div><b>Medir</b><span>Documentar tiempo ahorrado, errores reducidos y control ganado.</span></div></div></div>`);
+addSheet("Destacados", `<div class="slide featured"><h2>Proyectos destacados</h2><p class="lead muted">Accesos de alto impacto para iniciar la presentación.</p><div class="feature-grid">${tools.filter(t=>t.featured).map(t=>`<div class="feature" data-tool="${esc(t.title)}"><div class="ico">${t.icon}</div><div><b>${esc(t.title)}</b><span>${esc(t.eco)}</span></div></div>`).join("")}</div></div>`);
+addSheet("Índice", `<div class="slide toc"><h2>Índice interactivo</h2><div class="sub">Tocá un ecosistema para saltar a su divisor, o buscá una herramienta para ir directo a su slide.</div><div class="search"><input id="catalogSearch" type="search" placeholder="Buscar herramienta, tag o ecosistema"><button type="button" data-clear>×</button></div><ul class="toc-list" id="catalogResults">${ECOSYSTEMS.map(e=>{const n=tools.filter(t=>t.eco===e[0]).length;return `<li class="toc-item" data-eco="${esc(e[0])}"><div class="toc-ico">${e[2]}</div><div><b>${esc(e[0])}</b><small>${esc(e[3])}</small></div><div class="toc-count">${n}</div></li>`}).join("")}</ul></div>`);
+ECOSYSTEMS.forEach(([name,theme,icon,desc]) => {
+  const items = tools.filter(t => t.eco === name);
+  if(!items.length) return;
+  slideIndex[name] = sheets.length;
+  addSheet(name, `<div class="slide divider ${theme}"><div class="dico">${icon}</div><div class="eyebrow">Ecosistema</div><h2>${esc(name)}</h2><div class="cnt">${esc(desc)}<br>${items.length} herramienta${items.length>1?"s":""}</div></div>`);
+  items.forEach(t => {slideIndex[t.title] = sheets.length; addSheet(name, toolSlide(t));});
 });
-sheets.push({cat:"Casos de impacto",html:`<div class="slide exec scroll"><h2>Casos de impacto por documentar</h2><p class="lead">Esta sección está pensada para completar con datos reales conforme se midan los procesos.</p><div class="grid2"><div class="mini"><b>Bitácoras y formatos</b><span>Automatización de fechas, áreas y ubicaciones para reducir edición manual repetitiva.</span></div><div class="mini"><b>Consultas del personal</b><span>Información operativa y de seguridad disponible desde el celular para disminuir dudas recurrentes.</span></div><div class="mini"><b>Pedidos e inventario</b><span>Mayor control de consumos, requerimientos, movimientos y reportes.</span></div><div class="mini"><b>Capacitación</b><span>Programas digitales para acelerar inducción, reforzar estándares y conservar conocimiento.</span></div></div><div class="statement"><strong>Próximo paso recomendado</strong><p class="lead" style="margin-top:8px;margin-bottom:0">Seleccionar 3 procesos piloto, medir el antes y después, y convertir los resultados en un caso de negocio.</p></div></div>`});
-sheets.push({cat:"Cierre",html:`<div class="slide backcover"><div class="seal">LT</div><h2>Transformar procesos. Potenciar personas.</h2><p>El siguiente paso es identificar los procesos con mayor impacto, priorizar pilotos y medir resultados.</p><a class="wa" href="https://wa.me/${WHATSAPP}?text=${encodeURIComponent('Hola, vi el portafolio de LillyTech y quiero conversar sobre una solución.')}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 0 1 8.413 3.488 11.824 11.824 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24z"/></svg>Solicitar conversación</a></div>`});
-
-const N=sheets.length; let current=0;
-const stage=document.getElementById('stage'), prevBtn=document.getElementById('prev'), nextBtn=document.getElementById('next'), metaCat=document.getElementById('metaCat'), metaNum=document.getElementById('metaNum'), barFill=document.getElementById('barFill');
-const BOOK=window.matchMedia('(min-width:1024px) and (pointer:fine)').matches; let renderFn;
-function commonMeta(){metaCat.textContent=sheets[current].cat;metaNum.textContent=(current+1)+' / '+N;barFill.style.width=(current/(N-1)*100)+'%';prevBtn.disabled=current===0;nextBtn.disabled=current===N-1;}
-function next(){if(current<N-1){current++;renderFn();}} function prev(){if(current>0){current--;renderFn();}} function goCat(c){if(catStart[c]!=null){current=catStart[c];renderFn();}}
-nextBtn.onclick=next; prevBtn.onclick=prev; document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')next(); if(e.key==='ArrowLeft')prev();});
-if(BOOK){
-  const book=document.createElement('div'); book.className='book'; stage.insertBefore(book,stage.firstChild); const pages=[];
-  sheets.forEach((s,i)=>{const el=document.createElement('div'); el.className='page'; el.innerHTML=s.html; el.style.zIndex=N-i; book.appendChild(el); pages.push(el);});
-  renderFn=function(){pages.forEach((el,i)=>{if(i<current){el.style.transform='rotateY(-178deg) translateZ('+(i*.5)+'px)';el.style.zIndex=i;}else{el.style.transform='translateZ('+(-(i-current)*.6)+'px)';el.style.zIndex=N-i;}});commonMeta();};
-  book.addEventListener('click',e=>{const li=e.target.closest('li[data-cat]'); if(li){goCat(li.getAttribute('data-cat'));return;} if(e.target.closest('a')||e.target.closest('.toc')||e.target.closest('.scroll'))return; const r=book.getBoundingClientRect(); e.clientX>r.left+r.width/2?next():prev();});
-} else {
-  const vp=document.createElement('div'); vp.className='viewport'; const track=document.createElement('div'); track.className='track'; track.innerHTML=sheets.map(s=>s.html).join(''); vp.appendChild(track); stage.insertBefore(vp,stage.firstChild);
-  renderFn=function(){track.style.transform='translateX(-'+(current*100)+'%)'; commonMeta();};
-  track.addEventListener('click',e=>{const li=e.target.closest('li[data-cat]'); if(li){goCat(li.getAttribute('data-cat'));return;} if(e.target.closest('a')||e.target.closest('.toc')||e.target.closest('.scroll'))return; const r=track.getBoundingClientRect(); e.clientX>r.left+r.width/2?next():prev();});
-  let sx=0,sy=0,moved=false; vp.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;moved=false;},{passive:true}); vp.addEventListener('touchmove',()=>{moved=true;},{passive:true}); vp.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(moved&&Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();}});
+addSheet("Cierre", `<div class="slide backcover"><div class="seal">LT</div><h2>Transformar procesos. Potenciar personas.</h2><p>Agenda una conversación para priorizar pilotos, adaptar soluciones y medir impacto.</p><div class="contact"><a class="btn wa" href="${CONTACT}" target="_blank" rel="noopener">WhatsApp ${WHATSAPP}</a><a class="btn mail" href="mailto:${EMAIL}" target="_blank" rel="noopener">${EMAIL}</a></div></div>`);
+const track = document.getElementById("track"), prevBtn = document.getElementById("prev"), nextBtn = document.getElementById("next"), metaCat = document.getElementById("metaCat"), metaNum = document.getElementById("metaNum"), barFill = document.getElementById("barFill"), viewport = document.getElementById("viewport");
+let current = 0;
+track.innerHTML = sheets.map(s => s.html).join("");
+function render(){
+  track.style.transform = `translateX(-${current * 100}%)`;
+  metaCat.textContent = sheets[current].cat;
+  metaNum.textContent = `${current + 1} / ${sheets.length}`;
+  barFill.style.width = `${current / (sheets.length - 1) * 100}%`;
+  prevBtn.disabled = current === 0;
+  nextBtn.disabled = current === sheets.length - 1;
 }
-renderFn();
+function goTo(key){if(slideIndex[key] != null){current = slideIndex[key]; render();}}
+function next(){if(current < sheets.length - 1){current++; render();}}
+function prev(){if(current > 0){current--; render();}}
+prevBtn.onclick = prev; nextBtn.onclick = next;
+document.addEventListener("keydown", e => {if(e.key === "ArrowRight") next(); if(e.key === "ArrowLeft") prev();});
+track.addEventListener("click", e => {
+  const tool = e.target.closest("[data-tool]"), eco = e.target.closest("[data-eco]");
+  if(tool){goTo(tool.getAttribute("data-tool")); return;}
+  if(eco){goTo(eco.getAttribute("data-eco")); return;}
+  if(e.target.closest("a, input, button, .scroll, .toc")) return;
+  const r = viewport.getBoundingClientRect();
+  e.clientX > r.left + r.width / 2 ? next() : prev();
+});
+track.addEventListener("input", e => {
+  if(e.target.id !== "catalogSearch") return;
+  const q = e.target.value.trim().toLowerCase();
+  const list = document.getElementById("catalogResults");
+  const data = q ? tools.filter(t => [t.title,t.eco,t.desc,...t.tags].join(" ").toLowerCase().includes(q)) : null;
+  list.innerHTML = data ? data.map(t => `<li class="toc-item" data-tool="${esc(t.title)}"><div class="toc-ico">${t.icon}</div><div><b>${esc(t.title)}</b><small>${esc(t.eco)}</small></div></li>`).join("") || `<li class="toc-item"><div><b>Sin resultados</b><small>Probá con otro término.</small></div></li>` : ECOSYSTEMS.map(e => {const n=tools.filter(t=>t.eco===e[0]).length;return `<li class="toc-item" data-eco="${esc(e[0])}"><div class="toc-ico">${e[2]}</div><div><b>${esc(e[0])}</b><small>${esc(e[3])}</small></div><div class="toc-count">${n}</div></li>`}).join("");
+});
+track.addEventListener("click", e => {
+  if(!e.target.matches("[data-clear]")) return;
+  const input = document.getElementById("catalogSearch");
+  if(input){input.value=""; input.dispatchEvent(new Event("input",{bubbles:true})); input.focus();}
+});
+let sx = 0, sy = 0, moved = false;
+viewport.addEventListener("touchstart", e => {sx=e.touches[0].clientX; sy=e.touches[0].clientY; moved=false;}, {passive:true});
+viewport.addEventListener("touchmove", () => {moved=true;}, {passive:true});
+viewport.addEventListener("touchend", e => {
+  const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+  if(moved && Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)){dx < 0 ? next() : prev();}
+});
+render();
 </script>
 </body>
 </html>
