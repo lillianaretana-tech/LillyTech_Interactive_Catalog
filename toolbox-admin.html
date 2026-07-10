@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#101421">
+<title>LillyTech Toolbox Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650;9..144,750&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="toolbox.css">
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script defer src="toolbox-admin.js"></script>
+</head>
+<body class="toolbox-admin-page">
+  <main class="toolbox-admin-shell">
+    <header class="toolbox-admin-head">
+      <div>
+        <h1>🧰 LillyTech Toolbox Admin</h1>
+        <p>Gestión de microherramientas, adopción e interesados conectada a Supabase Auth.</p>
+      </div>
+      <button class="btn" id="logoutBtn" type="button" hidden>Cerrar sesión</button>
+    </header>
+    <section class="toolbox-admin-main">
+      <div class="toolbox-admin-message" id="adminMessage">Cargando panel...</div>
+
+      <form class="toolbox-login" id="loginForm" hidden>
+        <div class="toolbox-field"><label>Email</label><input id="loginEmail" type="email" autocomplete="email" required></div>
+        <div class="toolbox-field"><label>Contraseña</label><input id="loginPassword" type="password" autocomplete="current-password" required></div>
+        <button class="primary" type="submit">Iniciar sesión</button>
+      </form>
+
+      <section id="adminApp" hidden>
+        <nav class="toolbox-tabs" aria-label="Secciones admin">
+          <button type="button" class="active" data-tab="dashboard">Dashboard</button>
+          <button type="button" data-tab="tools">Herramientas</button>
+          <button type="button" data-tab="adoption">Adopción</button>
+          <button type="button" data-tab="needs">Necesidades</button>
+        </nav>
+
+        <section id="tab-dashboard">
+          <div class="toolbox-form-grid" style="margin-bottom:12px">
+            <div class="toolbox-field"><label>Nombre</label><input id="filterName" type="search"></div>
+            <div class="toolbox-field"><label>Categoría</label><input id="filterCategory" type="search"></div>
+            <div class="toolbox-field"><label>Estado</label><input id="filterStatus" type="search"></div>
+            <div class="toolbox-field"><label>Proyecto</label><input id="filterProject" type="search"></div>
+            <div class="toolbox-field"><label>Organización</label><input id="filterOrganization" type="search"></div>
+            <div class="toolbox-field"><label>Área de negocio</label><input id="filterArea" type="search"></div>
+            <div class="toolbox-field"><label>Responsable</label><input id="filterOwner" type="search"></div>
+          </div>
+          <div class="toolbox-dashboard" id="dashboardCards"></div>
+          <div class="toolbox-admin-list" id="topAdopted"></div>
+        </section>
+
+        <section id="tab-tools" hidden>
+          <div class="toolbox-admin-grid">
+            <form class="toolbox-form" id="toolForm">
+              <input id="toolId" type="hidden">
+              <div class="toolbox-form-grid">
+                <div class="toolbox-field"><label>Nombre</label><input id="toolName" required></div>
+                <div class="toolbox-field"><label>URL</label><input id="toolUrl" type="url" placeholder="https://..."></div>
+                <div class="toolbox-field"><label>Icono</label><input id="toolIcon" value="🧰"></div>
+                <div class="toolbox-field"><label>Categoría</label><input id="toolCategory" value="Utilidad"></div>
+                <div class="toolbox-field"><label>Etiquetas</label><input id="toolTags" placeholder="tag 1, tag 2"></div>
+                <div class="toolbox-field"><label>Estado</label><select id="toolStatus"></select></div>
+                <div class="toolbox-field"><label>Área de negocio</label><input id="toolArea"></div>
+                <div class="toolbox-field"><label>Responsable</label><input id="toolOwner"></div>
+                <div class="toolbox-field"><label>Versión</label><input id="toolVersion"></div>
+                <div class="toolbox-field"><label>Orden</label><input id="toolOrder" type="number" value="0"></div>
+              </div>
+              <div class="toolbox-field"><label>Descripción</label><textarea id="toolDescription" required></textarea></div>
+              <div class="toolbox-field"><label>Problema que resuelve</label><textarea id="toolProblem"></textarea></div>
+              <div class="toolbox-field"><label>Impacto esperado</label><textarea id="toolImpact"></textarea></div>
+              <div class="toolbox-field"><label>Quién la necesita</label><textarea id="toolTarget"></textarea></div>
+              <div class="toolbox-field"><label>Quién podría necesitarla</label><textarea id="toolPotential"></textarea></div>
+              <div class="toolbox-field"><label>Tecnologías</label><input id="toolTech" placeholder="HTML, Supabase, Apps Script"></div>
+              <div class="toolbox-field"><label>Notas</label><textarea id="toolNotes"></textarea></div>
+              <label class="toolbox-check"><input id="toolActive" type="checkbox" checked> Activa</label>
+              <label class="toolbox-check"><input id="toolFeatured" type="checkbox"> Destacada</label>
+              <div class="toolbox-admin-actions">
+                <button class="primary" type="submit">Guardar herramienta</button>
+                <button type="button" id="resetToolForm">Nueva</button>
+                <button type="button" id="exportTools">Exportar CSV</button>
+              </div>
+            </form>
+            <div class="toolbox-admin-list" id="toolList"></div>
+          </div>
+        </section>
+
+        <section id="tab-adoption" hidden>
+          <div class="toolbox-admin-grid">
+            <form class="toolbox-form" id="adoptionForm">
+              <input id="adoptionId" type="hidden">
+              <div class="toolbox-form-grid">
+                <div class="toolbox-field"><label>Herramienta</label><select id="adoptionTool" required></select></div>
+                <div class="toolbox-field"><label>Organización</label><input id="adoptionOrg"></div>
+                <div class="toolbox-field"><label>Proyecto o site</label><input id="adoptionProject"></div>
+                <div class="toolbox-field"><label>Departamento</label><input id="adoptionDepartment"></div>
+                <div class="toolbox-field"><label>Responsable</label><input id="adoptionResponsible"></div>
+                <div class="toolbox-field"><label>Estado de uso</label><input id="adoptionStatus"></div>
+                <div class="toolbox-field"><label>Usuarios estimados</label><input id="adoptionUsers" type="number"></div>
+                <div class="toolbox-field"><label>Fecha de inicio</label><input id="adoptionStart" type="date"></div>
+              </div>
+              <div class="toolbox-field"><label>Notas</label><textarea id="adoptionNotes"></textarea></div>
+              <label class="toolbox-check"><input id="adoptionActive" type="checkbox" checked> Activo</label>
+              <div class="toolbox-admin-actions">
+                <button class="primary" type="submit">Guardar adopción</button>
+                <button type="button" id="resetAdoptionForm">Nueva</button>
+                <button type="button" id="exportAdoption">Exportar CSV</button>
+              </div>
+            </form>
+            <div class="toolbox-admin-list" id="adoptionList"></div>
+          </div>
+        </section>
+
+        <section id="tab-needs" hidden>
+          <div class="toolbox-admin-grid">
+            <form class="toolbox-form" id="needForm">
+              <input id="needId" type="hidden">
+              <div class="toolbox-form-grid">
+                <div class="toolbox-field"><label>Herramienta</label><select id="needTool" required></select></div>
+                <div class="toolbox-field"><label>Organización</label><input id="needOrg"></div>
+                <div class="toolbox-field"><label>Proyecto o site</label><input id="needProject"></div>
+                <div class="toolbox-field"><label>Departamento</label><input id="needDepartment"></div>
+                <div class="toolbox-field"><label>Persona de contacto</label><input id="needContact"></div>
+                <div class="toolbox-field"><label>Nivel de necesidad</label><input id="needLevel"></div>
+                <div class="toolbox-field"><label>Estado del seguimiento</label><input id="needStatus"></div>
+              </div>
+              <div class="toolbox-field"><label>Notas</label><textarea id="needNotes"></textarea></div>
+              <div class="toolbox-admin-actions">
+                <button class="primary" type="submit">Guardar necesidad</button>
+                <button type="button" id="resetNeedForm">Nueva</button>
+                <button type="button" id="exportNeeds">Exportar CSV</button>
+              </div>
+            </form>
+            <div class="toolbox-admin-list" id="needList"></div>
+          </div>
+        </section>
+      </section>
+    </section>
+  </main>
+</body>
+</html>
