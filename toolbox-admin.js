@@ -20,8 +20,11 @@
   function message(text, isError){
     const node = $("adminMessage");
     if(!node) return;
-    node.textContent = text;
-    node.style.color = isError ? "#b94f3f" : "";
+    const friendly = String(text || "").includes("Invalid login credentials")
+      ? "No se pudo iniciar sesión. Revisá que el usuario exista en Supabase Auth, que la contraseña sea correcta y que ese usuario esté agregado en toolbox_admins."
+      : text;
+    node.textContent = friendly;
+    node.classList.toggle("is-error", !!isError);
   }
 
   async function guarded(button, task){
