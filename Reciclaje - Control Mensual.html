@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control de Reciclaje · Mensual</title>
+<style>
+  :root{
+    --verde:#10b981; --verde-osc:#047857; --verde-prof:#065f46;
+    --verde-claro:#d1fae5; --verde-bg:#f0fdf4;
+    --gris:#6b7280; --gris-osc:#374151; --gris-bord:#d1d5db;
+    --rojo:#ef4444; --azul:#3b82f6; --ambar:#f59e0b;
+    --sombra:0 4px 12px rgba(0,0,0,.08);
+    --r:14px;
+    --fs-base:17px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+    background:linear-gradient(135deg,var(--verde-bg) 0%,var(--verde-claro) 100%);
+    min-height:100vh; padding:18px; color:var(--gris-osc);
+    font-size:var(--fs-base); line-height:1.45;
+  }
+  .container{max-width:1280px;margin:0 auto}
+  .card{background:#fff;border-radius:var(--r);box-shadow:var(--sombra);padding:24px;margin-bottom:20px}
+
+  /* Header */
+  .header{display:flex;align-items:center;gap:18px}
+  .header-icon{width:58px;height:58px;background:var(--verde);border-radius:14px;
+    display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0}
+  .header h1{color:var(--verde-osc);font-size:30px;line-height:1.1}
+  .header p{color:var(--gris);font-size:17px;margin-top:4px}
+
+  /* Selectores sitio + mes */
+  .meta-grid{display:grid;grid-template-columns:2fr 1fr 1.5fr;gap:16px}
+  .field label{display:block;font-size:15px;font-weight:700;color:var(--gris-osc);margin-bottom:7px}
+  .field input,.field select{width:100%;padding:13px;border:2px solid var(--gris-bord);
+    border-radius:9px;font-size:17px;background:#fff;transition:border-color .2s}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--verde);
+    box-shadow:0 0 0 3px rgba(16,185,129,.12)}
+
+  /* Dashboard */
+  .dash{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}
+  .kpi{background:#fff;border-radius:var(--r);box-shadow:var(--sombra);padding:20px;text-align:center}
+  .kpi .icono{font-size:26px}
+  .kpi .num{font-size:34px;font-weight:800;color:var(--verde-osc);margin:6px 0;line-height:1}
+  .kpi .lbl{font-size:14px;color:var(--gris);font-weight:600}
+  .kpi.destacado{background:var(--verde-osc)}
+  .kpi.destacado .num,.kpi.destacado .lbl,.kpi.destacado .icono{color:#fff}
+  .kpi.destacado .lbl{color:#a7f3d0}
+
+  /* Gráfica de composición */
+  .grafica h3{font-size:19px;color:var(--gris-osc);margin-bottom:18px}
+  .barra-row{display:flex;align-items:center;gap:12px;margin-bottom:11px}
+  .barra-lbl{flex:0 0 160px;font-size:15px;font-weight:600;display:flex;align-items:center;gap:7px}
+  .barra-track{flex:1;background:#f3f4f6;border-radius:7px;height:26px;overflow:hidden;position:relative}
+  .barra-fill{height:100%;border-radius:7px;transition:width .5s ease;min-width:2px}
+  .barra-val{flex:0 0 110px;text-align:right;font-size:15px;font-weight:700;color:var(--gris-osc)}
+  .grafica-vacia{text-align:center;color:var(--gris);padding:30px 0;font-size:16px}
+
+  /* Registros */
+  .reg-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+  .reg-head h2{color:var(--gris-osc);font-size:20px;display:flex;align-items:center;gap:9px}
+  .btn-x{background:var(--rojo);color:#fff;border:none;padding:9px 15px;border-radius:8px;
+    cursor:pointer;font-size:14px;font-weight:600;transition:background .2s}
+  .btn-x:hover{background:#dc2626}
+  .fecha-section{margin-bottom:18px}
+  .fecha-section label{display:block;font-size:15px;font-weight:600;margin-bottom:6px}
+  .fecha-section input{width:100%;max-width:280px;padding:12px;border:2px solid var(--gris-bord);
+    border-radius:8px;font-size:17px}
+  .fecha-section input:focus{outline:none;border-color:var(--verde)}
+
+  .pesos-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:18px}
+  .peso-item{padding:15px;border-radius:10px}
+  .peso-item label{display:block;font-size:15px;font-weight:700;margin-bottom:9px}
+  .peso-item input{width:100%;padding:12px;border:1px solid var(--gris-bord);border-radius:8px;
+    font-size:18px;font-weight:600;background:rgba(255,255,255,.75)}
+  .peso-item input:focus{outline:none;border-color:var(--verde);background:#fff}
+
+  .peso-item.basura{background:#fee2e2} .peso-item.basura label{color:#991b1b}
+  .peso-item.coprocesamiento{background:#fef3c7} .peso-item.coprocesamiento label{color:#92400e}
+  .peso-item.plastico{background:#e0e7ff} .peso-item.plastico label{color:#3730a3}
+  .peso-item.papel{background:#dbeafe} .peso-item.papel label{color:#1e40af}
+  .peso-item.toallas{background:#fce7f3} .peso-item.toallas label{color:#9f1239}
+  .peso-item.carton{background:#fed7aa} .peso-item.carton label{color:#9a3412}
+  .peso-item.aluminio{background:#e5e7eb} .peso-item.aluminio label{color:#374151}
+  .peso-item.tetrabrick{background:#ddd6fe} .peso-item.tetrabrick label{color:#5b21b6}
+  .peso-item.vidrio{background:#cffafe} .peso-item.vidrio label{color:#164e63}
+  .peso-item.otros{background:#d1fae5} .peso-item.otros label{color:#065f46}
+  .peso-item.total{background:var(--verde-claro);border:2px solid var(--verde);
+    display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+  .peso-item.total .lbl{font-size:13px;color:var(--verde-prof);font-weight:600}
+  .peso-item.total .val{font-size:26px;font-weight:800;color:var(--verde-osc)}
+
+  .obs-section label{display:block;font-size:15px;font-weight:600;margin-bottom:6px}
+  .obs-section textarea{width:100%;padding:12px;border:1px solid var(--gris-bord);border-radius:8px;
+    font-size:16px;font-family:inherit;resize:vertical}
+  .obs-section textarea:focus{outline:none;border-color:var(--verde)}
+
+  /* Botones */
+  .acciones{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:20px}
+  .btn{padding:16px 22px;border:none;border-radius:10px;font-size:17px;font-weight:700;cursor:pointer;
+    transition:transform .1s,background .2s;display:flex;align-items:center;justify-content:center;gap:9px}
+  .btn:active{transform:scale(.98)}
+  .btn-add{background:var(--verde);color:#fff} .btn-add:hover{background:#059669}
+  .btn-csv{background:var(--azul);color:#fff} .btn-csv:hover{background:#2563eb}
+  .btn-print{background:var(--verde-prof);color:#fff} .btn-print:hover{background:#064e3b}
+  .btn-clean{background:var(--gris);color:#fff} .btn-clean:hover{background:#4b5563}
+
+  /* Aviso guardado */
+  .saved-tag{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--verde-osc);
+    font-weight:600;background:var(--verde-claro);padding:6px 12px;border-radius:20px}
+
+  .instrucciones{background:#eff6ff;border:2px solid #bfdbfe;border-radius:var(--r);padding:22px}
+  .instrucciones h3{color:#1e40af;font-size:18px;margin-bottom:12px}
+  .instrucciones ol{color:#1e3a8a;padding-left:22px}
+  .instrucciones li{margin-bottom:9px;line-height:1.55}
+
+  /* Tabs */
+  .tabs{display:flex;gap:10px;margin-bottom:20px}
+  .tab{flex:1;padding:15px;border:none;border-radius:12px;font-size:17px;font-weight:700;
+    cursor:pointer;background:#fff;color:var(--gris);box-shadow:var(--sombra);transition:all .2s}
+  .tab.activo{background:var(--verde-osc);color:#fff}
+
+  /* Tabla anual */
+  .tabla-wrap{overflow-x:auto}
+  table.anual{width:100%;border-collapse:collapse;font-size:15px;min-width:780px}
+  table.anual th,table.anual td{padding:11px 9px;text-align:right;border-bottom:1px solid #eef2f7;white-space:nowrap}
+  table.anual th:first-child,table.anual td:first-child{text-align:left;font-weight:700}
+  table.anual thead th{background:var(--verde-osc);color:#fff;font-size:13px}
+  table.anual tbody tr:hover{background:#f0fdf4}
+  table.anual tr.total-anual{background:var(--verde-claro);font-weight:800}
+  table.anual tr.total-anual td{border-top:2px solid var(--verde)}
+  .tasa-cell{font-weight:800;color:var(--verde-osc)}
+
+  /* Tendencia */
+  .tend h3{font-size:19px;color:var(--gris-osc);margin-bottom:18px}
+  .tend-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+  .tend-lbl{flex:0 0 80px;font-size:15px;font-weight:600}
+  .tend-track{flex:1;background:#f3f4f6;border-radius:7px;height:24px;overflow:hidden}
+  .tend-fill{height:100%;background:var(--verde);border-radius:7px;transition:width .5s}
+  .tend-val{flex:0 0 60px;text-align:right;font-weight:700}
+  .vacio-anual{text-align:center;color:var(--gris);padding:36px 12px;font-size:16px;line-height:1.6}
+
+  @media (max-width:768px){
+    body{padding:12px;font-size:16px}
+    .tabs{flex-direction:column}
+    .meta-grid{grid-template-columns:1fr}
+    .pesos-grid{grid-template-columns:repeat(2,1fr)}
+    .header{flex-direction:column;text-align:center}
+    .barra-lbl{flex:0 0 120px;font-size:13px}
+    .barra-val{flex:0 0 84px;font-size:13px}
+    .header h1{font-size:25px}
+  }
+
+  @media print{
+    body{background:#fff;padding:0}
+    .acciones,.instrucciones,.btn-x,.field input,.field select{display:none!important}
+    .card{box-shadow:none;border:1px solid #e5e7eb;break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="card header">
+    <div class="header-icon">♻️</div>
+    <div>
+      <h1>Control de Reciclaje</h1>
+      <p>Registro mensual de materiales por sitio · guardado automático</p>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab activo" id="tab-mensual" onclick="mostrarVista('mensual')">📝 Captura mensual</button>
+    <button class="tab" id="tab-anual" onclick="mostrarVista('anual')">📅 Consolidado anual</button>
+  </div>
+
+  <!-- ============ VISTA MENSUAL ============ -->
+  <div id="vista-mensual">
+
+  <!-- Sitio + Mes + Responsable -->
+  <div class="card">
+    <div class="meta-grid">
+      <div class="field">
+        <label>📍 Sitio / Proyecto</label>
+        <input type="text" id="sitio" list="sitios-lista" placeholder="Ej: Bayer, DXC, UBER…"
+               oninput="cambiarContexto()">
+        <datalist id="sitios-lista"></datalist>
+      </div>
+      <div class="field">
+        <label>📅 Mes</label>
+        <input type="month" id="mes" oninput="cambiarContexto()">
+      </div>
+      <div class="field">
+        <label>👤 Responsable</label>
+        <input type="text" id="responsable" placeholder="Quién registra" oninput="guardar()">
+      </div>
+    </div>
+    <div style="margin-top:14px"><span class="saved-tag" id="saved-tag">💾 Guardado automático activo</span></div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="dash" id="dash"></div>
+
+  <!-- Gráfica de composición -->
+  <div class="card grafica">
+    <h3>📊 Composición del mes (por material)</h3>
+    <div id="grafica-body"></div>
+  </div>
+
+  <!-- Registros -->
+  <div id="registros-container"></div>
+
+  <!-- Acciones -->
+  <div class="acciones">
+    <button class="btn btn-add" onclick="agregarRegistro()">➕ Agregar pesaje</button>
+    <button class="btn btn-csv" onclick="exportarCSV()">💾 Exportar CSV</button>
+    <button class="btn btn-print" onclick="window.print()">🖨️ Imprimir / PDF</button>
+    <button class="btn btn-clean" onclick="limpiarMes()">🗑️ Limpiar mes</button>
+  </div>
+
+  <!-- Instrucciones -->
+  <div class="instrucciones">
+    <h3>📌 Cómo usar</h3>
+    <ol>
+      <li>Elegí el <strong>sitio</strong> y el <strong>mes</strong>. Cada combinación guarda sus propios datos por separado.</li>
+      <li>Registrá los pesajes en kilogramos. El total y el dashboard se actualizan solos.</li>
+      <li>Todo se guarda automáticamente en este dispositivo (no perdés nada al recargar).</li>
+      <li>La <strong>tasa de desviación</strong> es el % que NO va al relleno sanitario — el indicador clave para el cliente.</li>
+      <li>Al cerrar el mes, exportá el CSV o imprimí en PDF para el reporte.</li>
+    </ol>
+  </div>
+
+  </div><!-- /vista-mensual -->
+
+  <!-- ============ VISTA ANUAL ============ -->
+  <div id="vista-anual" style="display:none">
+    <div class="card">
+      <div class="meta-grid" style="grid-template-columns:2fr 1fr">
+        <div class="field">
+          <label>📍 Sitio / Proyecto</label>
+          <input type="text" id="anual-sitio" list="sitios-lista" placeholder="Sitio a consolidar" oninput="renderAnual()">
+        </div>
+        <div class="field">
+          <label>📆 Año</label>
+          <input type="number" id="anual-year" min="2020" max="2099" placeholder="2026" oninput="renderAnual()">
+        </div>
+      </div>
+    </div>
+
+    <div id="anual-body"></div>
+
+    <div class="acciones" id="anual-acciones" style="display:none">
+      <button class="btn btn-csv" onclick="exportarAnualResumen()">📑 Consolidado anual (CSV)</button>
+      <button class="btn btn-add" onclick="exportarAnualDetalle()">📋 Detalle completo (CSV)</button>
+      <button class="btn btn-print" onclick="window.print()">🖨️ Imprimir / PDF</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const MATERIALES = [
+    {k:'basuraComun',     cls:'basura',         emoji:'🗑️', nom:'Basura común',      color:'#ef4444', releno:true},
+    {k:'coprocesamiento', cls:'coprocesamiento',emoji:'⚡', nom:'Co-procesamiento',   color:'#f59e0b'},
+    {k:'plasticoGeneral', cls:'plastico',       emoji:'🍾', nom:'Plástico general',  color:'#6366f1'},
+    {k:'papelGeneral',    cls:'papel',          emoji:'📄', nom:'Papel general',     color:'#3b82f6'},
+    {k:'toallasPapel',    cls:'toallas',        emoji:'🧻', nom:'Toallas de papel',  color:'#ec4899'},
+    {k:'carton',          cls:'carton',         emoji:'📦', nom:'Cartón',            color:'#f97316'},
+    {k:'latasAluminio',   cls:'aluminio',       emoji:'🥫', nom:'Latas de aluminio', color:'#6b7280'},
+    {k:'tetrabrick',      cls:'tetrabrick',     emoji:'🧃', nom:'Tetrabrick',        color:'#8b5cf6'},
+    {k:'vidrio',          cls:'vidrio',         emoji:'🫙', nom:'Vidrio',            color:'#06b6d4'},
+    {k:'otros',           cls:'otros',          emoji:'♻️', nom:'Otros',             color:'#10b981'},
+  ];
+
+  let registros = [];
+  let contadorId = 1;
+
+  const PREFIX = 'reciclaje_';
+  const claveActual = () => {
+    const sitio = (document.getElementById('sitio').value.trim() || 'general').toLowerCase();
+    const mes = document.getElementById('mes').value || 'sin-mes';
+    return PREFIX + sitio + '_' + mes;
+  };
+
+  function init(){
+    const ahora = new Date();
+    document.getElementById('mes').value = ahora.toISOString().slice(0,7);
+    cargarListaSitios();
+    cargar();
+  }
+
+  /* ---------- Persistencia ---------- */
+  function guardar(){
+    try{
+      const data = {
+        responsable: document.getElementById('responsable').value,
+        registros, contadorId
+      };
+      localStorage.setItem(claveActual(), JSON.stringify(data));
+      registrarSitioEnLista();
+      flashGuardado();
+    }catch(e){ /* sandbox sin storage: sigue funcionando en memoria */ }
+  }
+
+  function cargar(){
+    let data = null;
+    try{ data = JSON.parse(localStorage.getItem(claveActual())); }catch(e){}
+    if(data && data.registros && data.registros.length){
+      registros = data.registros;
+      contadorId = data.contadorId || (Math.max(...registros.map(r=>r.id))+1);
+      document.getElementById('responsable').value = data.responsable || '';
+    }else{
+      registros = []; contadorId = 1;
+      document.getElementById('responsable').value = (data && data.responsable) || document.getElementById('responsable').value || '';
+      agregarRegistro(false);
+    }
+    render();
+  }
+
+  function cambiarContexto(){ cargar(); }
+
+  function cargarListaSitios(){
+    const sitios = JSON.parse(localStorage.getItem(PREFIX+'_sitios') || '[]');
+    const dl = document.getElementById('sitios-lista');
+    dl.innerHTML = sitios.map(s=>`<option value="${s}">`).join('');
+  }
+  function registrarSitioEnLista(){
+    const sitio = document.getElementById('sitio').value.trim();
+    if(!sitio) return;
+    let sitios = JSON.parse(localStorage.getItem(PREFIX+'_sitios') || '[]');
+    if(!sitios.includes(sitio)){ sitios.push(sitio); sitios.sort();
+      localStorage.setItem(PREFIX+'_sitios', JSON.stringify(sitios)); cargarListaSitios(); }
+  }
+
+  let flashTimer;
+  function flashGuardado(){
+    const tag = document.getElementById('saved-tag');
+    tag.textContent = '✅ Guardado';
+    clearTimeout(flashTimer);
+    flashTimer = setTimeout(()=>{ tag.textContent='💾 Guardado automático activo'; }, 1200);
+  }
+
+  /* ---------- Registros ---------- */
+  function nuevoRegistro(){
+    const r = { id: contadorId++, fecha: new Date().toISOString().slice(0,10), observaciones:'' };
+    MATERIALES.forEach(m=> r[m.k]='');
+    return r;
+  }
+  function agregarRegistro(rerender=true){
+    registros.push(nuevoRegistro());
+    if(rerender){ render(); guardar(); }
+  }
+  function eliminarRegistro(id){
+    if(registros.length>1){ registros = registros.filter(r=>r.id!==id); render(); guardar(); }
+    else alert('Debe quedar al menos un registro.');
+  }
+  function actualizar(id,campo,valor){
+    const r = registros.find(x=>x.id===id);
+    if(!r) return;
+    r[campo]=valor;
+    if(campo!=='observaciones' && campo!=='fecha'){
+      const el=document.getElementById('total-'+id);
+      if(el) el.textContent = totalRegistro(r)+' kg';
+      renderDash(); renderGrafica();
+    }
+    guardar();
+  }
+  const totalRegistro = r => MATERIALES.reduce((s,m)=>s+(parseFloat(r[m.k])||0),0).toFixed(2);
+
+  /* ---------- Cálculos del mes ---------- */
+  function totalesPorMaterial(){
+    const t={}; MATERIALES.forEach(m=>t[m.k]=0);
+    registros.forEach(r=>MATERIALES.forEach(m=>t[m.k]+=(parseFloat(r[m.k])||0)));
+    return t;
+  }
+  function totalGeneral(t){ return MATERIALES.reduce((s,m)=>s+t[m.k],0); }
+
+  /* ---------- Render registros ---------- */
+  function render(){
+    const c=document.getElementById('registros-container'); c.innerHTML='';
+    registros.forEach((r,i)=>{
+      const card=document.createElement('div'); card.className='card';
+      card.innerHTML=`
+        <div class="reg-head">
+          <h2>⚖️ Pesaje #${i+1}</h2>
+          ${registros.length>1?`<button class="btn-x" onclick="eliminarRegistro(${r.id})">✕ Eliminar</button>`:''}
+        </div>
+        <div class="fecha-section">
+          <label>📅 Fecha</label>
+          <input type="date" value="${r.fecha}" onchange="actualizar(${r.id},'fecha',this.value)">
+        </div>
+        <div class="pesos-grid">
+          ${MATERIALES.map(m=>`
+            <div class="peso-item ${m.cls}">
+              <label>${m.emoji} ${m.nom}</label>
+              <input type="number" inputmode="decimal" step="0.01" min="0" placeholder="kg"
+                     value="${r[m.k]}" oninput="actualizar(${r.id},'${m.k}',this.value)">
+            </div>`).join('')}
+          <div class="peso-item total">
+            <div class="lbl">TOTAL</div>
+            <div class="val" id="total-${r.id}">${totalRegistro(r)} kg</div>
+          </div>
+        </div>
+        <div class="obs-section">
+          <label>📝 Observaciones</label>
+          <textarea rows="2" placeholder="Notas (opcional)"
+            oninput="actualizar(${r.id},'observaciones',this.value)">${r.observaciones||''}</textarea>
+        </div>`;
+      c.appendChild(card);
+    });
+    renderDash(); renderGrafica();
+  }
+
+  /* ---------- Dashboard ---------- */
+  function renderDash(){
+    const t=totalesPorMaterial(); const total=totalGeneral(t);
+    const relleno = MATERIALES.filter(m=>m.releno).reduce((s,m)=>s+t[m.k],0);
+    const desviado = total - relleno;
+    const tasa = total>0 ? (desviado/total*100) : 0;
+    // material reciclable dominante (excluye basura común)
+    let top={nom:'—',val:0};
+    MATERIALES.filter(m=>!m.releno).forEach(m=>{ if(t[m.k]>top.val) top={nom:m.nom,val:t[m.k]}; });
+
+    document.getElementById('dash').innerHTML=`
+      <div class="kpi">
+        <div class="icono">⚖️</div>
+        <div class="num">${total.toFixed(1)}</div>
+        <div class="lbl">kg totales del mes</div>
+      </div>
+      <div class="kpi destacado">
+        <div class="icono">♻️</div>
+        <div class="num">${tasa.toFixed(0)}%</div>
+        <div class="lbl">Desviación de relleno</div>
+      </div>
+      <div class="kpi">
+        <div class="icono">📦</div>
+        <div class="num">${desviado.toFixed(1)}</div>
+        <div class="lbl">kg recuperados</div>
+      </div>
+      <div class="kpi">
+        <div class="icono">🏆</div>
+        <div class="num" style="font-size:20px">${top.nom}</div>
+        <div class="lbl">Material dominante (${top.val.toFixed(1)} kg)</div>
+      </div>
+      <div class="kpi">
+        <div class="icono">📋</div>
+        <div class="num">${registros.length}</div>
+        <div class="lbl">pesajes registrados</div>
+      </div>`;
+  }
+
+  /* ---------- Gráfica de composición ---------- */
+  function renderGrafica(){
+    const t=totalesPorMaterial(); const total=totalGeneral(t);
+    const body=document.getElementById('grafica-body');
+    if(total<=0){ body.innerHTML='<div class="grafica-vacia">Ingresá pesajes para ver la composición.</div>'; return; }
+    const max=Math.max(...MATERIALES.map(m=>t[m.k]));
+    body.innerHTML = MATERIALES
+      .map(m=>({m,v:t[m.k]}))
+      .sort((a,b)=>b.v-a.v)
+      .filter(x=>x.v>0)
+      .map(({m,v})=>{
+        const pct = total>0 ? (v/total*100) : 0;
+        const w = max>0 ? (v/max*100) : 0;
+        return `<div class="barra-row">
+          <div class="barra-lbl">${m.emoji} ${m.nom}</div>
+          <div class="barra-track"><div class="barra-fill" style="width:${w}%;background:${m.color}"></div></div>
+          <div class="barra-val">${v.toFixed(1)} kg · ${pct.toFixed(0)}%</div>
+        </div>`;
+      }).join('');
+  }
+
+  /* ---------- Export CSV ---------- */
+  function exportarCSV(){
+    const responsable=document.getElementById('responsable').value.trim();
+    const sitio=document.getElementById('sitio').value.trim();
+    const mes=document.getElementById('mes').value;
+    if(!sitio){ alert('Indicá el sitio / proyecto.'); return; }
+    if(!responsable){ alert('Indicá el responsable.'); return; }
+
+    const validos=registros.filter(r=>r.fecha && MATERIALES.some(m=>parseFloat(r[m.k])>0));
+    if(!validos.length){ alert('Agregá al menos un pesaje con datos.'); return; }
+
+    const head=['Sitio','Mes','Fecha','Responsable',
+      ...MATERIALES.map(m=>m.nom+' (kg)'),'Total (kg)','Observaciones'];
+    let csv=head.join(',')+'\n';
+    validos.forEach(r=>{
+      const fila=[sitio,mes,r.fecha,responsable,
+        ...MATERIALES.map(m=>r[m.k]||'0'),
+        totalRegistro(r),
+        '"'+(r.observaciones||'').replace(/"/g,'""')+'"'];
+      csv+=fila.join(',')+'\n';
+    });
+    // fila resumen
+    const t=totalesPorMaterial();
+    csv+=['TOTAL MES',mes,'','',...MATERIALES.map(m=>t[m.k].toFixed(2)),
+      totalGeneral(t).toFixed(2),''].join(',')+'\n';
+
+    const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=`reciclaje-${sitio.replace(/\s+/g,'_')}-${mes}.csv`;
+    a.click();
+    alert(`✅ ${validos.length} pesaje(s) exportado(s).`);
+  }
+
+  function limpiarMes(){
+    if(confirm('¿Borrar todos los pesajes de este sitio y mes? Esta acción no se puede deshacer.')){
+      registros=[]; contadorId=1; agregarRegistro(false); render();
+      try{ localStorage.removeItem(claveActual()); }catch(e){}
+    }
+  }
+
+  /* ---------- Vista anual / consolidado ---------- */
+  const MES_NOMBRES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const nombreMes = ym => (MES_NOMBRES[parseInt(ym.slice(5,7),10)-1]||ym)+' '+ym.slice(0,4);
+
+  function mostrarVista(v){
+    document.getElementById('vista-mensual').style.display = v==='mensual'?'':'none';
+    document.getElementById('vista-anual').style.display   = v==='anual'?'':'none';
+    document.getElementById('tab-mensual').classList.toggle('activo', v==='mensual');
+    document.getElementById('tab-anual').classList.toggle('activo', v==='anual');
+    if(v==='anual'){
+      const s=document.getElementById('sitio').value.trim();
+      if(s && !document.getElementById('anual-sitio').value) document.getElementById('anual-sitio').value=s;
+      if(!document.getElementById('anual-year').value) document.getElementById('anual-year').value=String(new Date().getFullYear());
+      renderAnual();
+    }
+  }
+
+  function datosAnuales(){
+    const sitio=(document.getElementById('anual-sitio').value.trim()||'general').toLowerCase();
+    const year=document.getElementById('anual-year').value||String(new Date().getFullYear());
+    const prefix=PREFIX+sitio+'_';
+    const meses=[];
+    try{
+      for(let i=0;i<localStorage.length;i++){
+        const key=localStorage.key(i);
+        if(!key.startsWith(prefix)) continue;
+        const mes=key.slice(prefix.length);
+        if(!/^\d{4}-\d{2}$/.test(mes) || !mes.startsWith(year+'-')) continue;
+        let data; try{ data=JSON.parse(localStorage.getItem(key)); }catch(e){ continue; }
+        if(!data || !data.registros) continue;
+        const totals={}; MATERIALES.forEach(m=>totals[m.k]=0);
+        data.registros.forEach(r=>MATERIALES.forEach(m=>totals[m.k]+=(parseFloat(r[m.k])||0)));
+        const total=MATERIALES.reduce((s,m)=>s+totals[m.k],0);
+        meses.push({mes,totals,total,responsable:data.responsable||'',registros:data.registros});
+      }
+    }catch(e){}
+    meses.sort((a,b)=>a.mes.localeCompare(b.mes));
+    return {sitio,year,meses};
+  }
+
+  const tasaDe = totals => {
+    const tot=MATERIALES.reduce((s,m)=>s+totals[m.k],0);
+    const rell=MATERIALES.filter(m=>m.releno).reduce((s,m)=>s+totals[m.k],0);
+    return tot>0 ? (tot-rell)/tot*100 : 0;
+  };
+
+  function renderAnual(){
+    const {year,meses}=datosAnuales();
+    const body=document.getElementById('anual-body');
+    const acc=document.getElementById('anual-acciones');
+    if(!meses.length){
+      body.innerHTML='<div class="card"><div class="vacio-anual">No hay meses guardados para ese sitio y año.<br>Capturá datos en «📝 Captura mensual» y aparecerán acá automáticamente.</div></div>';
+      acc.style.display='none'; return;
+    }
+    acc.style.display='';
+
+    const totalAnio={}; MATERIALES.forEach(m=>totalAnio[m.k]=0);
+    meses.forEach(mm=>MATERIALES.forEach(m=>totalAnio[m.k]+=mm.totals[m.k]));
+    const totAnio=MATERIALES.reduce((s,m)=>s+totalAnio[m.k],0);
+    const rellAnio=MATERIALES.filter(m=>m.releno).reduce((s,m)=>s+totalAnio[m.k],0);
+    const tasaAnio=tasaDe(totalAnio);
+
+    const filas=meses.map(mm=>`<tr>
+        <td>${nombreMes(mm.mes)}</td>
+        ${MATERIALES.map(m=>`<td>${mm.totals[m.k].toFixed(1)}</td>`).join('')}
+        <td><strong>${mm.total.toFixed(1)}</strong></td>
+        <td class="tasa-cell">${tasaDe(mm.totals).toFixed(0)}%</td>
+      </tr>`).join('');
+
+    const totalRow=`<tr class="total-anual">
+        <td>TOTAL ${year}</td>
+        ${MATERIALES.map(m=>`<td>${totalAnio[m.k].toFixed(1)}</td>`).join('')}
+        <td>${totAnio.toFixed(1)}</td>
+        <td class="tasa-cell">${tasaAnio.toFixed(0)}%</td>
+      </tr>`;
+
+    const tend=meses.map(mm=>{
+      const t=tasaDe(mm.totals);
+      return `<div class="tend-row">
+        <div class="tend-lbl">${nombreMes(mm.mes).slice(0,3)}</div>
+        <div class="tend-track"><div class="tend-fill" style="width:${t}%"></div></div>
+        <div class="tend-val">${t.toFixed(0)}%</div>
+      </div>`;
+    }).join('');
+
+    body.innerHTML=`
+      <div class="dash">
+        <div class="kpi"><div class="icono">📆</div><div class="num">${meses.length}</div><div class="lbl">meses con datos</div></div>
+        <div class="kpi"><div class="icono">⚖️</div><div class="num">${totAnio.toFixed(0)}</div><div class="lbl">kg en el año</div></div>
+        <div class="kpi destacado"><div class="icono">♻️</div><div class="num">${tasaAnio.toFixed(0)}%</div><div class="lbl">Desviación del año</div></div>
+        <div class="kpi"><div class="icono">📦</div><div class="num">${(totAnio-rellAnio).toFixed(0)}</div><div class="lbl">kg recuperados</div></div>
+      </div>
+      <div class="card tabla-wrap">
+        <table class="anual">
+          <thead><tr><th>Mes</th>${MATERIALES.map(m=>`<th>${m.emoji} ${m.nom}</th>`).join('')}<th>Total</th><th>Desv.</th></tr></thead>
+          <tbody>${filas}${totalRow}</tbody>
+        </table>
+      </div>
+      <div class="card tend">
+        <h3>📈 Tasa de desviación por mes</h3>
+        ${tend}
+      </div>`;
+  }
+
+  function descargarCSV(csv,nombre){
+    const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=nombre; a.click();
+  }
+
+  function exportarAnualResumen(){
+    const {year,meses}=datosAnuales();
+    if(!meses.length){ alert('No hay datos para exportar.'); return; }
+    const sitioReal=document.getElementById('anual-sitio').value.trim()||'general';
+    const head=['Sitio','Mes',...MATERIALES.map(m=>m.nom+' (kg)'),'Total (kg)','Desviacion (%)'];
+    let csv=head.join(',')+'\n';
+    const totalAnio={}; MATERIALES.forEach(m=>totalAnio[m.k]=0);
+    meses.forEach(mm=>{
+      MATERIALES.forEach(m=>totalAnio[m.k]+=mm.totals[m.k]);
+      csv+=[sitioReal,nombreMes(mm.mes),...MATERIALES.map(m=>mm.totals[m.k].toFixed(2)),
+        mm.total.toFixed(2),tasaDe(mm.totals).toFixed(1)].join(',')+'\n';
+    });
+    const totAnio=MATERIALES.reduce((s,m)=>s+totalAnio[m.k],0);
+    csv+=[sitioReal,'TOTAL '+year,...MATERIALES.map(m=>totalAnio[m.k].toFixed(2)),
+      totAnio.toFixed(2),tasaDe(totalAnio).toFixed(1)].join(',')+'\n';
+    descargarCSV(csv,`reciclaje-${sitioReal.replace(/\s+/g,'_')}-${year}-CONSOLIDADO.csv`);
+    alert(`✅ Consolidado ${year}: ${meses.length} mes(es) exportado(s).`);
+  }
+
+  function exportarAnualDetalle(){
+    const {year,meses}=datosAnuales();
+    if(!meses.length){ alert('No hay datos para exportar.'); return; }
+    const sitioReal=document.getElementById('anual-sitio').value.trim()||'general';
+    const head=['Sitio','Mes','Fecha','Responsable',...MATERIALES.map(m=>m.nom+' (kg)'),'Total (kg)','Observaciones'];
+    let csv=head.join(',')+'\n';
+    meses.forEach(mm=>{
+      mm.registros.forEach(r=>{
+        if(!r.fecha) return;
+        csv+=[sitioReal,nombreMes(mm.mes),r.fecha,mm.responsable,
+          ...MATERIALES.map(m=>r[m.k]||'0'),totalRegistro(r),
+          '"'+(r.observaciones||'').replace(/"/g,'""')+'"'].join(',')+'\n';
+      });
+    });
+    descargarCSV(csv,`reciclaje-${sitioReal.replace(/\s+/g,'_')}-${year}-DETALLE.csv`);
+    alert(`✅ Detalle ${year} exportado.`);
+  }
+
+  window.onload=init;
+</script>
+</body>
+</html>

@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FaciliDesk — Sistema de Tiquetes</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;900&family=DM+Sans:wght@400;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  ⚙️  ÚNICOS DATOS QUE HAY QUE PONER:
+//  Pegá aquí las URLs de los 2 webhooks que creaste en Make
+// ═══════════════════════════════════════════════════════════════
+const MAKE_GET_URL  = "https://hook.us2.make.com/jl3pps3k2rdb145707x7ox3rkst3wfh1";   // Escenario: Leer tiquetes
+const MAKE_POST_URL = "https://hook.us2.make.com/pn1bp6u8so7n1q7m937neoo74s8eq3du"; // Escenario: Crear / Actualizar
+// ═══════════════════════════════════════════════════════════════
+
+const TECHS = {
+  T1: { name:"Lilliana Retana" },
+  T2: { name:"Bryan Torres"      },
+  T3: { name:"Celia Guevara"    },
+  T4: { name:"Melissa Ruiz"    },
+};
+</script>
+
+<style>
+:root {
+  --bg:#0d1117; --surface:#141924; --surface2:#1a2133;
+  --border:#232d42; --border2:#2e3a52;
+  --text:#e8edf5; --muted:#7a8699;
+  --amber:#f59e0b; --blue:#3b82f6; --green:#10b981;
+  --red:#ef4444; --purple:#8b5cf6; --teal:#14b8a6;
+  --font-head:'Syne',sans-serif;
+  --font-body:'DM Sans',sans-serif;
+  --font-mono:'DM Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:14px;min-height:100vh}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* HEADER */
+#header{background:var(--surface);border-bottom:1px solid var(--border);padding:13px 22px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:10px}
+.logo-icon{width:38px;height:38px;background:var(--amber);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.logo-text{font-family:var(--font-head);font-size:18px;font-weight:900}
+.logo-sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;margin-top:1px}
+.tabs{margin-left:auto;display:flex;gap:5px;flex-wrap:wrap}
+.tab-btn{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:7px;padding:7px 15px;font-size:13px;font-weight:700;font-family:var(--font-head);cursor:pointer;transition:all .18s;white-space:nowrap}
+.tab-btn:hover{border-color:var(--amber);color:var(--amber)}
+.tab-btn.active{background:var(--amber);color:#000;border-color:var(--amber)}
+
+/* STATUS BAR */
+#status-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:7px 22px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.status-pill{display:flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:12px}
+.status-dot{width:7px;height:7px;border-radius:50%}
+.sync-info{margin-left:auto;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
+.sync-dot.spinning{animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* LAYOUT */
+#app{max-width:1140px;margin:0 auto;padding:22px 18px}
+.view{display:none;animation:fadeIn .2s ease}
+.view.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+/* CONFIG WARN */
+#config-warn{background:#f59e0b18;border:1px solid #f59e0b55;border-radius:10px;padding:14px 18px;margin-bottom:18px;display:none;line-height:1.7}
+#config-warn code{background:#0d1117;padding:2px 7px;border-radius:4px;font-family:var(--font-mono);font-size:12px;color:var(--amber)}
+
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+.card-amber{border-color:#f59e0b44}
+
+/* STATS */
+.stats-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.stat-card{flex:1;min-width:100px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:15px;text-align:center}
+.stat-num{font-family:var(--font-head);font-size:30px;font-weight:900}
+.stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:3px}
+
+/* TYPOGRAPHY */
+.section-title{font-family:var(--font-head);font-weight:700;font-size:15px;margin-bottom:13px}
+.view-title{font-family:var(--font-head);font-size:20px;font-weight:900;margin-bottom:18px}
+.row-between{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+
+/* FORM */
+.field{margin-bottom:11px}
+.field label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+input,select,textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);padding:9px 11px;font-size:13px;font-family:var(--font-body);outline:none;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--amber)}
+textarea{resize:vertical;min-height:66px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media(max-width:600px){.grid-2,.grid-3{grid-template-columns:1fr}}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;border:none;border-radius:7px;padding:9px 16px;font-size:13px;font-weight:700;font-family:var(--font-head);cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-amber{background:var(--amber);color:#000}.btn-amber:hover:not(:disabled){background:#fbbf24}
+.btn-blue{background:var(--blue);color:#fff}.btn-blue:hover:not(:disabled){background:#60a5fa}
+.btn-green{background:var(--green);color:#000}.btn-green:hover:not(:disabled){background:#34d399}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted)}.btn-ghost:hover{border-color:var(--amber);color:var(--amber)}
+.btn-sm{padding:5px 11px;font-size:12px}
+.btn-csv{background:#16a34a;color:#fff}.btn-csv:hover{background:#15803d}
+.btn-cpx{background:#0284c7;color:#fff}.btn-cpx:hover{background:#0369a1}
+
+/* BADGE */
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.4px;white-space:nowrap}
+
+/* CLIENT LIST */
+.ticket-row{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:13px 14px;display:flex;gap:11px;align-items:flex-start;margin-bottom:9px;transition:border-color .15s}
+.ticket-row:hover{border-color:var(--border2)}
+.pbar{width:3px;border-radius:2px;align-self:stretch;min-height:36px;flex-shrink:0}
+.t-id{font-family:var(--font-mono);font-size:11px;color:var(--muted);min-width:62px;padding-top:1px}
+.t-body{flex:1}
+.t-title{font-weight:700;margin-bottom:3px}
+.t-meta{font-size:12px;color:var(--muted)}
+.t-badges{display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0}
+
+/* TECH SPLIT */
+.tech-split{display:grid;grid-template-columns:350px 1fr;gap:14px;align-items:start}
+@media(max-width:760px){.tech-split{grid-template-columns:1fr}}
+.tcard{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 13px;cursor:pointer;transition:all .15s;margin-bottom:7px}
+.tcard:hover{border-color:var(--border2);background:var(--surface2)}
+.tcard.active{border-color:var(--amber);background:#1e2538}
+.tcard-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.tcard-id{font-family:var(--font-mono);font-size:10px;color:var(--muted)}
+.tcard-title{font-weight:700;font-size:13px;margin-bottom:4px}
+.tcard-foot{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.scroll-panel{max-height:500px;overflow-y:auto;padding-right:3px}
+
+/* DETAIL */
+.dph{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:44px;text-align:center;color:var(--muted)}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.ditem{background:var(--bg);border-radius:7px;padding:7px 10px}
+.ditem-l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.ditem-v{font-size:13px;font-weight:600;margin-top:2px}
+.note-item{background:var(--bg);border-radius:6px;padding:8px 10px;margin-bottom:6px;font-size:12px;color:#cbd5e1;line-height:1.6}
+.notes-sec{border-top:1px solid var(--border);padding-top:12px;margin-top:8px}
+.notes-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px}
+
+/* CHARTS */
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+@media(max-width:680px){.charts-row{grid-template-columns:1fr}}
+.chart-wrap{position:relative;height:190px}
+
+/* EXPORT */
+.export-bar{background:linear-gradient(135deg,#1a2133,#1e2a40);border:1px solid #2e4060;border-radius:12px;padding:18px;margin-bottom:14px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.export-bar .field{margin-bottom:0;flex:1;min-width:120px}
+.exp-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.exp-preview{background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px}
+.exp-prev-hdr{background:var(--surface2);border-bottom:1px solid var(--border);padding:9px 14px;display:flex;justify-content:space-between;align-items:center}
+.prev-scroll{overflow-x:auto;max-height:320px;overflow-y:auto}
+
+/* FILTER ROW */
+.filter-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.filter-row select{flex:1;min-width:120px}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 11px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+td{padding:8px 11px;border-bottom:1px solid #1a2035}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+
+/* LOADING & STATES */
+.loading{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;padding:24px 0}
+.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--amber);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{color:var(--muted);font-style:italic;font-size:12px;padding:8px 0}
+.error-msg{color:var(--red);background:#ef444411;border:1px solid #ef444433;border-radius:7px;padding:10px 14px;font-size:13px;margin:10px 0}
+
+/* MODAL */
+.modal-ov{position:fixed;inset:0;background:#00000099;display:flex;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(4px)}
+.modal-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:26px;max-width:500px;width:90%;animation:fadeIn .2s ease}
+.modal-title{font-family:var(--font-head);font-size:16px;font-weight:900;margin-bottom:14px;color:var(--amber)}
+
+/* TOAST */
+#toast{position:fixed;bottom:22px;right:22px;background:var(--green);color:#000;border-radius:8px;padding:11px 18px;font-weight:700;font-family:var(--font-head);font-size:13px;z-index:999;transform:translateY(80px);opacity:0;transition:all .25s cubic-bezier(.34,1.56,.64,1);pointer-events:none;max-width:320px;line-height:1.4}
+#toast.show{transform:translateY(0);opacity:1}
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<div id="header">
+  <div class="logo-icon">🏢</div>
+  <div>
+    <div class="logo-text">FaciliDesk</div>
+    <div class="logo-sub">Sistema de Tiquetes · Facilidades</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('cliente',this)">🙋 Cliente</button>
+    <button class="tab-btn" onclick="switchTab('tecnico',this)">🔧 Técnico</button>
+    <button class="tab-btn" onclick="switchTab('metricas',this)">📊 Métricas</button>
+  </div>
+</div>
+
+<!-- ══ STATUS BAR ══ -->
+<div id="status-bar">
+  <div class="status-pill"><span class="status-dot" style="background:#6b7280"></span><span style="color:var(--muted)">Conectando…</span></div>
+  <div class="sync-info">
+    <span class="sync-dot spinning" id="sync-dot"></span>
+    <span id="last-sync">Cargando datos…</span>
+    <button onclick="refreshAll()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0 2px" title="Actualizar">↻</button>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+
+  <!-- CONFIG WARN -->
+  <div id="config-warn">
+    ⚙️ <strong>Falta configurar:</strong> Abrí el archivo en el Bloc de notas y reemplazá <code>MAKE_GET_URL</code> y <code>MAKE_POST_URL</code> con las URLs de tus webhooks de Make. <a href="#" onclick="alert('En Make: 1) Creá un escenario con Custom Webhook → Google Sheets → Webhook Response. 2) Copiá la URL del webhook y pegála en el HTML.')" style="color:var(--amber)">¿Cómo?</a>
+  </div>
+
+  <!-- ─── CLIENTE ─── -->
+  <div id="view-cliente" class="view active">
+    <div class="row-between">
+      <div class="view-title">📋 Mis Solicitudes</div>
+      <button class="btn btn-amber" onclick="toggleForm()">+ Nueva Solicitud</button>
+    </div>
+
+    <div id="new-ticket-form" class="card card-amber" style="margin-bottom:18px;display:none">
+      <div class="section-title" style="color:var(--amber)">NUEVA SOLICITUD</div>
+      <div class="grid-2">
+        <div class="field"><label>Tu nombre *</label><input id="f-req" placeholder="Ej. María González"/></div>
+        <div class="field"><label>Departamento</label>
+          <select id="f-dept"><option>TI</option><option>RRHH</option><option>Finanzas</option><option>Operaciones</option><option>Legal</option><option>Gerencia</option><option>Otro</option></select>
+        </div>
+      </div>
+      <div class="field"><label>Título del tiquete *</label><input id="f-title" placeholder="Describe brevemente el problema"/></div>
+      <div class="field"><label>Descripción detallada</label><textarea id="f-desc" placeholder="Detalles, piso, sala, escritorio…"></textarea></div>
+      <div class="grid-3">
+        <div class="field"><label>Categoría</label>
+          <select id="f-cat"><option>Plomería</option><option>Electricidad</option><option>Climatización</option><option>Limpieza</option><option>Seguridad</option><option>Mobiliario</option><option>Otro</option></select>
+        </div>
+        <div class="field"><label>Prioridad</label>
+          <select id="f-pri"><option>Alta</option><option selected>Media</option><option>Baja</option></select>
+        </div>
+        <div class="field"><label>Ubicación / Piso</label><input id="f-loc" placeholder="Ej. Piso 3, Sala B"/></div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+        <button class="btn btn-ghost btn-sm" onclick="toggleForm()">Cancelar</button>
+        <button class="btn btn-amber" id="submit-btn" onclick="submitTicket()">Enviar Solicitud →</button>
+      </div>
+    </div>
+
+    <div id="client-list">
+      <div class="loading"><div class="spinner"></div>Cargando tiquetes…</div>
+    </div>
+  </div>
+
+  <!-- ─── TÉCNICO ─── -->
+  <div id="view-tecnico" class="view">
+    <div class="tech-split">
+      <div>
+        <div class="filter-row">
+          <select id="t-filter-status" onchange="renderTechList()">
+            <option value="">Todos los estados</option>
+            <option>Abierto</option><option>En Progreso</option><option>Resuelto</option><option>Cerrado</option>
+          </select>
+          <select id="t-filter-dept" onchange="renderTechList()">
+            <option value="">Todos los depto.</option>
+            <option>TI</option><option>RRHH</option><option>Finanzas</option><option>Operaciones</option><option>Legal</option><option>Gerencia</option>
+          </select>
+        </div>
+        <div id="tech-list" class="scroll-panel">
+          <div class="loading"><div class="spinner"></div>Cargando…</div>
+        </div>
+      </div>
+      <div id="detail-panel">
+        <div class="dph"><div style="font-size:34px;margin-bottom:10px">🔧</div>Seleccioná un tiquete para ver detalles</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── MÉTRICAS ─── -->
+  <div id="view-metricas" class="view">
+    <div class="view-title">📊 Métricas del Mes</div>
+
+    <div class="export-bar">
+      <div class="field"><label>Estado</label>
+        <select id="exp-st" onchange="renderExportPreview()"><option value="">Todos</option><option>Abierto</option><option>En Progreso</option><option>Resuelto</option><option>Cerrado</option></select>
+      </div>
+      <div class="field"><label>Departamento</label>
+        <select id="exp-dp" onchange="renderExportPreview()"><option value="">Todos</option><option>TI</option><option>RRHH</option><option>Finanzas</option><option>Operaciones</option><option>Legal</option><option>Gerencia</option></select>
+      </div>
+      <div class="field"><label>Técnico</label>
+        <select id="exp-tc" onchange="renderExportPreview()"><option value="">Todos</option><option value="T1">Lilliana Retana</option><option value="T2">Bryan Torres</option><option value="T3">Celia Guevara</option><option value="T4">Melissa Ruiz</option></select>
+      </div>
+      <div class="field"><label>Desde</label><input type="date" id="exp-fr" onchange="renderExportPreview()"/></div>
+      <div class="field"><label>Hasta</label><input type="date" id="exp-to" onchange="renderExportPreview()"/></div>
+      <div class="exp-actions">
+        <button class="btn btn-csv" onclick="exportCSV()">⬇ Descargar Excel/CSV</button>
+        <button class="btn btn-cpx" onclick="copyTable()">📋 Copiar tabla</button>
+      </div>
+    </div>
+
+    <div class="exp-preview">
+      <div class="exp-prev-hdr">
+        <span style="font-family:var(--font-head);font-size:13px;font-weight:700">Vista previa — tiquetes a exportar</span>
+        <span id="exp-count" style="font-size:12px;color:var(--muted)"></span>
+      </div>
+      <div class="prev-scroll">
+        <table style="font-size:12px"><thead><tr id="exp-thead"></tr></thead><tbody id="exp-tbody"></tbody></table>
+      </div>
+    </div>
+
+    <div id="stats-row" class="stats-row"></div>
+    <div class="charts-row">
+      <div class="card"><div class="section-title">Tiquetes por Departamento</div><div class="chart-wrap"><canvas id="chart-dept"></canvas></div></div>
+      <div class="card"><div class="section-title">Distribución por Categoría</div><div class="chart-wrap"><canvas id="chart-cat"></canvas></div></div>
+    </div>
+    <div class="charts-row">
+      <div class="card"><div class="section-title">Horas y Tiquetes por Técnico</div><div class="chart-wrap"><canvas id="chart-tech"></canvas></div></div>
+      <div class="card"><div class="section-title">Por Prioridad</div><div class="chart-wrap"><canvas id="chart-pri"></canvas></div></div>
+    </div>
+    <div class="card"><div class="section-title">Resumen de Técnicos</div><div id="tech-table-wrap"></div></div>
+  </div>
+
+</div>
+
+<!-- ══ MODAL ══ -->
+<div id="assign-modal" class="modal-ov" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div class="modal-title">👷 Asignar Técnico</div>
+    <div class="field"><label>Técnico responsable</label>
+      <select id="modal-tech">
+        <option value="T1">Lilliana Retana</option>
+        <option value="T2">Bryan Torres</option>
+        <option value="T3">Celia Guevara</option>
+        <option value="T4">Melissa Ruiz</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-blue" onclick="confirmAssign()">Asignar y notificar →</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  ESTADO
+// ═══════════════════════════════════════════════════
+const SC = { "Abierto":"#3b82f6","En Progreso":"#f59e0b","Resuelto":"#10b981","Cerrado":"#6b7280" };
+const PC = { Alta:"#ef4444", Media:"#f59e0b", Baja:"#22c55e" };
+const PAL = ["#f59e0b","#10b981","#3b82f6","#ec4899","#8b5cf6","#14b8a6","#f97316"];
+
+let tickets   = [];
+let activeId  = null;
+let assignId  = null;
+let chartInst = {};
+let autoTimer = null;
+
+// ═══════════════════════════════════════════════════
+//  API — Make Webhooks (fetch, soporta CORS)
+// ═══════════════════════════════════════════════════
+
+async function apiGet() {
+  const resp = await fetch(MAKE_GET_URL, {
+    method: "GET",
+    headers: { "Accept": "application/json" }
+  });
+  if (!resp.ok) throw new Error(`Error HTTP ${resp.status}`);
+  const data = await resp.json();
+  return Array.isArray(data.tickets) ? data.tickets : [];
+}
+
+async function apiPost(body) {
+  let payload = {};
+  if (body.action === "create") {
+    payload = { action: "create", ...body.ticket };
+  } else if (body.action === "update") {
+    payload = { action: "update", id: body.id, ...body.patch };
+    if (Array.isArray(payload.notes)) payload.notes = payload.notes.join("|||");
+  }
+
+  const resp = await fetch(MAKE_POST_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  if (!resp.ok) throw new Error(`Error HTTP ${resp.status}`);
+  return await resp.json();
+}
+
+// ═══════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════
+function techName(id) { return TECHS[id]?.name || "—"; }
+function badge(label, color) {
+  return `<span class="badge" style="background:${color}22;color:${color};border:1px solid ${color}55">${label}</span>`;
+}
+function today() { return new Date().toISOString().split("T")[0]; }
+function daysBetween(a,b) {
+  if(!a||!b) return null;
+  return Math.round((new Date(b)-new Date(a))/(1000*3600*24));
+}
+function toast(msg, color="#10b981") {
+  const t = document.getElementById("toast");
+  t.innerHTML = msg; t.style.background = color;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), 3500);
+}
+function setSyncing(on) {
+  const d = document.getElementById("sync-dot");
+  d.className = "sync-dot" + (on?" spinning":"");
+}
+function setLastSync(msg) {
+  document.getElementById("last-sync").textContent = msg ||
+    "Actualizado " + new Date().toLocaleTimeString("es-CR",{hour:"2-digit",minute:"2-digit"});
+}
+function checkConfig() {
+  const bad = MAKE_GET_URL.startsWith("PEGA_") || MAKE_POST_URL.startsWith("PEGA_");
+  document.getElementById("config-warn").style.display = bad ? "block" : "none";
+  return !bad;
+}
+
+// ═══════════════════════════════════════════════════
+//  REFRESH
+// ═══════════════════════════════════════════════════
+async function refreshAll(silent=false) {
+  if (!checkConfig()) return;
+  setSyncing(true);
+  try {
+    tickets = await apiGet();
+    setLastSync();
+    renderStatusBar();
+    const av = document.querySelector(".view.active")?.id;
+    if (av==="view-cliente")  renderClientList();
+    if (av==="view-tecnico")  { renderTechList(); renderDetail(); }
+    if (av==="view-metricas") { renderMetrics(); renderExportPreview(); }
+    if (!silent) toast("✔ Datos actualizados");
+  } catch(e) {
+    setLastSync("⚠ Error de conexión");
+    if (!silent) toast("No se pudo conectar con Google Sheets.<br>Verificá la URL del Apps Script.", "#ef4444");
+    console.error(e);
+  } finally { setSyncing(false); }
+}
+
+// ═══════════════════════════════════════════════════
+//  TABS
+// ═══════════════════════════════════════════════════
+function switchTab(name, btn) {
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  document.getElementById("view-"+name).classList.add("active");
+  btn.classList.add("active");
+  clearInterval(autoTimer);
+  if (name==="tecnico") {
+    renderTechList(); renderDetail();
+    autoTimer = setInterval(()=>refreshAll(true), 20000);
+  }
+  if (name==="cliente")  renderClientList();
+  if (name==="metricas") { renderMetrics(); renderExportPreview(); }
+}
+
+// ═══════════════════════════════════════════════════
+//  STATUS BAR
+// ═══════════════════════════════════════════════════
+function renderStatusBar() {
+  const counts = {};
+  tickets.forEach(t=>{ counts[t.status]=(counts[t.status]||0)+1; });
+  const pills = ["Abierto","En Progreso","Resuelto","Cerrado"].map(s=>`
+    <div class="status-pill">
+      <span class="status-dot" style="background:${SC[s]}"></span>
+      <span style="color:var(--muted)">${s}</span>
+      <strong>${counts[s]||0}</strong>
+    </div>`).join("");
+  const sync = `<div class="sync-info">
+    <span class="sync-dot" id="sync-dot"></span>
+    <span id="last-sync">${document.getElementById("last-sync")?.textContent||""}</span>
+    <button onclick="refreshAll()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0 2px" title="Actualizar">↻</button>
+  </div>`;
+  document.getElementById("status-bar").innerHTML = pills + sync;
+}
+
+// ═══════════════════════════════════════════════════
+//  CLIENTE
+// ═══════════════════════════════════════════════════
+function toggleForm() {
+  const f = document.getElementById("new-ticket-form");
+  f.style.display = f.style.display==="none" ? "block" : "none";
+}
+
+async function submitTicket() {
+  const req   = document.getElementById("f-req").value.trim();
+  const title = document.getElementById("f-title").value.trim();
+  if (!req||!title) { toast("Completá tu nombre y el título del tiquete.", "#ef4444"); return; }
+
+  const btn = document.getElementById("submit-btn");
+  btn.textContent="Enviando…"; btn.disabled=true;
+
+  try {
+    const r = await apiPost({
+      action: "create",
+      ticket: {
+        title,
+        description: document.getElementById("f-desc").value.trim(),
+        category:    document.getElementById("f-cat").value,
+        priority:    document.getElementById("f-pri").value,
+        dept:        document.getElementById("f-dept").value,
+        requester:   req,
+        location:    document.getElementById("f-loc").value.trim(),
+        created_at:  today(),
+        hours_logged:0,
+        notes:       "",
+        assigned_to: "",
+        closed_at:   "",
+      }
+    });
+
+    await refreshAll(true);
+    ["f-req","f-title","f-desc","f-loc"].forEach(id=>document.getElementById(id).value="");
+    document.getElementById("f-pri").value="Media";
+    toggleForm();
+    toast(`✔ Tiquete ${r.id} enviado.<br>Se notificó al equipo de facilidades por correo.`);
+  } catch(e) {
+    toast("Error al enviar. Verificá la URL de Apps Script.", "#ef4444");
+    console.error(e);
+  } finally { btn.textContent="Enviar Solicitud →"; btn.disabled=false; }
+}
+
+function renderClientList() {
+  const el = document.getElementById("client-list");
+  if (!tickets.length) { el.innerHTML=`<div class="empty-state" style="padding:20px 0">Sin tiquetes aún.</div>`; return; }
+  el.innerHTML = tickets.map(t=>`
+    <div class="ticket-row">
+      <div class="pbar" style="background:${PC[t.priority]||'#6b7280'}"></div>
+      <div class="t-id">${t.id}</div>
+      <div class="t-body">
+        <div class="t-title">${t.title}</div>
+        <div class="t-meta">${t.dept} · ${t.requester} · ${t.created_at}${t.location?" · 📍"+t.location:""}</div>
+      </div>
+      <div class="t-badges">
+        ${badge(t.status,SC[t.status]||"#6b7280")}
+        ${badge(t.priority,PC[t.priority]||"#6b7280")}
+      </div>
+    </div>`).join("");
+}
+
+// ═══════════════════════════════════════════════════
+//  TÉCNICO
+// ═══════════════════════════════════════════════════
+function renderTechList() {
+  const st=document.getElementById("t-filter-status").value;
+  const dp=document.getElementById("t-filter-dept").value;
+  const list=tickets.filter(t=>(!st||t.status===st)&&(!dp||t.dept===dp));
+  const el=document.getElementById("tech-list");
+  if(!list.length){el.innerHTML=`<div class="empty-state" style="padding:20px">Sin tiquetes.</div>`;return;}
+  el.innerHTML=list.map(t=>`
+    <div class="tcard ${activeId===t.id?"active":""}" onclick="selectTicket('${t.id}')">
+      <div class="tcard-hdr"><span class="tcard-id">${t.id}</span>${badge(t.status,SC[t.status]||"#6b7280")}</div>
+      <div class="tcard-title">${t.title}</div>
+      <div class="tcard-foot">
+        ${badge(t.priority,PC[t.priority]||"#6b7280")}
+        ${badge(t.category,"#6b7280")}
+        ${t.assigned_to?`<span style="font-size:11px;color:var(--muted)">👷 ${techName(t.assigned_to)}</span>`:""}
+      </div>
+    </div>`).join("");
+}
+
+function selectTicket(id){activeId=id;renderTechList();renderDetail();}
+
+function renderDetail(){
+  const panel=document.getElementById("detail-panel");
+  if(!activeId){panel.innerHTML=`<div class="dph"><div style="font-size:34px;margin-bottom:10px">🔧</div>Seleccioná un tiquete</div>`;return;}
+  const t=tickets.find(x=>x.id===activeId);
+  if(!t)return;
+  const closed=t.status==="Cerrado";
+  const notes=Array.isArray(t.notes)?t.notes:[];
+  const statBtns=["En Progreso","Resuelto","Cerrado"].filter(s=>s!==t.status)
+    .map(s=>`<button class="btn btn-sm" style="background:${SC[s]};color:${s==='En Progreso'?'#000':'#fff'}" onclick="changeStatus('${t.id}','${s}')">→ ${s}</button>`).join("");
+
+  panel.innerHTML=`
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+        <div>
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--amber);margin-bottom:2px">${t.id}</div>
+          <div style="font-family:var(--font-head);font-size:16px;font-weight:900;line-height:1.3">${t.title}</div>
+        </div>
+        ${badge(t.status,SC[t.status]||"#6b7280")}
+      </div>
+      ${t.description?`<div style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.7">${t.description}</div>`:""}
+      <div class="dgrid">
+        <div class="ditem"><div class="ditem-l">Solicitante</div><div class="ditem-v">${t.requester}</div></div>
+        <div class="ditem"><div class="ditem-l">Departamento</div><div class="ditem-v">${t.dept}</div></div>
+        <div class="ditem"><div class="ditem-l">Prioridad</div><div class="ditem-v">${badge(t.priority,PC[t.priority]||"#6b7280")}</div></div>
+        <div class="ditem"><div class="ditem-l">Categoría</div><div class="ditem-v">${t.category}</div></div>
+        <div class="ditem"><div class="ditem-l">Creado</div><div class="ditem-v">${t.created_at}</div></div>
+        <div class="ditem"><div class="ditem-l">Horas</div><div class="ditem-v" style="color:var(--purple);font-family:var(--font-mono)">${t.hours_logged}h</div></div>
+        ${t.location?`<div class="ditem" style="grid-column:span 2"><div class="ditem-l">Ubicación</div><div class="ditem-v">📍 ${t.location}</div></div>`:""}
+        ${t.assigned_to?`<div class="ditem" style="grid-column:span 2"><div class="ditem-l">Técnico</div><div class="ditem-v">👷 ${techName(t.assigned_to)}</div></div>`:""}
+        ${t.closed_at?`<div class="ditem"><div class="ditem-l">Cerrado</div><div class="ditem-v">${t.closed_at}</div></div><div class="ditem"><div class="ditem-l">Días resolución</div><div class="ditem-v">${daysBetween(t.created_at,t.closed_at)} días</div></div>`:""}
+      </div>
+      ${!closed?`<div style="display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap">
+        <button class="btn btn-blue btn-sm" onclick="openAssignModal('${t.id}')">👷 Asignar Técnico</button>
+        ${statBtns}
+      </div>`:""}
+      <div class="notes-sec">
+        <div class="notes-lbl">Historial de notas</div>
+        ${notes.length===0?`<div class="empty-state">Sin notas.</div>`:notes.map(n=>`<div class="note-item">💬 ${n}</div>`).join("")}
+        ${!closed?`<div style="margin-top:10px">
+          <textarea id="note-input" placeholder="Nota de trabajo…" style="height:56px"></textarea>
+          <div style="display:flex;gap:8px;margin-top:6px">
+            <input id="hours-input" type="number" min="0" step="0.5" placeholder="Horas" style="width:82px"/>
+            <button class="btn btn-green btn-sm" onclick="addNote('${t.id}')">💾 Guardar nota</button>
+          </div>
+        </div>`:""}
+      </div>
+    </div>`;
+}
+
+async function changeStatus(id,status){
+  const t=tickets.find(x=>x.id===id);
+  if(!t)return;
+  const patch={status};
+  if(status==="Cerrado") patch.closed_at=today();
+  try{
+    await apiPost({action:"update",id,patch});
+    await refreshAll(true);
+    toast(`Tiquete ${id} → ${status}<br>📧 Notificación enviada por correo`, SC[status]);
+  }catch(e){toast("Error al actualizar.","#ef4444");}
+}
+
+async function addNote(id){
+  const t=tickets.find(x=>x.id===id);
+  const note=document.getElementById("note-input")?.value.trim();
+  const hrs=parseFloat(document.getElementById("hours-input")?.value)||0;
+  if(!note){toast("Escribí una nota primero.","#ef4444");return;}
+  const notes=[...(Array.isArray(t.notes)?t.notes:[]),note];
+  const hours_logged=+(+(t.hours_logged||0)+hrs).toFixed(1);
+  try{
+    await apiPost({action:"update",id,patch:{notes,hours_logged}});
+    await refreshAll(true);
+    toast("✔ Nota guardada");
+  }catch(e){toast("Error al guardar.","#ef4444");}
+}
+
+function openAssignModal(id){assignId=id;document.getElementById("assign-modal").style.display="flex";}
+function closeModal(){document.getElementById("assign-modal").style.display="none";}
+
+async function confirmAssign(){
+  const tech=document.getElementById("modal-tech").value;
+  const t=tickets.find(x=>x.id===assignId);
+  if(!t)return;
+  const patch={assigned_to:tech};
+  if(t.status==="Abierto") patch.status="En Progreso";
+  try{
+    await apiPost({action:"update",id:assignId,patch});
+    await refreshAll(true);
+    toast(`✔ Asignado a ${techName(tech)}<br>📧 Correo enviado al técnico`);
+  }catch(e){toast("Error al asignar.","#ef4444");}
+  closeModal();
+}
+
+// ═══════════════════════════════════════════════════
+//  MÉTRICAS
+// ═══════════════════════════════════════════════════
+function dc(id){if(chartInst[id]){chartInst[id].destroy();delete chartInst[id];}}
+function co(){return{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:"#1e2740"},ticks:{color:"#8892a4",font:{size:11}}},y:{grid:{color:"#1e2740"},ticks:{color:"#8892a4",font:{size:11}}}}};}
+
+function renderMetrics(){
+  const closed=tickets.filter(t=>t.status==="Cerrado");
+  const totalH=tickets.reduce((a,t)=>a+(+t.hours_logged||0),0).toFixed(1);
+  const times=closed.filter(t=>t.closed_at).map(t=>daysBetween(t.created_at,t.closed_at)).filter(d=>d!==null);
+  const avgR=times.length?(times.reduce((a,b)=>a+b,0)/times.length).toFixed(1):"—";
+
+  document.getElementById("stats-row").innerHTML=[
+    ["Total",tickets.length,"#f59e0b"],
+    ["Abiertos",tickets.filter(t=>t.status==="Abierto").length,"#3b82f6"],
+    ["En Progreso",tickets.filter(t=>t.status==="En Progreso").length,"#f59e0b"],
+    ["Cerrados",closed.length,"#10b981"],
+    ["Horas",totalH+"h","#8b5cf6"],
+    ["Días Prom.",avgR,"#14b8a6"],
+  ].map(([l,v,c])=>`<div class="stat-card"><div class="stat-num" style="color:${c}">${v}</div><div class="stat-lbl">${l}</div></div>`).join("");
+
+  const byDept={};tickets.forEach(t=>{byDept[t.dept]=(byDept[t.dept]||0)+1;});
+  dc("chart-dept");chartInst["chart-dept"]=new Chart(document.getElementById("chart-dept"),{type:"bar",data:{labels:Object.keys(byDept),datasets:[{data:Object.values(byDept),backgroundColor:PAL,borderRadius:5,borderSkipped:false}]},options:co()});
+
+  const byCat={};tickets.forEach(t=>{byCat[t.category]=(byCat[t.category]||0)+1;});
+  dc("chart-cat");chartInst["chart-cat"]=new Chart(document.getElementById("chart-cat"),{type:"doughnut",data:{labels:Object.keys(byCat),datasets:[{data:Object.values(byCat),backgroundColor:PAL,borderWidth:2,borderColor:"#141924"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"right",labels:{color:"#8892a4",font:{size:11}}}}}});
+
+  const bT={};tickets.forEach(t=>{if(t.assigned_to){bT[t.assigned_to]=bT[t.assigned_to]||{h:0,n:0};bT[t.assigned_to].h+=(+t.hours_logged||0);bT[t.assigned_to].n++;}});
+  dc("chart-tech");chartInst["chart-tech"]=new Chart(document.getElementById("chart-tech"),{type:"bar",data:{labels:Object.keys(bT).map(techName),datasets:[{label:"Horas",data:Object.values(bT).map(d=>+d.h.toFixed(1)),backgroundColor:"#8b5cf6",borderRadius:4,borderSkipped:false},{label:"Tiquetes",data:Object.values(bT).map(d=>d.n),backgroundColor:"#f59e0b",borderRadius:4,borderSkipped:false}]},options:{...co(),plugins:{legend:{labels:{color:"#8892a4",font:{size:11}}}}}});
+
+  dc("chart-pri");chartInst["chart-pri"]=new Chart(document.getElementById("chart-pri"),{type:"bar",data:{labels:["Alta","Media","Baja"],datasets:[{data:["Alta","Media","Baja"].map(p=>tickets.filter(t=>t.priority===p).length),backgroundColor:["#ef4444","#f59e0b","#22c55e"],borderRadius:5,borderSkipped:false}]},options:{...co(),indexAxis:"y"}});
+
+  document.getElementById("tech-table-wrap").innerHTML=`<table><thead><tr><th>Técnico</th><th>Asignados</th><th>Cerrados</th><th>Horas</th><th>Prom h/tiquete</th></tr></thead><tbody>${Object.entries(bT).map(([id,d])=>`<tr><td style="font-weight:700">${techName(id)}</td><td>${d.n}</td><td>${badge(tickets.filter(t=>t.assigned_to===id&&t.status==="Cerrado").length,"#10b981")}</td><td style="color:var(--purple);font-family:var(--font-mono);font-weight:700">${d.h.toFixed(1)}h</td><td style="color:var(--muted)">${d.n>0?(d.h/d.n).toFixed(1)+"h":"—"}</td></tr>`).join("")}</tbody></table>`;
+}
+
+// ═══════════════════════════════════════════════════
+//  EXPORTACIÓN
+// ═══════════════════════════════════════════════════
+const ECOLS=[
+  {k:"id",l:"ID"},{k:"title",l:"Título"},{k:"description",l:"Descripción"},
+  {k:"requester",l:"Solicitante"},{k:"dept",l:"Departamento"},{k:"location",l:"Ubicación"},
+  {k:"category",l:"Categoría"},{k:"priority",l:"Prioridad"},{k:"status",l:"Estado"},
+  {k:"assigned_to",l:"Técnico",f:v=>techName(v)||"Sin asignar"},
+  {k:"created_at",l:"Fecha Creación"},{k:"closed_at",l:"Fecha Cierre",f:v=>v||"Pendiente"},
+  {k:"hours_logged",l:"Horas"},
+  {k:"_dias",l:"Días Resolución",c:t=>t.closed_at?daysBetween(t.created_at,t.closed_at):"Abierto"},
+  {k:"notes",l:"Notas",f:v=>Array.isArray(v)?v.join(" | "):String(v||"")}
+];
+function cv(t,c){if(c.c)return c.c(t);const v=t[c.k];return c.f?c.f(v):(v??'');}
+function getExp(){
+  const st=document.getElementById("exp-st")?.value||"";
+  const dp=document.getElementById("exp-dp")?.value||"";
+  const tc=document.getElementById("exp-tc")?.value||"";
+  const fr=document.getElementById("exp-fr")?.value||"";
+  const to=document.getElementById("exp-to")?.value||"";
+  return tickets.filter(t=>(!st||t.status===st)&&(!dp||t.dept===dp)&&(!tc||t.assigned_to===tc)&&(!fr||t.created_at>=fr)&&(!to||t.created_at<=to));
+}
+function renderExportPreview(){
+  const data=getExp();
+  document.getElementById("exp-count").textContent=`${data.length} tiquete${data.length!==1?"s":""}`;
+  document.getElementById("exp-thead").innerHTML=ECOLS.map(c=>`<th style="white-space:nowrap;padding:7px 11px">${c.l}</th>`).join("");
+  document.getElementById("exp-tbody").innerHTML=data.map(t=>`<tr>${ECOLS.map(c=>{const v=cv(t,c);let s="padding:6px 11px;border-bottom:1px solid #1a2035;white-space:nowrap;";if(c.k==="status")return`<td style="${s}">${badge(v,SC[v]||"#6b7280")}</td>`;if(c.k==="priority")return`<td style="${s}">${badge(v,PC[v]||"#6b7280")}</td>`;if(c.k==="hours_logged")return`<td style="${s}color:var(--purple);font-weight:700">${v}h</td>`;return`<td style="${s};max-width:180px;overflow:hidden;text-overflow:ellipsis">${v}</td>`;}).join("")}</tr>`).join("");
+}
+function exportCSV(){
+  const data=getExp();
+  if(!data.length){toast("Sin tiquetes con esos filtros.","#ef4444");return;}
+  const csv="\uFEFF"+[ECOLS.map(c=>`"${c.l}"`).join(";"),...data.map(t=>ECOLS.map(c=>`"${String(cv(t,c)).replace(/"/g,'""')}"`).join(";"))].join("\r\n");
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8;"}));
+  a.download=`FaciliDesk_${new Date().toLocaleString("es-CR",{month:"long",year:"numeric"}).replace(" ","_")}.csv`;
+  a.click();toast(`✔ Descargando ${data.length} tiquetes`);
+}
+function copyTable(){
+  const data=getExp();
+  if(!data.length){toast("Sin tiquetes.","#ef4444");return;}
+  const text=[ECOLS.map(c=>c.l).join("\t"),...data.map(t=>ECOLS.map(c=>cv(t,c)).join("\t"))].join("\n");
+  navigator.clipboard.writeText(text).catch(()=>{const ta=document.createElement("textarea");ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);});
+  toast(`✔ ${data.length} tiquetes copiados — pegá en Excel con Ctrl+V`);
+}
+
+// ═══════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════
+(async ()=>{
+  if(checkConfig()) await refreshAll(true);
+  else {
+    document.getElementById("client-list").innerHTML=`<div class="empty-state" style="padding:20px 0;font-size:14px">⚙️ Configurá la URL del Apps Script para comenzar.<br>Abrí el archivo en el Bloc de notas y seguí las instrucciones.</div>`;
+  }
+})();
+</script>
+</body>
+</html>

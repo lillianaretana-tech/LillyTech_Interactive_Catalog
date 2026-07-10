@@ -1,0 +1,1508 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soluciones Automatizadas | Lilliana Retana · Costa Rica</title>
+    <meta name="description" content="Automatizo procesos empresariales con tecnología real. WhatsApp bots con IA, dashboards en tiempo real, integración de sistemas. Costa Rica.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Figtree:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #08111a;
+            --bg2: #0d1c2b;
+            --bg3: #0f2236;
+            --accent: #00e5c0;
+            --accent2: #0090ff;
+            --accent3: #ff6b35;
+            --text: #e8f4f0;
+            --text-muted: #7a9bb0;
+            --border: rgba(0, 229, 192, 0.15);
+            --card-bg: rgba(13, 28, 43, 0.8);
+            --font-display: 'Syne', sans-serif;
+            --font-body: 'Figtree', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        /* ─── GRID BACKGROUND ─── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0,229,192,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,229,192,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ─── NOISE TEXTURE ─── */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ─── HEADER ─── */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 18px 0;
+            background: rgba(8, 17, 26, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 20px;
+            color: var(--accent);
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 32px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            transition: color 0.3s;
+        }
+
+        nav a:hover { color: var(--accent); }
+
+        .nav-cta {
+            background: var(--accent) !important;
+            color: var(--bg) !important;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-weight: 700 !important;
+        }
+
+        .nav-cta:hover {
+            background: #00ffda !important;
+            color: var(--bg) !important;
+        }
+
+        /* ─── HERO ─── */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 120px 0 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-glow {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0,229,192,0.08) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        .hero-glow-2 {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0,144,255,0.06) 0%, transparent 70%);
+            top: 20%;
+            right: 5%;
+            pointer-events: none;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0,229,192,0.1);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 13px;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 28px;
+            letter-spacing: 0.5px;
+        }
+
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: clamp(38px, 6vw, 72px);
+            font-weight: 800;
+            line-height: 1.05;
+            letter-spacing: -2px;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 .line-accent {
+            color: var(--accent);
+            display: block;
+        }
+
+        .hero p {
+            font-size: 19px;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin-bottom: 40px;
+            font-weight: 300;
+            line-height: 1.8;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--accent);
+            color: var(--bg);
+            padding: 16px 32px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 16px;
+            transition: all 0.3s;
+            font-family: var(--font-display);
+        }
+
+        .btn-primary:hover {
+            background: #00ffda;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(0,229,192,0.3);
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: transparent;
+            color: var(--text);
+            padding: 16px 32px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 48px;
+            margin-top: 64px;
+            padding-top: 48px;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .stat-item {}
+
+        .stat-number {
+            font-family: var(--font-display);
+            font-size: 40px;
+            font-weight: 800;
+            color: var(--accent);
+            letter-spacing: -1px;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 6px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ─── SECTION COMMON ─── */
+        section {
+            padding: 100px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-label {
+            font-family: var(--font-display);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 16px;
+        }
+
+        h2 {
+            font-family: var(--font-display);
+            font-size: clamp(28px, 4vw, 48px);
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            color: var(--text);
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+
+        .section-intro {
+            font-size: 17px;
+            color: var(--text-muted);
+            max-width: 600px;
+            font-weight: 300;
+            margin-bottom: 64px;
+        }
+
+        .centered {
+            text-align: center;
+        }
+
+        .centered .section-intro {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* ─── PROBLEMA ─── */
+        #problema {
+            background: var(--bg2);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-top: 0;
+        }
+
+        .problem-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.3s;
+        }
+
+        .problem-card:hover {
+            border-color: rgba(0,229,192,0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .problem-icon {
+            font-size: 32px;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .problem-card h3 {
+            font-family: var(--font-display);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+
+        .problem-card p {
+            font-size: 15px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* ─── PORTFOLIO ─── */
+        #portfolio {
+            background: var(--bg);
+        }
+
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 28px;
+        }
+
+        .portfolio-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 36px;
+            transition: all 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .portfolio-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s;
+        }
+
+        .portfolio-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+            border-color: rgba(0,229,192,0.3);
+        }
+
+        .portfolio-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .portfolio-tag {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(0,229,192,0.1);
+            color: var(--accent);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 5px 12px;
+            border-radius: 50px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(0,229,192,0.2);
+        }
+
+        .portfolio-tag.tag-blue {
+            background: rgba(0,144,255,0.1);
+            color: var(--accent2);
+            border-color: rgba(0,144,255,0.2);
+        }
+
+        .portfolio-tag.tag-orange {
+            background: rgba(255,107,53,0.1);
+            color: var(--accent3);
+            border-color: rgba(255,107,53,0.2);
+        }
+
+        .portfolio-card h3 {
+            font-family: var(--font-display);
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .portfolio-card .desc {
+            font-size: 15px;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            line-height: 1.7;
+        }
+
+        .portfolio-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .pill {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: rgba(255,255,255,0.04);
+            padding: 4px 12px;
+            border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .portfolio-result {
+            background: rgba(0,229,192,0.07);
+            border: 1px solid rgba(0,229,192,0.15);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 14px;
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        .portfolio-result.blue {
+            background: rgba(0,144,255,0.07);
+            border-color: rgba(0,144,255,0.15);
+            color: var(--accent2);
+        }
+
+        .portfolio-result.orange {
+            background: rgba(255,107,53,0.07);
+            border-color: rgba(255,107,53,0.15);
+            color: var(--accent3);
+        }
+
+        /* ─── TECNOLOGÍAS ─── */
+        #tecnologias {
+            background: var(--bg2);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 16px;
+        }
+
+        .tech-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px 16px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .tech-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+            background: rgba(0,229,192,0.03);
+        }
+
+        .tech-icon {
+            font-size: 28px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .tech-name {
+            font-family: var(--font-display);
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .tech-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* ─── SERVICIOS ─── */
+        #servicios {
+            background: var(--bg);
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .service-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px 32px;
+            transition: all 0.3s;
+        }
+
+        .service-card.featured {
+            border-color: var(--accent);
+            background: linear-gradient(135deg, rgba(0,229,192,0.05), rgba(0,144,255,0.05));
+            position: relative;
+        }
+
+        .featured-badge {
+            position: absolute;
+            top: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: var(--bg);
+            font-size: 11px;
+            font-weight: 800;
+            padding: 4px 16px;
+            border-radius: 0 0 10px 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-family: var(--font-display);
+        }
+
+        .service-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .service-num {
+            font-family: var(--font-display);
+            font-size: 48px;
+            font-weight: 800;
+            color: rgba(0,229,192,0.15);
+            line-height: 1;
+            margin-bottom: 16px;
+        }
+
+        .service-card h3 {
+            font-family: var(--font-display);
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+        }
+
+        .service-card p {
+            font-size: 15px;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            line-height: 1.7;
+        }
+
+        .service-list {
+            list-style: none;
+        }
+
+        .service-list li {
+            font-size: 14px;
+            color: var(--text-muted);
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .service-list li::before {
+            content: '→';
+            color: var(--accent);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .service-price {
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            font-family: var(--font-display);
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        /* ─── BENEFICIOS ─── */
+        #beneficios {
+            background: var(--bg2);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 28px;
+        }
+
+        .benefit-card {
+            padding: 32px;
+            border-radius: 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .benefit-card:hover {
+            border-color: rgba(0,229,192,0.3);
+            transform: translateY(-3px);
+        }
+
+        .benefit-icon {
+            width: 56px;
+            height: 56px;
+            background: rgba(0,229,192,0.1);
+            border: 1px solid rgba(0,229,192,0.2);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            margin-bottom: 20px;
+        }
+
+        .benefit-card h3 {
+            font-family: var(--font-display);
+            font-size: 19px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 10px;
+            letter-spacing: -0.3px;
+        }
+
+        .benefit-card p {
+            font-size: 15px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* ─── SOBRE MÍ ─── */
+        #sobre-mi {
+            background: var(--bg);
+        }
+
+        .about-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1.6fr;
+            gap: 80px;
+            align-items: center;
+        }
+
+        .about-visual {
+            position: relative;
+        }
+
+        .about-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 40px;
+            position: relative;
+        }
+
+        .about-card::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 40px;
+            right: 40px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            border-radius: 0 0 3px 3px;
+        }
+
+        .about-avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .about-name {
+            font-family: var(--font-display);
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 4px;
+            letter-spacing: -0.5px;
+        }
+
+        .about-title {
+            font-size: 14px;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        .about-mini-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .mini-stat {
+            background: rgba(0,229,192,0.05);
+            border: 1px solid rgba(0,229,192,0.1);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .mini-stat-num {
+            font-family: var(--font-display);
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .mini-stat-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .about-content h2 {
+            margin-bottom: 24px;
+        }
+
+        .about-content p {
+            font-size: 16px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+
+        .about-highlights {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .highlight-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 14px 18px;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+
+        .highlight-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .highlight-text {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .highlight-text strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        /* ─── CONTACTO ─── */
+        #contacto {
+            background: var(--bg2);
+            border-top: 1px solid var(--border);
+        }
+
+        .contact-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 64px;
+            align-items: start;
+        }
+
+        .contact-info h2 {
+            margin-bottom: 16px;
+        }
+
+        .contact-info p {
+            font-size: 16px;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+            line-height: 1.7;
+        }
+
+        .contact-items {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .contact-item:hover {
+            border-color: var(--accent);
+            transform: translateX(4px);
+        }
+
+        .contact-item-icon {
+            width: 42px;
+            height: 42px;
+            background: rgba(0,229,192,0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .contact-item-text .label {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .contact-item-text .value {
+            font-size: 15px;
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .form-container {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 10px;
+            overflow: hidden;
+        }
+
+        .hubspot-iframe {
+            width: 100%;
+            min-height: 720px;
+            border: none;
+            border-radius: 12px;
+        }
+
+        /* ─── FOOTER ─── */
+        footer {
+            background: var(--bg);
+            border-top: 1px solid var(--border);
+            padding: 48px 0;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+
+        .footer-logo {
+            font-family: var(--font-display);
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .footer-copy {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-links a {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover { color: var(--accent); }
+
+        /* ─── SCROLL ANIMATIONS ─── */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal-delay-1 { transition-delay: 0.1s; }
+        .reveal-delay-2 { transition-delay: 0.2s; }
+        .reveal-delay-3 { transition-delay: 0.3s; }
+        .reveal-delay-4 { transition-delay: 0.4s; }
+
+        /* ─── MOBILE ─── */
+        @media (max-width: 900px) {
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+            .about-wrapper {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+            .contact-wrapper {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+            nav ul {
+                display: none;
+            }
+            .hero-stats {
+                gap: 32px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .hero-buttons {
+                flex-direction: column;
+            }
+            .portfolio-grid {
+                grid-template-columns: 1fr;
+            }
+            .tech-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ─── HEADER ─── -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-dot"></div>
+                    Soluciones Automatizadas
+                </div>
+                <nav>
+                    <ul>
+                        <li><a href="#portfolio">Proyectos</a></li>
+                        <li><a href="#servicios">Servicios</a></li>
+                        <li><a href="#sobre-mi">Sobre mí</a></li>
+                        <li><a href="#contacto" class="nav-cta">Consulta gratuita →</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- ─── HERO ─── -->
+    <section id="inicio" class="hero">
+        <div class="hero-glow"></div>
+        <div class="hero-glow-2"></div>
+        <div class="container">
+            <span class="badge">⚡ Consultora de Automatización · Costa Rica</span>
+            <h1>
+                Sistemas que trabajan
+                <span class="line-accent">mientras tú diriges.</span>
+            </h1>
+            <p>Convierto procesos manuales y dispersos en sistemas digitales que funcionan solos — desde bots de WhatsApp con IA hasta dashboards en tiempo real para decenas de ubicaciones.</p>
+            <div class="hero-buttons">
+                <a href="#contacto" class="btn-primary">Solicitar consultoría gratuita →</a>
+                <a href="#portfolio" class="btn-secondary">Ver proyectos reales</a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <div class="stat-number">50+</div>
+                    <div class="stat-label">Ubicaciones gestionadas</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">10+</div>
+                    <div class="stat-label">Sistemas desplegados</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">40%</div>
+                    <div class="stat-label">Reducción de costos operativos</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Papel en los procesos digitalizados</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── PROBLEMA ─── -->
+    <section id="problema">
+        <div class="container">
+            <div class="centered">
+                <p class="section-label">El problema</p>
+                <h2>¿Tu empresa sigue así?</h2>
+                <p class="section-intro">Reconocer el problema es el primer paso. Estas situaciones cuestan dinero, tiempo y oportunidades — cada día.</p>
+            </div>
+            <div class="problem-grid">
+                <div class="problem-card reveal">
+                    <span class="problem-icon">📋</span>
+                    <h3>Procesos en papel o Excel</h3>
+                    <p>Datos de asistencia, inventario o calidad capturados a mano, con riesgo de pérdida y sin trazabilidad.</p>
+                </div>
+                <div class="problem-card reveal reveal-delay-1">
+                    <span class="problem-icon">🔍</span>
+                    <h3>Sin visibilidad en tiempo real</h3>
+                    <p>Te enterás de los problemas horas o días después. Para entonces el daño ya está hecho.</p>
+                </div>
+                <div class="problem-card reveal reveal-delay-2">
+                    <span class="problem-icon">🗂️</span>
+                    <h3>Información dispersa</h3>
+                    <p>Datos en WhatsApp, correos, hojas sueltas y sistemas que no se hablan entre sí.</p>
+                </div>
+                <div class="problem-card reveal reveal-delay-3">
+                    <span class="problem-icon">⏳</span>
+                    <h3>Reportes que toman horas</h3>
+                    <p>Tu equipo dedica horas a consolidar información que podría generarse en segundos de forma automática.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── PORTFOLIO ─── -->
+    <section id="portfolio">
+        <div class="container">
+            <p class="section-label">Proyectos reales</p>
+            <h2>Soluciones que ya están funcionando</h2>
+            <p class="section-intro">No son demos ni conceptos. Estos sistemas están en producción, resolviendo problemas reales en empresas costarricenses.</p>
+
+            <div class="portfolio-grid">
+
+                <div class="portfolio-card reveal">
+                    <span class="portfolio-tag">🤖 IA + WhatsApp</span>
+                    <h3>Bruno — Tutor de inglés por WhatsApp</h3>
+                    <p class="desc">Bot conversacional con IA para adultos mayores sin conocimiento previo de inglés. Practica vocabulario, evalúa progreso con niveles CEFR, recibe mensajes de audio y mantiene historial por estudiante.</p>
+                    <div class="portfolio-pills">
+                        <span class="pill">Make</span>
+                        <span class="pill">OpenAI GPT-4o</span>
+                        <span class="pill">Twilio</span>
+                        <span class="pill">Whisper</span>
+                        <span class="pill">Data Store</span>
+                    </div>
+                    <div class="portfolio-result">✦ Manejo de audio, texto y evaluación automática de nivel CEFR en un solo flujo</div>
+                </div>
+
+                <div class="portfolio-card reveal reveal-delay-1">
+                    <span class="portfolio-tag tag-blue">📊 Monitoreo en tiempo real</span>
+                    <h3>Control de limpieza — 36 ubicaciones</h3>
+                    <p class="desc">Sistema desplegado en GitHub Pages con feeds desde Google Sheets. Cubre 36 ubicaciones en 7 pisos con QR codes por punto, alertas automáticas por correo y panel de supervisión en tiempo real.</p>
+                    <div class="portfolio-pills">
+                        <span class="pill">Google Sheets</span>
+                        <span class="pill">Apps Script</span>
+                        <span class="pill">GitHub Pages</span>
+                        <span class="pill">QR Codes</span>
+                    </div>
+                    <div class="portfolio-result blue">✦ El cliente lo destacó como referencia; el equipo directivo lo evaluó para expansión nacional</div>
+                </div>
+
+                <div class="portfolio-card reveal reveal-delay-2">
+                    <span class="portfolio-tag tag-orange">👥 RRHH Digital</span>
+                    <h3>Control de asistencia y turnos</h3>
+                    <p class="desc">Sistema multi-iteración para seguimiento de ausencias, coberturas, tipos de turno y cálculo de horas. Backend en Supabase con exportación a Excel para procesos de nómina en sistemas externos.</p>
+                    <div class="portfolio-pills">
+                        <span class="pill">Supabase</span>
+                        <span class="pill">HTML/JS</span>
+                        <span class="pill">Excel export</span>
+                        <span class="pill">VBA</span>
+                    </div>
+                    <div class="portfolio-result orange">✦ Reemplazó registros en papel para un equipo de 50+ colaboradores en múltiples sedes</div>
+                </div>
+
+                <div class="portfolio-card reveal">
+                    <span class="portfolio-tag">📚 Capacitación</span>
+                    <h3>Sistema de gestión de formación</h3>
+                    <p class="desc">Reemplazó Google Forms (bloqueados por política corporativa) con una solución HTML + Supabase. Dashboard para supervisores, seguimiento individual por colaborador y exportación compatible con Softland/Exactus.</p>
+                    <div class="portfolio-pills">
+                        <span class="pill">HTML/CSS/JS</span>
+                        <span class="pill">Supabase</span>
+                        <span class="pill">Exactus export</span>
+                    </div>
+                    <div class="portfolio-result">✦ Compatible con sistemas ERP corporativos existentes sin modificar infraestructura</div>
+                </div>
+
+                <div class="portfolio-card reveal reveal-delay-1">
+                    <span class="portfolio-tag tag-blue">🏗️ Construcción</span>
+                    <h3>Calculadora de cotizaciones — 3Rs Remodelaciones</h3>
+                    <p class="desc">App para empresa de remodelación que genera cotizaciones precisas con materiales, mano de obra y márgenes. Permite al equipo de ventas cotizar en sitio sin depender de oficina.</p>
+                    <div class="portfolio-pills">
+                        <span class="pill">AppSheet</span>
+                        <span class="pill">Google Sheets</span>
+                        <span class="pill">Fórmulas dinámicas</span>
+                    </div>
+                    <div class="portfolio-result blue">✦ Cotizaciones en campo, en segundos, con cálculo automático de costos y utilidad</div>
+                </div>
+
+                <div class="portfolio-card reveal reveal-delay-2">
+                    <span class="portfolio-tag tag-orange">💰 Control Presupuestario</span>
+                    <h3>Clasificador inteligente de compras</h3>
+                    <p class="desc">Herramienta HTML standalone que procesa exportaciones de Exactus, clasifica gastos por palabras clave automáticamente y permite corrección manual. Genera reportes de control presupuestal semanal.</p>
+                    <div class="portfolio-pills">
+                        <span class="pill">HTML puro</span>
+                        <span class="pill">JavaScript</span>
+                        <span class="pill">Exactus CSV</span>
+                    </div>
+                    <div class="portfolio-result orange">✦ Sin servidores, sin instalación — funciona desde cualquier computadora con un solo archivo</div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── TECNOLOGÍAS ─── -->
+    <section id="tecnologias">
+        <div class="container">
+            <div class="centered">
+                <p class="section-label">Stack tecnológico</p>
+                <h2>Las herramientas que domino</h2>
+                <p class="section-intro">Trabajo con plataformas probadas, accesibles y mantenibles — no con frameworks complicados que nadie más puede tocar.</p>
+            </div>
+            <div class="tech-grid">
+                <div class="tech-card reveal">
+                    <span class="tech-icon">⚙️</span>
+                    <div class="tech-name">Make</div>
+                    <div class="tech-desc">Automatización visual de flujos</div>
+                </div>
+                <div class="tech-card reveal reveal-delay-1">
+                    <span class="tech-icon">🤖</span>
+                    <div class="tech-name">OpenAI</div>
+                    <div class="tech-desc">GPT-4o, Whisper, embeddings</div>
+                </div>
+                <div class="tech-card reveal reveal-delay-2">
+                    <span class="tech-icon">💬</span>
+                    <div class="tech-name">WhatsApp</div>
+                    <div class="tech-desc">Bots vía Twilio / Meta API</div>
+                </div>
+                <div class="tech-card reveal">
+                    <span class="tech-icon">🗄️</span>
+                    <div class="tech-name">Supabase</div>
+                    <div class="tech-desc">Base de datos en la nube</div>
+                </div>
+                <div class="tech-card reveal reveal-delay-1">
+                    <span class="tech-icon">📊</span>
+                    <div class="tech-name">Google Sheets</div>
+                    <div class="tech-desc">Apps Script, reportes, feeds</div>
+                </div>
+                <div class="tech-card reveal reveal-delay-2">
+                    <span class="tech-icon">🌐</span>
+                    <div class="tech-name">HTML/JS</div>
+                    <div class="tech-desc">Apps standalone sin frameworks</div>
+                </div>
+                <div class="tech-card reveal">
+                    <span class="tech-icon">📁</span>
+                    <div class="tech-name">GitHub Pages</div>
+                    <div class="tech-desc">Deploy rápido y gratuito</div>
+                </div>
+                <div class="tech-card reveal reveal-delay-1">
+                    <span class="tech-icon">🔗</span>
+                    <div class="tech-name">AppSheet</div>
+                    <div class="tech-desc">Apps móviles sin código</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── SERVICIOS ─── -->
+    <section id="servicios">
+        <div class="container">
+            <div class="centered">
+                <p class="section-label">Servicios</p>
+                <h2>¿Cómo podemos trabajar juntos?</h2>
+                <p class="section-intro">Desde entender tu situación actual hasta mantener el sistema funcionando a largo plazo.</p>
+            </div>
+            <div class="services-grid">
+                <div class="service-card reveal">
+                    <div class="service-num">01</div>
+                    <h3>Consultoría Inicial</h3>
+                    <p>Revisamos tus procesos actuales, identifico los cuellos de botella más costosos y te presento un plan concreto de qué automatizar primero.</p>
+                    <ul class="service-list">
+                        <li>Análisis de procesos actuales</li>
+                        <li>Identificación de oportunidades</li>
+                        <li>Recomendaciones personalizadas</li>
+                        <li>Hoja de ruta de implementación</li>
+                    </ul>
+                    <div class="service-price">✦ Gratuita para nuevos clientes</div>
+                </div>
+                <div class="service-card featured reveal reveal-delay-1">
+                    <div class="featured-badge">Más solicitado</div>
+                    <div class="service-num">02</div>
+                    <h3>Desarrollo e Implementación</h3>
+                    <p>Construyo la solución a medida: desde un bot de WhatsApp hasta un sistema de monitoreo multi-sede, integrado con lo que ya usás.</p>
+                    <ul class="service-list">
+                        <li>Desarrollo de solución completa</li>
+                        <li>Integración con sistemas existentes</li>
+                        <li>Capacitación de tu equipo</li>
+                        <li>Pruebas, ajustes y entrega</li>
+                        <li>Documentación incluida</li>
+                    </ul>
+                    <div class="service-price">✦ Cotización según el alcance del proyecto</div>
+                </div>
+                <div class="service-card reveal reveal-delay-2">
+                    <div class="service-num">03</div>
+                    <h3>Soporte y Evolución</h3>
+                    <p>Los procesos cambian. Me aseguro de que tu sistema evolucione con tu negocio y siga funcionando de manera óptima.</p>
+                    <ul class="service-list">
+                        <li>Soporte técnico continuo</li>
+                        <li>Actualizaciones y mejoras</li>
+                        <li>Ajustes por cambios operativos</li>
+                        <li>Optimización de rendimiento</li>
+                    </ul>
+                    <div class="service-price">✦ Disponible según necesidad del cliente</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── BENEFICIOS ─── -->
+    <section id="beneficios">
+        <div class="container">
+            <div class="centered">
+                <p class="section-label">Por qué automatizar</p>
+                <h2>Lo que cambia en tu operación</h2>
+                <p class="section-intro">Resultados tangibles que se ven en las primeras semanas de uso.</p>
+            </div>
+            <div class="benefits-grid">
+                <div class="benefit-card reveal">
+                    <div class="benefit-icon">💰</div>
+                    <h3>Reducción de costos</h3>
+                    <p>Hasta 40% de ahorro en tareas operativas al eliminar el trabajo manual repetitivo y los errores de captura.</p>
+                </div>
+                <div class="benefit-card reveal reveal-delay-1">
+                    <div class="benefit-icon">⚡</div>
+                    <h3>Respuesta inmediata</h3>
+                    <p>Alertas automáticas, reportes en tiempo real y decisiones basadas en datos actualizados al minuto.</p>
+                </div>
+                <div class="benefit-card reveal reveal-delay-2">
+                    <div class="benefit-icon">📈</div>
+                    <h3>Control total</h3>
+                    <p>Visibilidad completa de lo que pasa en cada sede, turno y proceso — desde un solo panel.</p>
+                </div>
+                <div class="benefit-card reveal reveal-delay-3">
+                    <div class="benefit-icon">🎯</div>
+                    <h3>Tu equipo libera tiempo</h3>
+                    <p>Las tareas mecánicas las hace el sistema. Tu gente se enfoca en lo que realmente genera valor.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── SOBRE MÍ ─── -->
+    <section id="sobre-mi">
+        <div class="container">
+            <div class="about-wrapper">
+                <div class="about-visual reveal">
+                    <div class="about-card">
+                        <div class="about-avatar">👩‍💻</div>
+                        <div class="about-name">Lilliana Retana</div>
+                        <div class="about-title">Consultora de Automatización · Costa Rica</div>
+                        <p style="font-size:14px; color: var(--text-muted); line-height: 1.6;">Más de 40 años de experiencia profesional. Combino conocimiento operativo profundo con capacidad técnica para construir soluciones que realmente se usan.</p>
+                        <div class="about-mini-stats">
+                            <div class="mini-stat">
+                                <div class="mini-stat-num">40</div>
+                                <div class="mini-stat-label">Años de experiencia</div>
+                            </div>
+                            <div class="mini-stat">
+                                <div class="mini-stat-num">50+</div>
+                                <div class="mini-stat-label">Sedes gestionadas</div>
+                            </div>
+                            <div class="mini-stat">
+                                <div class="mini-stat-num">10+</div>
+                                <div class="mini-stat-label">Sistemas en producción</div>
+                            </div>
+                            <div class="mini-stat">
+                                <div class="mini-stat-num">🇨🇷</div>
+                                <div class="mini-stat-label">San José, Costa Rica</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-content reveal reveal-delay-1">
+                    <p class="section-label">Sobre mí</p>
+                    <h2>Construyo lo que las empresas necesitan pero no encuentran</h2>
+                    <p>Soy Project Manager con más de 40 años de experiencia, actualmente gestionando 50+ sedes para una empresa líder de servicios en Costa Rica. Desde 1987 trabajo con tecnología, y en los últimos años me convertí en impulsora de transformación digital interna — construyendo sistemas que el equipo de desarrollo de la empresa no podía entregar.</p>
+                    <p>Mi enfoque es pragmático: prefiero una solución funcional que tu equipo pueda usar mañana, a un proyecto complejo que nadie adopta.</p>
+                    <div class="about-highlights">
+                        <div class="highlight-item">
+                            <span class="highlight-icon">🏆</span>
+                            <div class="highlight-text"><strong>Reconocimiento internacional:</strong> Sistema de monitoreo de limpieza destacado por cliente multinacional y evaluado para escala nacional</div>
+                        </div>
+                        <div class="highlight-item">
+                            <span class="highlight-icon">🤖</span>
+                            <div class="highlight-text"><strong>IA aplicada:</strong> Desarrollo de agentes conversacionales con OpenAI y WhatsApp para uso real por personas mayores</div>
+                        </div>
+                        <div class="highlight-item">
+                            <span class="highlight-icon">⚙️</span>
+                            <div class="highlight-text"><strong>Integración de sistemas:</strong> Experiencia conectando ERP corporativos (Exactus, Softland) con soluciones web modernas</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── CONTACTO ─── -->
+    <section id="contacto">
+        <div class="container">
+            <div class="contact-wrapper">
+                <div class="contact-info reveal">
+                    <p class="section-label">Contacto</p>
+                    <h2>Hablemos de tu empresa</h2>
+                    <p>Contame qué procesos te generan más fricción y te digo si hay una solución técnica que los resuelva. La primera conversación es siempre gratuita.</p>
+                    <div class="contact-items">
+                        <a href="mailto:iretana@yahoo.com" class="contact-item">
+                            <div class="contact-item-icon">📧</div>
+                            <div class="contact-item-text">
+                                <div class="label">Email</div>
+                                <div class="value">iretana@yahoo.com</div>
+                            </div>
+                        </a>
+                        <a href="https://wa.me/50688035571" target="_blank" class="contact-item">
+                            <div class="contact-item-icon">💬</div>
+                            <div class="contact-item-text">
+                                <div class="label">WhatsApp</div>
+                                <div class="value">+506 8803-5571</div>
+                            </div>
+                        </a>
+                        <div class="contact-item">
+                            <div class="contact-item-icon">📍</div>
+                            <div class="contact-item-text">
+                                <div class="label">Ubicación</div>
+                                <div class="value">San José, Costa Rica</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-container reveal reveal-delay-1">
+                    <iframe class="hubspot-iframe"
+                            src="https://share.hsforms.com/2D-za-Ly8RL24gH91UnQJeQu39sg"
+                            frameborder="0"
+                            scrolling="yes">
+                    </iframe>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── FOOTER ─── -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">Soluciones Automatizadas</div>
+                <div class="footer-copy">© 2025 Lilliana Retana · San José, Costa Rica</div>
+                <div class="footer-links">
+                    <a href="mailto:iretana@yahoo.com">Email</a>
+                    <a href="https://wa.me/50688035571" target="_blank">WhatsApp</a>
+                    <a href="#inicio">Volver arriba ↑</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Scroll reveal
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        // Counter animation for stats
+        const animateCounter = (el, target, suffix = '') => {
+            let start = 0;
+            const duration = 2000;
+            const step = timestamp => {
+                if (!start) start = timestamp;
+                const progress = Math.min((timestamp - start) / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                el.textContent = Math.floor(eased * target) + suffix;
+                if (progress < 1) requestAnimationFrame(step);
+            };
+            requestAnimationFrame(step);
+        };
+
+        const statsObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const stats = entry.target.querySelectorAll('.stat-number');
+                    stats.forEach(stat => {
+                        const text = stat.textContent;
+                        if (text.includes('+')) {
+                            const num = parseInt(text);
+                            animateCounter(stat, num, '+');
+                        } else if (text.includes('%')) {
+                            const num = parseInt(text);
+                            animateCounter(stat, num, '%');
+                        }
+                    });
+                    statsObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        const heroStats = document.querySelector('.hero-stats');
+        if (heroStats) statsObserver.observe(heroStats);
+    </script>
+</body>
+</html>

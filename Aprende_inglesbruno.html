@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Aprende Inglés con Bruno — Desde Cero, En Español</title>
+<meta name="description" content="El curso interactivo de inglés para adultos y adultos mayores. Aprende a tu ritmo con lecciones, pronunciación y soporte inicial por WhatsApp con Bruno IA."/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0c10;--s1:#10141c;--s2:#151b26;--s3:#1a2232;
+  --border:rgba(255,255,255,.06);
+  --gold:#ffb74d;--gd:rgba(255,183,77,.1);
+  --green:#4ade80;--grd:rgba(74,222,128,.1);
+  --blue:#60a5fa;--wa:#25d366;
+  --text:#f0f4fa;--muted:#94a3b8;--muted2:#a8b4cc;
+  --r:16px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+h1,h2,h3{font-family:'Playfair Display',serif;line-height:1.1}
+p{color:var(--muted2)}
+a{text-decoration:none}
+.container{max-width:920px;margin:0 auto;padding:0 20px}
+.tag{display:inline-block;font-family:'DM Sans',sans-serif;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:4px 12px;border-radius:20px;margin-bottom:14px}
+.tag-gold{background:var(--gd);color:var(--gold);border:1px solid rgba(255,183,77,.2)}
+.tag-green{background:var(--grd);color:var(--green);border:1px solid rgba(74,222,128,.2)}
+.tag-wa{background:rgba(37,211,102,.1);color:var(--wa);border:1px solid rgba(37,211,102,.2)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.anim{animation:fadeUp .7s ease both}
+.d1{animation-delay:.1s}.d2{animation-delay:.2s}.d3{animation-delay:.3s}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:99;background:rgba(10,12,16,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:13px 20px}
+.nav-inner{max-width:920px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-family:'Playfair Display',serif;font-size:1rem;font-weight:800;color:var(--gold)}
+.nav-cta{background:var(--gold);color:#1a0f00;font-weight:700;font-size:.82rem;padding:8px 18px;border-radius:8px;border:none;cursor:pointer;transition:.2s;display:inline-block}
+.nav-cta:hover{background:#ffc87a;transform:translateY(-1px)}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;align-items:center;padding:100px 20px 60px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(255,183,77,.06),transparent 60%),radial-gradient(circle at 80% 60%,rgba(37,211,102,.04),transparent 50%);pointer-events:none}
+.hero::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(ellipse 70% 50% at 50% 0%,black,transparent);pointer-events:none}
+.hero-inner{max-width:920px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.hero h1{font-size:clamp(2rem,4.5vw,3.2rem);font-weight:900;margin-bottom:16px}
+.hero h1 em{font-style:italic;background:linear-gradient(135deg,var(--gold),#ffd080);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero h1 strong{color:var(--green)}
+.hero-desc{font-size:.98rem;margin-bottom:28px;line-height:1.7}
+.cta-group{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.btn-hero{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border-radius:12px;font-weight:700;font-size:.95rem;border:none;cursor:pointer;transition:.2s;text-decoration:none}
+.btn-primary{background:linear-gradient(135deg,#f59e0b,#ffb74d);color:#1a0f00;box-shadow:0 8px 28px rgba(255,183,77,.25)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(255,183,77,.35)}
+.btn-wa{background:linear-gradient(135deg,#1da851,#25d366);color:#fff;box-shadow:0 8px 24px rgba(37,211,102,.25)}
+.btn-wa:hover{transform:translateY(-2px)}
+.btn-secondary{background:var(--s2);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--gold);color:var(--gold)}
+.hero-note{font-size:.76rem;color:var(--muted)}
+
+/* PHONE MOCKUP */
+.phone-wrap{display:flex;justify-content:center;animation:float 5s ease-in-out infinite}
+.phone{width:210px;height:420px;border-radius:32px;background:var(--s1);border:2px solid rgba(255,255,255,.1);box-shadow:0 30px 80px rgba(0,0,0,.5),0 0 60px rgba(255,183,77,.06);position:relative;overflow:hidden;flex-shrink:0}
+.phone-notch{width:70px;height:5px;background:rgba(255,255,255,.08);border-radius:3px;margin:12px auto 0}
+.phone-screen{padding:8px 10px;height:calc(100% - 28px)}
+.ph-status{display:flex;justify-content:space-between;font-size:.5rem;color:rgba(255,255,255,.3);margin-bottom:8px}
+.ph-header{background:linear-gradient(135deg,rgba(255,183,77,.15),transparent);border:1px solid rgba(255,183,77,.12);border-radius:8px;padding:8px;margin-bottom:7px}
+.ph-title{font-family:'Playfair Display',serif;font-size:.7rem;font-weight:700;color:var(--gold)}
+.ph-sub{font-size:.45rem;color:rgba(255,255,255,.35);margin-top:1px}
+.ph-word{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:var(--gold);text-align:center;padding:8px 0 4px}
+.ph-phonetic{font-size:.5rem;color:rgba(255,255,255,.4);text-align:center;margin-bottom:6px}
+.ph-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:7px;padding:6px 8px;margin-bottom:5px;font-size:.5rem;color:rgba(255,255,255,.5)}
+.ph-card strong{color:rgba(255,255,255,.8);display:block;margin-bottom:2px;font-size:.55rem}
+.ph-btn-row{display:flex;gap:5px;margin:6px 0}
+.ph-btn{flex:1;border-radius:7px;padding:5px 3px;border:none;font-size:.5rem;font-weight:700;cursor:pointer;text-align:center}
+.ph-btn-gold{background:var(--gold);color:#1a0f00}
+.ph-btn-green{background:#25d366;color:#fff}
+.ph-progress{margin:5px 0}
+.ph-prog-label{display:flex;justify-content:space-between;font-size:.45rem;color:rgba(255,255,255,.3);margin-bottom:3px}
+.ph-prog-bar{height:4px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden}
+.ph-prog-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--gold),#ffd080)}
+.ph-bnav{position:absolute;bottom:0;left:0;right:0;background:rgba(10,12,16,.95);border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-around;padding:4px 0 6px}
+.ph-bnav-btn{font-size:.55rem;text-align:center;color:rgba(255,255,255,.2);padding:3px}
+.ph-bnav-btn.active{color:var(--gold)}
+.ph-glow{position:absolute;inset:-30px;border-radius:50%;background:radial-gradient(circle,rgba(255,183,77,.07),transparent 70%);pointer-events:none}
+
+/* PROOF */
+.proof-strip{background:var(--s1);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:18px 0}
+.proof-inner{display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;font-size:.82rem;color:var(--muted2)}
+.proof-item{display:flex;align-items:center;gap:7px}
+.proof-val{font-weight:700;color:var(--text)}
+
+/* SECTIONS */
+.section{padding:80px 0}
+.section-alt{background:var(--s1)}
+.section-header{text-align:center;margin-bottom:36px}
+.section-header h2{font-size:clamp(1.5rem,3vw,2.3rem);margin-bottom:10px}
+.section-header p{font-size:.92rem;max-width:500px;margin:0 auto}
+
+/* CARDS */
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.feat-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:20px;transition:.2s}
+.feat-card:hover{border-color:rgba(255,183,77,.2);transform:translateY(-3px)}
+.feat-ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:12px;background:var(--gd);border:1px solid rgba(255,183,77,.15)}
+.feat-card h3{font-size:.92rem;font-family:'DM Sans',sans-serif;font-weight:700;margin-bottom:5px}
+.feat-card p{font-size:.8rem;line-height:1.6}
+
+/* BRUNO HIGHLIGHT */
+.bruno-section{
+  background:linear-gradient(135deg,rgba(37,211,102,.08),rgba(74,222,128,.04));
+  border:1px solid rgba(37,211,102,.15);
+  border-radius:20px;padding:32px;margin:36px 0;
+  display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;
+}
+.bruno-avatar{
+  width:80px;height:80px;border-radius:50%;
+  background:linear-gradient(135deg,#1da851,#25d366);
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.2rem;flex-shrink:0;
+  box-shadow:0 8px 24px rgba(37,211,102,.3);
+}
+.bruno-title{font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:6px;color:var(--green)}
+.bruno-desc{font-size:.85rem;line-height:1.7;margin-bottom:14px}
+.wa-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  background:linear-gradient(135deg,#1da851,#25d366);
+  color:#fff;font-weight:700;font-size:.88rem;
+  padding:11px 20px;border-radius:10px;
+  box-shadow:0 6px 20px rgba(37,211,102,.3);transition:.2s;
+}
+.wa-btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(37,211,102,.4)}
+
+/* LEVELS */
+.levels-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:20px}
+.level-pill{background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;transition:.15s}
+.level-pill:hover{border-color:rgba(255,183,77,.25);background:var(--gd)}
+.level-pill .l-ico{font-size:1.4rem;margin-bottom:6px}
+.level-pill h4{font-size:.82rem;font-weight:700;margin-bottom:3px;font-family:'DM Sans',sans-serif}
+.level-pill p{font-size:.7rem}
+
+/* TESTIMONIALS */
+.testi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:32px}
+.testi-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:20px;position:relative}
+.testi-card::before{content:'"';font-family:'Playfair Display',serif;font-size:4rem;line-height:.5;color:rgba(255,183,77,.1);position:absolute;top:12px;left:14px}
+.testi-stars{color:var(--gold);font-size:.85rem;margin-bottom:8px}
+.testi-text{font-size:.82rem;color:var(--muted2);line-height:1.7;margin-bottom:12px;font-style:italic}
+.testi-author{display:flex;align-items:center;gap:9px}
+.testi-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;background:var(--gd);flex-shrink:0}
+.testi-name{font-size:.8rem;font-weight:700}
+.testi-loc{font-size:.7rem;color:var(--muted)}
+
+/* PRICING */
+.pricing{padding:80px 0;text-align:center}
+.price-box{max-width:440px;margin:32px auto 0;background:var(--s1);border:1px solid rgba(255,183,77,.2);border-radius:22px;padding:32px;position:relative;overflow:hidden;box-shadow:0 0 50px rgba(255,183,77,.06)}
+.price-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.price-badge{display:inline-block;background:var(--gd);color:var(--gold);border:1px solid rgba(255,183,77,.2);border-radius:20px;font-size:.7rem;font-weight:700;padding:3px 12px;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em}
+.price-name{font-size:1.3rem;font-weight:800;margin-bottom:5px}
+.price-desc{font-size:.82rem;color:var(--muted2);margin-bottom:20px}
+.price-old{font-size:.88rem;color:var(--muted);text-decoration:line-through;margin-bottom:3px}
+.price-current{font-family:'Playfair Display',serif;font-size:3.2rem;font-weight:900;color:var(--gold);line-height:1;margin-bottom:4px}
+.price-curr{font-size:1.3rem;vertical-align:top;line-height:2.4;margin-right:2px}
+.price-period{font-size:.8rem;color:var(--muted2);margin-bottom:20px}
+.price-features{text-align:left;border-top:1px solid var(--border);padding-top:16px;margin-bottom:20px;display:flex;flex-direction:column;gap:7px}
+.price-feat{display:flex;align-items:center;gap:9px;font-size:.8rem;color:var(--muted2)}
+.pcheck{width:18px;height:18px;border-radius:50%;background:var(--gd);color:var(--gold);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;flex-shrink:0}
+.btn-buy{display:block;width:100%;background:linear-gradient(135deg,#f59e0b,#ffb74d);color:#1a0f00;font-weight:800;font-size:1rem;padding:15px;border-radius:11px;border:none;cursor:pointer;transition:.2s;text-decoration:none;text-align:center;box-shadow:0 8px 24px rgba(255,183,77,.25);margin-bottom:10px}
+.btn-buy:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(255,183,77,.35)}
+.btn-buy-wa{display:block;width:100%;background:linear-gradient(135deg,#1da851,#25d366);color:#fff;font-weight:700;font-size:.9rem;padding:12px;border-radius:11px;border:none;cursor:pointer;transition:.2s;text-decoration:none;text-align:center}
+.btn-buy-wa:hover{transform:translateY(-1px)}
+.guarantee{display:flex;align-items:center;justify-content:center;gap:7px;font-size:.76rem;color:var(--muted);margin-top:12px}
+
+/* FAQ */
+.faq{padding:80px 0}
+.faq-list{max-width:620px;margin:32px auto 0;display:flex;flex-direction:column;gap:8px}
+.faq-item{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.faq-q{width:100%;background:none;border:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;padding:15px 18px;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:.15s}
+.faq-q:hover{color:var(--gold)}
+.faq-ico{color:var(--muted);transition:.25s}
+.faq-item.open .faq-ico{transform:rotate(45deg);color:var(--gold)}
+.faq-a{display:none;padding:0 18px 14px;font-size:.83rem;color:var(--muted2);line-height:1.7;border-top:1px solid var(--border);padding-top:12px}
+.faq-item.open .faq-a{display:block}
+
+/* FINAL CTA */
+.final-cta{padding:90px 20px;text-align:center;background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(255,183,77,.05),transparent);border-top:1px solid var(--border)}
+.final-cta h2{font-size:clamp(1.6rem,3.5vw,2.8rem);margin-bottom:12px}
+.final-cta p{font-size:.95rem;color:var(--muted2);margin-bottom:28px;max-width:440px;margin-left:auto;margin-right:auto}
+
+footer{background:var(--s1);border-top:1px solid var(--border);padding:24px 20px;text-align:center;font-size:.76rem;color:var(--muted)}
+
+@media(max-width:640px){
+  .hero-inner{grid-template-columns:1fr;text-align:center}
+  .phone-wrap{display:none}
+  .cta-group{justify-content:center}
+  .bruno-section{grid-template-columns:1fr;text-align:center}
+  .bruno-avatar{margin:0 auto}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo">Aprende Inglés 🗝️</div>
+    <a href="#pricing" class="nav-cta">Quiero aprender →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner container">
+    <div>
+      <div class="anim"><span class="tag tag-gold">Curso Interactivo de Inglés</span></div>
+      <h1 class="anim d1">Aprendé inglés<br><em>desde cero,</em><br>a tu ritmo.</h1>
+      <p class="hero-desc anim d2">Un curso completo en español, diseñado para adultos que nunca pudieron aprender inglés — o que lo intentaron y lo abandonaron. Con <strong style="color:var(--text)">pronunciación guiada, ejercicios interactivos</strong> y soporte inicial por WhatsApp con Bruno IA.</p>
+      <div class="cta-group anim d3">
+        <a href="#pricing" class="btn-hero btn-primary">✨ Quiero empezar</a>
+        <a href="https://wa.me/50687647465" class="btn-hero btn-wa" target="_blank">💬 Practicar con Bruno</a>
+      </div>
+      <p class="hero-note anim d3">✅ Pago único · Sin mensualidades · Funciona en tu celular</p>
+    </div>
+
+    <!-- PHONE MOCKUP -->
+    <div class="phone-wrap anim d2">
+      <div class="ph-glow"></div>
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="ph-status"><span>9:41</span><span>🔋</span></div>
+          <div class="ph-header">
+            <div class="ph-title">🗝️ AprendeInglés</div>
+            <div class="ph-sub">Nivel Pre-A1 · Lección 3 de 8</div>
+          </div>
+          <div class="ph-word">Hello</div>
+          <div class="ph-phonetic">/həˈloʊ/ · Pronunciación</div>
+          <div class="ph-btn-row">
+            <div class="ph-btn ph-btn-gold">🔊 Escuchar</div>
+            <div class="ph-btn ph-btn-green">🎙️ Grabar</div>
+          </div>
+          <div class="ph-card"><strong>💬 Ejemplo</strong>"Hello! My name is Ana."</div>
+          <div class="ph-card"><strong>💡 Cómo pronunciar</strong>La H es suave. La 'o' al final suena 'ou'.</div>
+          <div class="ph-progress">
+            <div class="ph-prog-label"><span>Progreso</span><span>65%</span></div>
+            <div class="ph-prog-bar"><div class="ph-prog-fill" style="width:65%"></div></div>
+          </div>
+        </div>
+        <div class="ph-bnav">
+          <div class="ph-bnav-btn active">📚<div>Vocab</div></div>
+          <div class="ph-bnav-btn">✏️<div>Ejerc</div></div>
+          <div class="ph-bnav-btn">🎙️<div>Pronun</div></div>
+          <div class="ph-bnav-btn">⭐<div>Eval</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROOF -->
+<div class="proof-strip">
+  <div class="proof-inner">
+    <div class="proof-item"><span>📚</span><span><span class="proof-val">4 niveles</span> progresivos</span></div>
+    <div class="proof-item"><span>🎙️</span><span><span class="proof-val">Pronunciación</span> guiada con grabación</span></div>
+    <div class="proof-item"><span>💬</span><span><span class="proof-val">Soporte inicial</span> con Bruno por WhatsApp</span></div>
+    <div class="proof-item"><span>🇪🇸</span><span><span class="proof-val">100% en español</span></span></div>
+    <div class="proof-item"><span>📱</span><span><span class="proof-val">Funciona</span> en tu celular</span></div>
+  </div>
+</div>
+
+<!-- PARA QUIÉN ES -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <span class="tag tag-gold">¿Es para vos?</span>
+      <h2>Diseñado para quien siente que ya es tarde</h2>
+      <p>No es tarde. Solo necesitabas el método correcto.</p>
+    </div>
+    <div class="grid-3">
+      <div class="feat-card">
+        <div class="feat-ico">👴</div>
+        <h3>Adultos mayores</h3>
+        <p>Letra grande, instrucciones claras en español, ritmo sin presión. Aprendés a tu tiempo, sin compararte con nadie.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-ico">💼</div>
+        <h3>Profesionales que lo necesitan</h3>
+        <p>Vocabulario de trabajo, frases útiles para reuniones y emails. Inglés práctico que podés usar desde la primera semana.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-ico">🌎</div>
+        <h3>Quien viaja o tiene familia afuera</h3>
+        <p>Comunicarte en aeropuertos, hoteles y situaciones reales. Frases que necesitás de verdad, no las del libro de texto.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NIVELES -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-header">
+      <span class="tag tag-gold">Contenido completo</span>
+      <h2>4 niveles desde cero hasta conversacional</h2>
+      <p>Cada nivel tiene vocabulario, ejercicios, pronunciación y evaluación.</p>
+    </div>
+    <div class="levels-grid">
+      <div class="level-pill"><div class="l-ico">🌱</div><h4>Pre-A1</h4><p>Saludos, números, colores, familia</p></div>
+      <div class="level-pill"><div class="l-ico">⭐</div><h4>A1</h4><p>Presentaciones, rutinas, lugares</p></div>
+      <div class="level-pill"><div class="l-ico">🚀</div><h4>A2</h4><p>Trabajo, viajes, situaciones reales</p></div>
+      <div class="level-pill"><div class="l-ico">💫</div><h4>B1</h4><p>Conversación fluida, opiniones</p></div>
+    </div>
+    <div class="grid-3" style="margin-top:16px">
+      <div class="feat-card"><div class="feat-ico">📖</div><h3>Vocabulario con contexto</h3><p>Cada palabra con pronunciación, ejemplo en oración y tip de cómo usarla en la vida real.</p></div>
+      <div class="feat-card"><div class="feat-ico">✏️</div><h3>Ejercicios interactivos</h3><p>Selección múltiple, completar frases, relacionar palabras. Aprendés haciendo, no solo leyendo.</p></div>
+      <div class="feat-card"><div class="feat-ico">🎙️</div><h3>Pronunciación con grabación</h3><p>Escuchás el modelo, grabás tu voz y comparás. La única forma de mejorar la pronunciación.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- BRUNO SECTION -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <span class="tag tag-wa">Exclusivo · Práctica real</span>
+      <h2>Practicá con Bruno por WhatsApp</h2>
+    </div>
+    <div class="bruno-section">
+      <div class="bruno-avatar">🤖</div>
+      <div>
+        <div class="bruno-title">Bruno · Tu tutor de inglés por WhatsApp</div>
+        <p class="bruno-desc">Bruno es tu asistente de inglés disponible en WhatsApp. Podés enviarle mensajes escritos o audios en inglés, y él te responde con correcciones, explicaciones y práctica adicional.<br><br>¿Querés practicar lo que aprendiste en el curso? ¿Tenés una reunión en inglés mañana y necesitás prepararte? ¿No sabés cómo se dice algo? Bruno está ahí.<br><br>También podés escribirle para solicitar información sobre el curso.</p>
+        <a href="https://wa.me/50687647465" class="wa-btn" target="_blank">
+          💬 Abrir WhatsApp con Bruno · +506 8764-7465
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-header">
+      <span class="tag tag-gold">Lo que dicen</span>
+      <h2>Adultos que sí pudieron</h2>
+    </div>
+    <div class="testi-grid">
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">Tengo 62 años y siempre pensé que ya era muy tarde para aprender inglés. Con este curso aprendí más en un mes que en años de intentarlo con otros métodos.</p>
+        <div class="testi-author"><div class="testi-avatar">👩</div><div><div class="testi-name">Carmen L.</div><div class="testi-loc">San José · 62 años</div></div></div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">Lo de practicar con Bruno por WhatsApp es lo mejor. Puedo escribirle a cualquier hora y me ayuda a mejorar. Es como tener un profesor siempre disponible.</p>
+        <div class="testi-author"><div class="testi-avatar">👨</div><div><div class="testi-name">Roberto M.</div><div class="testi-loc">Alajuela · Profesional</div></div></div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">Las instrucciones en español lo cambian todo. Ya no me pierdo ni me frustro. El ritmo es perfecto y puedo pausar y retomar cuando quiero.</p>
+        <div class="testi-author"><div class="testi-avatar">👩‍💼</div><div><div class="testi-name">Patricia V.</div><div class="testi-loc">Heredia · Docente</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="container">
+    <div class="section-header">
+      <span class="tag tag-gold">Inversión única</span>
+      <h2>Menos que una clase de inglés tradicional</h2>
+      <p>Una sola clase con profesor privado cuesta más que esto. Y acá tenés acceso al curso para siempre.</p>
+    </div>
+    <div class="price-box">
+      <div class="price-badge">🎉 Precio de lanzamiento</div>
+      <div class="price-name">Aprende Inglés con Bruno</div>
+      <div class="price-desc">Curso completo + Soporte inicial con Bruno · Pago único</div>
+      <div class="price-old">Precio regular: $47</div>
+      <div class="price-current"><span class="price-curr">$</span>35</div>
+      <div class="price-period">Pago único · Sin renovaciones · Tuyo para siempre</div>
+      <div class="price-features">
+        <div class="price-feat"><div class="pcheck">✓</div> 4 niveles completos (Pre-A1 a B1)</div>
+        <div class="price-feat"><div class="pcheck">✓</div> Vocabulario + ejercicios + pronunciación</div>
+        <div class="price-feat"><div class="pcheck">✓</div> Grabación de voz para comparar</div>
+        <div class="price-feat"><div class="pcheck">✓</div> Soporte inicial con Bruno por WhatsApp (interacciones limitadas)</div>
+        <div class="price-feat"><div class="pcheck">✓</div> 100% en español · Ritmo libre</div>
+        <div class="price-feat"><div class="pcheck">✓</div> Funciona en celular sin internet</div>
+        <div class="price-feat"><div class="pcheck">✓</div> Actualizaciones incluidas</div>
+      </div>
+      <a href="https://pay.hotmart.com/K105562180H" class="btn-buy">✨ Quiero aprender inglés · Comprar ahora</a>
+      <a href="https://wa.me/50687647465" class="btn-buy-wa" target="_blank">💬 Consultar por WhatsApp antes de comprar</a>
+      <div class="guarantee">🛡️ Garantía de satisfacción · Si no te funciona, te devolvemos tu dinero</div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq">
+  <div class="container">
+    <div class="section-header">
+      <span class="tag tag-gold">Preguntas frecuentes</span>
+      <h2>Resolvemos tus dudas</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)"><span>¿Necesito saber inglés para empezar?</span><span class="faq-ico">+</span></button><div class="faq-a">Para nada. El nivel Pre-A1 empieza desde cero absoluto. Todas las instrucciones están en español y el ritmo es completamente libre.</div></div>
+      <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)"><span>¿Cómo funciona Bruno por WhatsApp?</span><span class="faq-ico">+</span></button><div class="faq-a">Escribís al +506 8764-7465 por WhatsApp — en español o en inglés. Podés enviar mensajes de texto o audios. Bruno te responde con correcciones y práctica adicional. También podés pedirle información sobre el curso antes de comprar.</div></div>
+      <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)"><span>¿Cómo instalo el curso en mi celular?</span><span class="faq-ico">+</span></button><div class="faq-a">Descargás el archivo, lo abrís con Chrome o Safari y lo guardás en tu pantalla de inicio. La guía de instalación paso a paso viene incluida en la compra. Tarda menos de 2 minutos.</div></div>
+      <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)"><span>¿Funciona sin internet?</span><span class="faq-ico">+</span></button><div class="faq-a">La mayoría del curso sí. La grabación de voz y la práctica con Bruno requieren conexión. El resto funciona sin internet.</div></div>
+      <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)"><span>¿Hay mensualidades?</span><span class="faq-ico">+</span></button><div class="faq-a">No. Es un pago único y el curso es tuyo para siempre. Las actualizaciones también están incluidas sin costo.</div></div>
+      <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)"><span>¿Hay garantía?</span><span class="faq-ico">+</span></button><div class="faq-a">Sí. Hotmart ofrece garantía de satisfacción. Si el curso no cumple tus expectativas, podés solicitar la devolución dentro del plazo de la plataforma.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-cta">
+  <span class="tag tag-gold">¿Lista para empezar?</span>
+  <h2>El inglés que siempre<br><em style="font-style:italic;background:linear-gradient(135deg,var(--gold),#ffd080);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">quisiste aprender.</em></h2>
+  <p>A tu ritmo. En tu idioma. Con apoyo real. Sin excusas.</p>
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+    <a href="#pricing" class="btn-hero btn-primary" style="font-size:1rem;padding:14px 28px">✨ Obtener el curso · $35</a>
+    <a href="https://wa.me/50687647465" class="btn-hero btn-wa" target="_blank" style="font-size:1rem;padding:14px 28px">💬 Hablar con Bruno</a>
+  </div>
+  <p style="font-size:.78rem;color:var(--muted);margin-top:14px">✅ Pago único · Sin mensualidades · Garantía de satisfacción</p>
+</section>
+
+<footer>
+  <strong>Aprende Inglés con Bruno</strong> · © 2026 Todos los derechos reservados<br>
+  <span style="margin-top:5px;display:block">Vendido a través de <a href="https://hotmart.com" style="color:var(--muted2)">Hotmart</a> · Consultas: <a href="https://wa.me/50687647465" style="color:#25d366">WhatsApp +506 8764-7465</a></span>
+</footer>
+
+<script>
+function toggleFaq(btn) {
+  const item = btn.parentElement;
+  const wasOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+  if (!wasOpen) item.classList.add('open');
+}
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.style.opacity='1'; e.target.style.transform='translateY(0)'; }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.feat-card,.testi-card,.level-pill').forEach(el => {
+  el.style.opacity='0'; el.style.transform='translateY(16px)';
+  el.style.transition='opacity .5s ease, transform .5s ease';
+  observer.observe(el);
+});
+</script>
+</body>
+</html>

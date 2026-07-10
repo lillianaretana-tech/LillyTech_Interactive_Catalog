@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="es-CR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pedidos mensuales</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --bg:#F4F6F8; --surface:#FFFFFF; --ink:#13262E; --muted:#5C6F77; --line:#E3E8EC;
+    --teal:#0F6E7E; --teal-deep:#0B5563; --teal-soft:#E6F2F3;
+    --amber:#E8941A; --amber-soft:#FFF4E2; --amber-line:#F2C77E; --ok:#1B8A5A;
+    --danger:#C0392B;
+    --shadow:0 1px 2px rgba(19,38,46,.06), 0 8px 28px rgba(19,38,46,.07);
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:120px}
+  h1,h2,h3{font-family:'Outfit',sans-serif;margin:0}
+  .tnum{font-variant-numeric:tabular-nums}
+
+  .topbar{position:sticky;top:0;z-index:40;background:var(--teal);color:#fff;padding:13px 18px;box-shadow:0 2px 14px rgba(11,85,99,.25)}
+  .topbar .wrap{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:11px;flex:1;min-width:200px}
+  .logo{width:44px;height:44px;border-radius:11px;flex:none;background:#fff;color:var(--teal-deep);display:grid;place-items:center;font-family:'Outfit';font-weight:800;font-size:15px;letter-spacing:-.3px}
+  .brand-txt strong{font-family:'Outfit';font-weight:700;font-size:19px;display:block;line-height:1.15}
+  .brand-txt span{font-size:13.5px;opacity:.88}
+  .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .tsel,.gear{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:10px;padding:9px 12px;font-size:15px;font-family:'Inter';font-weight:600;cursor:pointer}
+  .tsel option{color:#13262E}
+  .gear{width:42px;height:42px;display:grid;place-items:center;font-size:19px;padding:0}
+  .gear:hover{background:rgba(255,255,255,.28)}
+
+  .container{max-width:760px;margin:0 auto;padding:18px 16px 0}
+
+  .ai{background:var(--amber-soft);border:1.5px solid var(--amber-line);border-radius:var(--radius);padding:18px 18px 16px;margin-bottom:16px;box-shadow:var(--shadow)}
+  .ai-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .ai-spark{width:34px;height:34px;border-radius:9px;flex:none;background:var(--amber);color:#fff;display:grid;place-items:center;font-size:18px}
+  .ai-head h2{font-size:18.5px;font-weight:700;color:#7A4E08}
+  .ai-sub{font-size:14.5px;color:#8A6320;margin:0 0 12px}
+  .ai-input-row{display:flex;gap:9px;flex-wrap:wrap}
+  .ai textarea{flex:1;min-width:200px;min-height:54px;resize:vertical;border:1.5px solid var(--amber-line);border-radius:12px;padding:13px 14px;font-family:'Inter';font-size:16.5px;color:var(--ink);background:#fff}
+  .ai textarea:focus{outline:3px solid #F2C77E66;border-color:var(--amber)}
+  .ai-examples{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+  .chip{background:#fff;border:1px solid var(--amber-line);color:#8A6320;border-radius:999px;padding:7px 13px;font-size:13.5px;font-weight:500;cursor:pointer;transition:.12s}
+  .chip:hover{background:var(--amber);color:#fff;border-color:var(--amber)}
+  .ai-status{font-size:14px;margin-top:11px;min-height:1px;color:#7A4E08}
+
+  .btn{border:none;border-radius:12px;cursor:pointer;font-family:'Outfit';font-weight:600;font-size:16px;padding:13px 18px;transition:.12s;display:inline-flex;align-items:center;gap:8px;justify-content:center}
+  .btn-amber{background:var(--amber);color:#fff}.btn-amber:hover{background:#cf820f}
+  .btn-teal{background:var(--teal);color:#fff}.btn-teal:hover{background:var(--teal-deep)}
+  .btn-ghost{background:#fff;color:var(--teal);border:1.5px solid var(--line)}.btn-ghost:hover{border-color:var(--teal);background:var(--teal-soft)}
+  .btn-danger{background:#fff;color:var(--danger);border:1.5px solid #E7C3BE}.btn-danger:hover{background:#FBEEEC}
+  .btn:disabled{opacity:.55;cursor:default}
+  .btn-block{width:100%}
+
+  .toolbar{display:flex;gap:9px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+  .search{flex:1;min-width:180px;position:relative}
+  .search input{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:12px 14px 12px 40px;font-family:'Inter';font-size:16px;background:#fff;color:var(--ink)}
+  .search input:focus{outline:3px solid var(--teal-soft);border-color:var(--teal)}
+  .search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);opacity:.5}
+
+  .count-line{font-size:14px;color:var(--muted);margin:0 2px 10px;font-weight:500}
+  .list{display:flex;flex-direction:column;gap:10px}
+  .item{background:var(--surface);border:1.5px solid var(--line);border-radius:var(--radius);padding:15px 16px;display:flex;gap:14px;align-items:center;transition:border-color .12s,box-shadow .12s}
+  .item.active{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-soft)}
+  .item-main{flex:1;min-width:0}
+  .item-name{font-family:'Outfit';font-weight:600;font-size:17.5px;line-height:1.25;color:var(--ink)}
+  .item-pres{font-size:14px;color:var(--muted);margin-top:3px}
+  .item-price{font-size:14.5px;color:var(--teal-deep);font-weight:600;margin-top:6px}
+  .item-price small{color:var(--muted);font-weight:500;font-size:12.5px}
+  .item-prev{display:inline-block;margin-top:6px;font-size:13px;font-weight:600;color:#8A6320;background:var(--amber-soft);border:1px solid var(--amber-line);border-radius:7px;padding:2px 8px}
+  .item-line{font-size:15px;font-weight:700;color:var(--teal-deep);margin-top:6px;display:none}
+  .item.active .item-line{display:block}
+  .stepper{display:flex;align-items:center;flex:none}
+  .step-btn{width:46px;height:46px;border:1.5px solid var(--line);background:#fff;font-size:24px;color:var(--teal);cursor:pointer;display:grid;place-items:center;font-family:'Outfit';font-weight:600}
+  .step-btn:first-child{border-radius:12px 0 0 12px}.step-btn:last-child{border-radius:0 12px 12px 0}
+  .step-btn:hover{background:var(--teal-soft)}
+  .qty{width:58px;height:46px;text-align:center;border:1.5px solid var(--line);border-left:none;border-right:none;font-family:'Inter';font-weight:700;font-size:18px;color:var(--ink);background:#fff}
+  .qty:focus{outline:none;background:var(--teal-soft)}
+  .item.active .step-btn,.item.active .qty{border-color:var(--teal)}
+  .empty{text-align:center;color:var(--muted);padding:40px 20px;font-size:16px}
+
+  .totalbar{position:fixed;bottom:0;left:0;right:0;z-index:45;background:var(--surface);border-top:1.5px solid var(--line);box-shadow:0 -4px 24px rgba(19,38,46,.1);padding:13px 16px}
+  .totalbar .wrap{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:14px}
+  .total-info{flex:1;min-width:0}
+  .total-info .lbl{font-size:13px;color:var(--muted);font-weight:500}
+  .total-info .amt{font-family:'Outfit';font-weight:800;font-size:27px;color:var(--ink);line-height:1.1}
+  .total-info .items{font-size:13.5px;color:var(--muted)}
+  .totalbar .btn{padding:15px 22px;font-size:17px}
+
+  .overlay{position:fixed;inset:0;z-index:60;background:rgba(19,38,46,.45);display:none;align-items:flex-end;justify-content:center}
+  .overlay.open{display:flex}
+  .modal{background:var(--bg);width:100%;max-width:640px;max-height:92vh;overflow-y:auto;border-radius:22px 22px 0 0;animation:slideup .22s ease}
+  @keyframes slideup{from{transform:translateY(30px);opacity:.6}to{transform:translateY(0);opacity:1}}
+  @media(min-width:640px){.overlay{align-items:center}.modal{border-radius:22px}}
+  .modal-head{position:sticky;top:0;background:var(--teal);color:#fff;padding:17px 20px;display:flex;align-items:center;justify-content:space-between;border-radius:22px 22px 0 0;z-index:2}
+  .modal-head h2{font-size:20px;font-weight:700}
+  .x{background:rgba(255,255,255,.18);border:none;color:#fff;width:36px;height:36px;border-radius:9px;font-size:20px;cursor:pointer}
+  .modal-body{padding:20px}
+  .field{margin-bottom:15px}
+  .field label{display:block;font-size:14.5px;font-weight:600;color:var(--ink);margin-bottom:6px}
+  .field input{width:100%;border:1.5px solid var(--line);border-radius:11px;padding:13px 14px;font-family:'Inter';font-size:16.5px;background:#fff;color:var(--ink)}
+  .field input:focus{outline:3px solid var(--teal-soft);border-color:var(--teal)}
+  .row2{display:flex;gap:10px;flex-wrap:wrap}.row2 .field{flex:1;min-width:130px}
+
+  .sum-card{background:#fff;border:1.5px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-bottom:16px}
+  .sum-row{display:flex;justify-content:space-between;gap:12px;padding:12px 15px;border-bottom:1px solid var(--line);font-size:15.5px}
+  .sum-row:last-child{border-bottom:none}
+  .sum-row .nm{flex:1}.sum-row .q{color:var(--muted);font-weight:600;white-space:nowrap}
+  .sum-row .st{font-weight:700;color:var(--teal-deep);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .sum-total{background:var(--teal-soft);font-family:'Outfit';font-weight:800;font-size:19px}
+  .approval{background:var(--amber-soft);border:1.5px solid var(--amber-line);border-radius:var(--radius);padding:15px 16px;margin-bottom:16px;font-size:15px;color:#5e4109;white-space:pre-wrap;line-height:1.55;display:none}
+  .approval.show{display:block}
+  .send-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+  .hint{font-size:13px;color:var(--muted);margin-top:14px;text-align:center}
+
+  /* config / product editor */
+  .sec-title{font-family:'Outfit';font-weight:700;font-size:16px;color:var(--ink);margin:22px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--line)}
+  .sec-title:first-child{margin-top:0}
+  .prow{background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:9px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .prow input{border:1.5px solid var(--line);border-radius:9px;padding:9px 10px;font-family:'Inter';font-size:15px;color:var(--ink)}
+  .prow .pn{flex:1 1 100%}
+  .prow .pp{flex:1 1 52%}
+  .prow .pf{flex:1 1 28%}
+  .prow input:focus{outline:2px solid var(--teal-soft);border-color:var(--teal)}
+  .prow .pdel{margin-left:auto;background:#fff;border:1.5px solid #E7C3BE;color:var(--danger);width:40px;height:40px;border-radius:9px;font-size:17px;cursor:pointer;flex:none}
+  .prow .pdel:hover{background:#FBEEEC}
+
+  .toast{position:fixed;bottom:130px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:12px;font-size:15px;font-weight:500;z-index:80;opacity:0;pointer-events:none;transition:opacity .2s;box-shadow:var(--shadow)}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <div class="brand">
+      <div class="logo" id="logo">MCK</div>
+      <div class="brand-txt">
+        <strong>Pedido mensual</strong>
+        <span id="brandSub">Mackenzie · suministros de limpieza</span>
+      </div>
+    </div>
+    <div class="controls">
+      <select class="tsel" id="clientSel" aria-label="Cliente"></select>
+      <select class="tsel" id="period" aria-label="Mes"></select>
+      <button class="gear" id="cfgBtn" aria-label="Configuración">⚙</button>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="ai">
+    <div class="ai-head"><div class="ai-spark">✦</div><h2>Escribilo y yo lo lleno</h2></div>
+    <p class="ai-sub">Decime qué necesitás en lenguaje normal y armo el pedido. Después lo revisás y ajustás.</p>
+    <div class="ai-input-row">
+      <textarea id="aiText" placeholder="Ej: 15 cajas de papel higiénico, 10 bultos de bolsa negra grande y lo mismo de alcohol que el mes pasado"></textarea>
+      <button class="btn btn-amber" id="aiBtn" style="align-self:stretch">Llenar pedido</button>
+    </div>
+    <div class="ai-examples" id="chips">
+      <span class="chip" data-ex="Repetir el mismo pedido del mes pasado">↻ Repetir el del mes pasado</span>
+      <span class="chip" data-ex="15 cajas de papel higiénico y 20 de toalla de mano">15 papel + 20 toalla</span>
+      <span class="chip" data-ex="El doble de bolsas negras grandes que el mes pasado">El doble de bolsas negras</span>
+    </div>
+    <div class="ai-status" id="aiStatus"></div>
+  </div>
+
+  <div style="margin-bottom:14px">
+    <button class="btn btn-ghost btn-block" id="importBtn">⬆ Importar pedido / catálogo (Excel)</button>
+    <input type="file" id="fileInput" accept=".xlsx,.xls" hidden>
+    <div id="importStatus" style="font-size:14px;color:var(--muted);margin-top:8px;text-align:center"></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" id="search" placeholder="Buscar producto…">
+    </div>
+    <button class="btn btn-ghost" id="clearBtn">Limpiar</button>
+  </div>
+
+  <div class="count-line" id="countLine"></div>
+  <div class="list" id="list"></div>
+</div>
+
+<div class="totalbar">
+  <div class="wrap">
+    <div class="total-info">
+      <div class="lbl">Total del pedido <span id="feeLbl" style="font-weight:400">(incluye cargo admin. 8%)</span></div>
+      <div class="amt tnum" id="totalAmt">₡0</div>
+      <div class="items" id="totalItems">Sin productos todavía</div>
+    </div>
+    <button class="btn btn-teal" id="reviewBtn" disabled>Revisar y enviar</button>
+  </div>
+</div>
+
+<!-- modal revisar -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-head"><h2>Revisar pedido</h2><button class="x" id="closeModal" aria-label="Cerrar">×</button></div>
+    <div class="modal-body">
+      <div class="field"><label for="reqName">Solicitado por</label><input type="text" id="reqName" placeholder="Nombre y apellido"></div>
+      <div class="field"><label for="reqMail">Correo de quien autoriza</label><input type="email" id="reqMail" placeholder="nombre@cliente.com"></div>
+      <div class="sum-card" id="sumCard"></div>
+      <button class="btn btn-ghost btn-block" id="aiSummaryBtn" style="margin-bottom:12px">✦ Generar resumen para aprobación</button>
+      <div class="approval" id="approvalBox"></div>
+      <div class="field" style="margin-top:4px">
+        <label>Enviar / exportar</label>
+        <div class="send-grid">
+          <button class="btn btn-teal btn-block" id="excelBtn">Descargar Excel</button>
+          <button class="btn btn-teal btn-block" id="mailBtn">Correo</button>
+          <button class="btn btn-ghost btn-block" id="waBtn">WhatsApp</button>
+          <button class="btn btn-ghost btn-block" id="copyBtn">Copiar texto</button>
+        </div>
+      </div>
+      <p class="hint">Descargá el Excel y adjuntalo en el correo al cliente. Se guarda como “mes pasado” para repetirlo después.</p>
+    </div>
+  </div>
+</div>
+
+<!-- modal config -->
+<div class="overlay" id="cfgOverlay">
+  <div class="modal">
+    <div class="modal-head"><h2>Configuración</h2><button class="x" id="closeCfg" aria-label="Cerrar">×</button></div>
+    <div class="modal-body">
+      <div class="sec-title">Cliente</div>
+      <div class="row2">
+        <div class="field"><label>Nombre</label><input type="text" id="cfgName" placeholder="Mackenzie"></div>
+        <div class="field" style="flex:0 0 90px"><label>Sigla</label><input type="text" id="cfgSigla" maxlength="4" placeholder="MCK"></div>
+      </div>
+      <div class="field"><label>Descripción</label><input type="text" id="cfgSub" placeholder="suministros de limpieza"></div>
+      <div class="row2">
+        <div class="field"><label>WhatsApp destino</label><input type="text" id="cfgWa" placeholder="50688887777"></div>
+        <div class="field"><label>Correo destino</label><input type="email" id="cfgMail" placeholder="pedidos@cliente.com"></div>
+      </div>
+      <div class="field" style="max-width:180px"><label>Cargo admin. (%)</label><input type="number" id="cfgFee" min="0" step="0.5" placeholder="8"></div>
+      <div class="row2">
+        <button class="btn btn-teal" id="newClientBtn">＋ Nuevo cliente</button>
+        <button class="btn btn-danger" id="delClientBtn">Eliminar este cliente</button>
+      </div>
+
+      <div class="sec-title">Productos <span id="pcount" style="font-weight:500;color:var(--muted);font-size:13px"></span></div>
+      <div id="pEditor"></div>
+      <button class="btn btn-ghost btn-block" id="addProdBtn" style="margin-top:6px">＋ Agregar producto</button>
+      <p class="hint">Los cambios se guardan en este navegador. Tip: para un cliente nuevo, importá su machote de Excel y el catálogo se arma solo.</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   CONFIG GLOBAL
+   ============================================================ */
+const CONFIG = {
+  PROXY_URL: "https://lillytech-proxy.lilliana-retana.workers.dev",
+  MODEL: "gpt-4o"
+};
+
+/* ---- catálogo semilla: MCK ---- */
+const SEED_MCK = [
+  ["Alcohol en Gel Purell 2 und","Caja 2 unidades 1000ml",17800],
+  ["Batería C2 (paquete de 2 unidades Maxel)","Paquete de 2 unidades",2200],
+  ["Batería D2 (paquete de 2 unidades Maxel)","Paquete de 2 unidades",2690],
+  ["Bolsa negra 17x25","Bulto 10 kilos",27500],
+  ["Bolsa plástica negra grande 24x40 P/30K","Bulto 10 kilos",24900],
+  ["Bolsa plástica negra jardín P/30K","Bulto 10 kilos",24900],
+  ["Bolsa plástica transparente grande 24x40","Bulto 10 kilos",2680],
+  ["Bolsa transparente jardín kilo","Bulto 10 kilos",2680],
+  ["Copitas 1/2 oz Unicup papel 20x250und","Paquete de 20 con 250 und",58375],
+  ["Enjuague bucal Colgate","Envase de 1 litro",5185],
+  ["Esponja doble cara","Unidad",570],
+  ["Jabón espuma Tork 1x6","Caja 6 und 1000ml",43296.83],
+  ["Jabón lavaplatos líquido Dish Care","Galón",8910],
+  ["Limpiador de pizarras","Botellitas de spray de 500ml",18646],
+  ["Lysol neutro","Unidad 12 Oz",8250],
+  ["Papel higiénico Tork 1x6x350","Caja 6x350 mts",8801.67],
+  ["Saba toallas femeninas invisibles con alas","Caja 60 unidades",4833.40],
+  ["Suma Lima","Botella 5L (individual)",91160],
+  ["Suma Rinse","Botella 5L (individual)",112360],
+  ["Tampones Saba compactos regular","Caja 10 unidades",3363.80],
+  ["Toalla húmeda — Multiselection Pricesmart","Envase 85 wipes",2500],
+  ["Toalla mano Tork 1x6x180","Caja 6 rollos 180 mts",22897.60],
+  ["Toalla PeakServe Continuous Hand","Paquete de 12 unidades",29419.30],
+  ["Toallitas desinfectantes Lysol superficies Citrus","Caja 35 und",3850],
+  ["Tork Advanced pañuelos faciales caja plana","Caja 50x65 und",37332.559],
+  ["Tork toalla adv rollo cocina 1*24*100 HD mayordomo","Bulto de 24 unidades",13098.92],
+].map((r,i)=>({id:i+1,n:r[0],p:r[1],f:r[2],u:"",d:""}));
+
+/* ============================================================
+   ESTADO + STORAGE
+   ============================================================ */
+let clients=[], currentId=null, qty={}, lastOrder=null;
+
+function lsGet(k){ try{ return JSON.parse(localStorage.getItem(k)||"null"); }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+
+function loadClients(){
+  clients = lsGet("op_clients");
+  if(!clients || !clients.length){
+    clients = [{id:"mck", nombre:"Mackenzie", sigla:"MCK", sub:"suministros de limpieza",
+                whatsapp:"", email:"", adminFee:0.08, productos:SEED_MCK}];
+    saveClients();
+  }
+  currentId = lsGet("op_current") || clients[0].id;
+  if(!clients.find(c=>c.id===currentId)) currentId=clients[0].id;
+}
+function saveClients(){ lsSet("op_clients",clients); }
+function cur(){ return clients.find(c=>c.id===currentId); }
+function prods(){ return cur().productos; }
+function feeVal(){ const f=cur().adminFee; return (f==null?0.08:f); }
+
+function loadClientState(){
+  const st=lsGet("op_state_"+currentId)||{};
+  qty = st.draft || {};
+  lastOrder = st.last || null;
+}
+function saveDraft(){ const st=lsGet("op_state_"+currentId)||{}; st.draft=qty; lsSet("op_state_"+currentId,st); }
+function saveLast(o){ const st=lsGet("op_state_"+currentId)||{}; st.last=o; lsSet("op_state_"+currentId,st); lastOrder=o; }
+
+/* ---- helpers ---- */
+const fmt = n => "₡" + Math.round(n).toLocaleString("es-CR");
+const unit = p => p.f*(1+feeVal());
+const lineTotal = id => { const p=prods().find(x=>x.id===id); return p? Math.round((qty[id]||0)*unit(p)) : 0; };
+function getPrevQty(id){ if(!lastOrder||!lastOrder.items) return 0; const it=lastOrder.items.find(x=>+x.id===+id); return it? it.cantidad : 0; }
+function nextProdId(){ return (prods().reduce((m,p)=>Math.max(m,p.id),0)||0)+1; }
+
+/* ============================================================
+   TOPBAR: cliente + período
+   ============================================================ */
+function renderClientSel(){
+  const s=document.getElementById("clientSel"); s.innerHTML="";
+  clients.forEach(c=>{ const o=document.createElement("option"); o.value=c.id; o.textContent=c.nombre; if(c.id===currentId)o.selected=true; s.appendChild(o); });
+}
+function applyBranding(){
+  const c=cur();
+  document.getElementById("logo").textContent = c.sigla || c.nombre.slice(0,3).toUpperCase();
+  document.getElementById("brandSub").textContent = c.nombre + (c.sub? " · "+c.sub : "");
+  document.getElementById("feeLbl").textContent = "(incluye cargo admin. "+(feeVal()*100).toFixed(feeVal()*100%1?1:0)+"%)";
+}
+document.getElementById("clientSel").addEventListener("change",e=>{
+  currentId=e.target.value; lsSet("op_current",currentId);
+  loadClientState(); applyBranding(); render(); resetAiStatus();
+});
+
+function initPeriod(){
+  const meses=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  const sel=document.getElementById("period"); sel.innerHTML=""; const now=new Date();
+  for(let i=-1;i<6;i++){ const d=new Date(now.getFullYear(),now.getMonth()+i,1);
+    const lbl=meses[d.getMonth()]+" "+d.getFullYear();
+    const o=document.createElement("option"); o.value=lbl; o.textContent=lbl.charAt(0).toUpperCase()+lbl.slice(1);
+    if(i===0)o.selected=true; sel.appendChild(o); }
+}
+
+/* ============================================================
+   LISTA DE PRODUCTOS
+   ============================================================ */
+function render(filter=""){
+  const list=document.getElementById("list");
+  const f=(filter||document.getElementById("search").value||"").trim().toLowerCase();
+  const shown=prods().filter(p=> !f || p.n.toLowerCase().includes(f) || (p.p||"").toLowerCase().includes(f));
+  list.innerHTML = shown.length ? "" : '<div class="empty">No hay productos. Agregalos en ⚙ o importá un Excel.</div>';
+  shown.forEach(p=>{
+    const q=qty[p.id]||0, prev=getPrevQty(p.id);
+    const el=document.createElement("div");
+    el.className="item"+(q>0?" active":"");
+    el.innerHTML=`
+      <div class="item-main">
+        <div class="item-name">${esc(p.n)}</div>
+        <div class="item-pres">${esc(p.p||"")}</div>
+        <div class="item-price">${fmt(unit(p))} <small>c/u · incl. ${(feeVal()*100).toFixed(feeVal()*100%1?1:0)}%</small></div>
+        ${prev?`<div class="item-prev">Mes pasado: ${prev}</div>`:""}
+        <div class="item-line">Subtotal: ${fmt(lineTotal(p.id))}</div>
+      </div>
+      <div class="stepper">
+        <button class="step-btn" data-minus="${p.id}" aria-label="Menos">−</button>
+        <input class="qty" type="number" inputmode="numeric" min="0" value="${q||""}" data-qty="${p.id}" placeholder="0">
+        <button class="step-btn" data-plus="${p.id}" aria-label="Más">+</button>
+      </div>`;
+    list.appendChild(el);
+  });
+  document.getElementById("countLine").textContent = f ? `${shown.length} de ${prods().length} productos` : `${prods().length} productos disponibles`;
+  updateTotal();
+}
+function esc(s){ return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function setQty(id,v){ v=Math.max(0,Math.floor(v||0)); if(v)qty[id]=v; else delete qty[id]; saveDraft(); }
+function updateTotal(){
+  let total=0,items=0; prods().forEach(p=>{ if(qty[p.id]){ total+=lineTotal(p.id); items++; }});
+  document.getElementById("totalAmt").textContent=fmt(total);
+  document.getElementById("totalItems").textContent = items? `${items} producto${items>1?"s":""} en el pedido` : "Sin productos todavía";
+  document.getElementById("reviewBtn").disabled = items===0;
+}
+document.getElementById("list").addEventListener("click",e=>{
+  const plus=e.target.dataset.plus, minus=e.target.dataset.minus;
+  if(plus){ const id=+plus; setQty(id,(qty[id]||0)+1); render(); }
+  if(minus){ const id=+minus; setQty(id,(qty[id]||0)-1); render(); }
+});
+document.getElementById("list").addEventListener("input",e=>{
+  if(e.target.dataset.qty){ const id=+e.target.dataset.qty; setQty(id,+e.target.value); updateTotal();
+    e.target.closest(".item").classList.toggle("active",(qty[id]||0)>0); }
+});
+document.getElementById("search").addEventListener("input",()=>render());
+document.getElementById("clearBtn").addEventListener("click",()=>{
+  if(Object.keys(qty).length && !confirm("¿Vaciar todo el pedido?")) return;
+  for(const k in qty) delete qty[k]; saveDraft(); render();
+});
+
+/* ============================================================
+   IMPORTAR EXCEL  (referencia + catálogo)
+   ============================================================ */
+const importStatus=m=>{ document.getElementById("importStatus").textContent=m||""; };
+function norm(s){ return (s||"").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9\s]/g," ").replace(/\s+/g," ").trim(); }
+function toks(s){ return norm(s).split(" ").filter(Boolean); }
+function matchProduct(name,used){
+  const t=toks(name); if(!t.length) return null; let best=null,bs=0;
+  prods().forEach(p=>{ if(used.has(p.id))return; const pt=toks(p.n);
+    const shared=t.filter(w=>pt.includes(w)).length; const sc=shared/Math.max(t.length,pt.length);
+    if(sc>bs){ bs=sc; best=p; } });
+  return bs>=0.4? best : null;
+}
+document.getElementById("importBtn").addEventListener("click",()=>document.getElementById("fileInput").click());
+document.getElementById("fileInput").addEventListener("change",e=>{
+  const file=e.target.files[0]; if(!file) return; importStatus("Leyendo "+file.name+"…");
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const wb=XLSX.read(new Uint8Array(ev.target.result),{type:"array"});
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:""});
+      let h=-1,cP=-1,cQ=-1,cPr=-1,cPres=-1,cU=-1,cD=-1;
+      for(let i=0;i<rows.length;i++){
+        const r=rows[i].map(c=>norm(c));
+        const pi=r.findIndex(c=>c==="producto"); const qi=r.findIndex(c=>c.includes("cantidad"));
+        if(pi>-1&&qi>-1){ h=i; cP=pi; cQ=qi;
+          cPr=r.findIndex(c=>c==="precio unitario"); if(cPr<0)cPr=r.findIndex(c=>c.includes("precio")&&!c.includes("total"));
+          cPres=r.findIndex(c=>c.includes("presentacion"));
+          cU=r.findIndex(c=>c.includes("unidad")); cD=r.findIndex(c=>c==="detalle"); break; }
+      }
+      if(h<0){ importStatus("No reconocí el formato. ¿Es un machote de pedido?"); return; }
+      const used=new Set(); let filled=0,added=0,skip=0;
+      for(let i=h+1;i<rows.length;i++){
+        const name=(rows[i][cP]||"").toString().trim(); if(!name) continue;
+        const price=cPr>-1? parseFloat(rows[i][cPr]) : NaN;
+        const cant=parseFloat(rows[i][cQ]);
+        let p=matchProduct(name,used);
+        if(!p){
+          if(price>0){ p={id:nextProdId(),n:name,p:(cPres>-1?(rows[i][cPres]||"").toString().trim():""),f:price,
+                          u:(cU>-1?(rows[i][cU]||"").toString().trim():""),d:(cD>-1?(rows[i][cD]||"").toString().trim():"")};
+            prods().push(p); added++; }
+          else { skip++; continue; }
+        }
+        used.add(p.id);
+        if(cant>0){ qty[p.id]=Math.round(cant); filled++; }
+      }
+      if(added){ saveClients(); }
+      // guardar como referencia
+      const items=prods().filter(p=>qty[p.id]>0).map(p=>({id:p.id,nombre:p.n,presentacion:p.p,cantidad:qty[p.id],unitario:Math.round(unit(p)),subtotal:lineTotal(p.id)}));
+      if(items.length) saveLast({periodo:"importado",items,total:items.reduce((s,l)=>s+l.subtotal,0),fecha:new Date().toISOString()});
+      saveDraft(); render(); applyBranding();
+      let msg=`✓ Importado: ${filled} con cantidad`; if(added)msg+=`, ${added} producto${added>1?"s":""} nuevo${added>1?"s":""} al catálogo`; if(skip)msg+=`, ${skip} sin precio omitido${skip>1?"s":""}`;
+      importStatus(msg+".");
+      aiStatus("Ya tenés referencia cargada. Probá “Repetir el del mes pasado”.","#1B8A5A");
+    }catch(err){ importStatus("No se pudo leer ("+err.message+")."); }
+  };
+  reader.readAsArrayBuffer(file); e.target.value="";
+});
+
+/* ============================================================
+   IA
+   ============================================================ */
+const chips=document.getElementById("chips");
+chips.addEventListener("click",e=>{ if(e.target.dataset.ex){ document.getElementById("aiText").value=e.target.dataset.ex; aiFill(); }});
+document.getElementById("aiBtn").addEventListener("click",aiFill);
+function aiStatus(m,color){ const s=document.getElementById("aiStatus"); s.textContent=m; s.style.color=color||"#7A4E08"; }
+function resetAiStatus(){ aiStatus(lastOrder? "Tenés referencia del mes pasado para este cliente.":""); }
+
+async function aiFill(){
+  const text=document.getElementById("aiText").value.trim();
+  if(!text){ aiStatus("Escribí qué necesitás primero."); return; }
+  if(!CONFIG.PROXY_URL){ aiStatus("⚙ Configurá CONFIG.PROXY_URL para usar la IA. Mientras tanto llenás a mano."); return; }
+  const btn=document.getElementById("aiBtn"); btn.disabled=true; const old=btn.textContent; btn.textContent="Pensando…"; aiStatus("Interpretando tu pedido…");
+  try{
+    const catalog=prods().map(p=>`${p.id}: ${p.n} (${p.p||""})`).join("\n");
+    const prev=lastOrder? JSON.stringify(lastOrder.items.map(i=>({id:i.id,cantidad:i.cantidad}))) : "ninguno";
+    const sys=`Convertís pedidos en lenguaje natural (español de Costa Rica) a cantidades de un catálogo numerado. Devolvé SOLO JSON válido sin markdown, forma: {"items":[{"id":N,"cantidad":N}],"nota":"texto corto o vacío"}. Reglas: usá solo ids del catálogo; "lo mismo del mes pasado" = usar el pedido anterior; "el doble de X" = doble de la cantidad anterior de X; mencioná en "nota" lo que no esté en el catálogo; solo cantidades mayores a 0.`;
+    const user=`CATÁLOGO:\n${catalog}\n\nPEDIDO ANTERIOR: ${prev}\n\nTEXTO:\n${text}`;
+    const raw=await callAI(sys,user);
+    const json=JSON.parse(raw.replace(/```json|```/g,"").trim());
+    if(!json.items||!json.items.length){ aiStatus(json.nota?("No armé nada: "+json.nota):"No entendí qué productos. Probá con más detalle."); return; }
+    let n=0; json.items.forEach(it=>{ if(prods().some(p=>p.id===+it.id)&&+it.cantidad>0){ setQty(+it.id,+it.cantidad); n++; }});
+    render(); aiStatus(`✓ Llené ${n} producto${n>1?"s":""}. Revisá y ajustá.`+(json.nota?` — ${json.nota}`:""),"#1B8A5A");
+  }catch(err){ aiStatus("No pude conectar con la IA. Revisá el Worker o llená a mano. ("+err.message+")"); }
+  finally{ btn.disabled=false; btn.textContent=old; }
+}
+async function callAI(system,userMsg){
+  const res=await fetch(CONFIG.PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({model:CONFIG.MODEL,max_tokens:1024,temperature:0.2,messages:[{role:"system",content:system},{role:"user",content:userMsg}]})});
+  if(!res.ok) throw new Error("HTTP "+res.status);
+  const data=await res.json();
+  if(data.choices&&data.choices[0]) return data.choices[0].message.content;
+  if(Array.isArray(data.content)) return data.content.filter(b=>b.type==="text").map(b=>b.text).join("\n");
+  if(typeof data.text==="string") return data.text;
+  if(typeof data==="string") return data;
+  throw new Error("respuesta inesperada");
+}
+
+/* ============================================================
+   REVISAR / ENVIAR / EXPORTAR
+   ============================================================ */
+const overlay=document.getElementById("overlay");
+document.getElementById("reviewBtn").addEventListener("click",openReview);
+document.getElementById("closeModal").addEventListener("click",()=>overlay.classList.remove("open"));
+overlay.addEventListener("click",e=>{ if(e.target===overlay)overlay.classList.remove("open"); });
+
+function orderLines(){ return prods().filter(p=>qty[p.id]>0).map(p=>({id:p.id,nombre:p.n,presentacion:p.p||"",cantidad:qty[p.id],unitario:Math.round(unit(p)),subtotal:lineTotal(p.id)})); }
+function orderTotal(){ return orderLines().reduce((s,l)=>s+l.subtotal,0); }
+function openReview(){
+  const lines=orderLines();
+  document.getElementById("sumCard").innerHTML = lines.map(l=>`
+    <div class="sum-row"><div class="nm">${esc(l.nombre)}<br><span style="color:var(--muted);font-size:13px">${esc(l.presentacion)}</span></div><div class="q">×${l.cantidad}</div><div class="st">${fmt(l.subtotal)}</div></div>`).join("")
+    + `<div class="sum-row sum-total"><div class="nm">Total (incl. ${(feeVal()*100).toFixed(feeVal()*100%1?1:0)}%)</div><div class="q"></div><div class="st">${fmt(orderTotal())}</div></div>`;
+  document.getElementById("approvalBox").className="approval"; document.getElementById("approvalBox").textContent="";
+  overlay.classList.add("open");
+}
+function orderText(){
+  const period=document.getElementById("period").value;
+  const name=document.getElementById("reqName").value.trim()||"—", mail=document.getElementById("reqMail").value.trim()||"—";
+  let t=`PEDIDO MENSUAL — ${cur().nombre.toUpperCase()}\nPeríodo: ${period}\nSolicita: ${name} (${mail})\n\n`;
+  orderLines().forEach(l=> t+=`• ${l.cantidad}× ${l.nombre} [${l.presentacion}] — ${fmt(l.subtotal)}\n`);
+  t+=`\nTOTAL (incl. cargo admin. ${(feeVal()*100).toFixed(feeVal()*100%1?1:0)}%): ${fmt(orderTotal())}`;
+  return t;
+}
+function commit(){ saveLast({periodo:document.getElementById("period").value,items:orderLines(),total:orderTotal(),fecha:new Date().toISOString()}); }
+
+function exportExcel(){
+  commit();
+  const fee=feeVal(), period=document.getElementById("period").value;
+  const r2=n=>Math.round(n*100)/100;
+  const feeTxt=(fee*100).toFixed(fee*100%1?1:0)+"%";
+  const aoa=[["Producto","Unidad de medida","Presentación","Cantidad solicitada","Detalle","Precio unitario","Cargo administrativo "+feeTxt,"Precio unitario total","Subtotal pedido","Observaciones"]];
+  prods().forEach(p=>{ const q=qty[p.id]||0, cargo=p.f*fee, tot=p.f+cargo;
+    aoa.push([p.n,p.u||"",p.p||"",q||"",p.d||"",r2(p.f),r2(cargo),r2(tot),q? r2(q*tot):"",""]); });
+  aoa.push(["","","","","","TOTAL PEDIDO","","",r2(orderTotal()),""]);
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols']=[{wch:46},{wch:14},{wch:24},{wch:12},{wch:18},{wch:15},{wch:20},{wch:18},{wch:16},{wch:20}];
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"Pedido");
+  XLSX.writeFile(wb, `Pedido_${cur().nombre.replace(/[^\w]/g,"_")}_${period.replace(/\s/g,"_")}.xlsx`);
+  toast("Excel descargado");
+}
+document.getElementById("excelBtn").addEventListener("click",exportExcel);
+document.getElementById("waBtn").addEventListener("click",()=>{ commit(); window.open(`https://wa.me/${cur().whatsapp||""}?text=${encodeURIComponent(orderText())}`,"_blank"); });
+document.getElementById("mailBtn").addEventListener("click",()=>{ commit(); const period=document.getElementById("period").value;
+  window.location.href=`mailto:${cur().email||""}?subject=${encodeURIComponent("Pedido mensual "+cur().nombre+" — "+period)}&body=${encodeURIComponent(orderText()+"\n\n(Adjunto el detalle en Excel.)")}`; });
+document.getElementById("copyBtn").addEventListener("click",async()=>{ commit(); try{ await navigator.clipboard.writeText(orderText()); toast("Pedido copiado"); }catch(e){ toast("No se pudo copiar"); } });
+
+document.getElementById("aiSummaryBtn").addEventListener("click",async()=>{
+  const box=document.getElementById("approvalBox");
+  if(!CONFIG.PROXY_URL){ box.className="approval show"; box.textContent="⚙ Configurá CONFIG.PROXY_URL para el resumen con IA."; return; }
+  box.className="approval show"; box.textContent="Generando resumen…";
+  try{ const out=await callAI("Sos asistente de compras de una empresa de limpieza de instalaciones. Redactá un resumen breve y profesional (máx 4 líneas) en español de Costa Rica para que el cliente apruebe el pedido. Sin saludos ni despedidas.", orderText());
+    box.textContent=out.trim();
+  }catch(e){ box.textContent="No se pudo generar ("+e.message+")."; }
+});
+
+/* ============================================================
+   CONFIG MODAL: cliente + productos
+   ============================================================ */
+const cfgOverlay=document.getElementById("cfgOverlay");
+document.getElementById("cfgBtn").addEventListener("click",openCfg);
+document.getElementById("closeCfg").addEventListener("click",closeCfg);
+cfgOverlay.addEventListener("click",e=>{ if(e.target===cfgOverlay) closeCfg(); });
+
+function openCfg(){
+  const c=cur();
+  document.getElementById("cfgName").value=c.nombre||"";
+  document.getElementById("cfgSigla").value=c.sigla||"";
+  document.getElementById("cfgSub").value=c.sub||"";
+  document.getElementById("cfgWa").value=c.whatsapp||"";
+  document.getElementById("cfgMail").value=c.email||"";
+  document.getElementById("cfgFee").value=(feeVal()*100);
+  renderEditor();
+  cfgOverlay.classList.add("open");
+}
+function closeCfg(){ saveClientFields(); cfgOverlay.classList.remove("open"); render(); applyBranding(); renderClientSel(); resetAiStatus(); }
+
+function saveClientFields(){
+  const c=cur();
+  c.nombre=document.getElementById("cfgName").value.trim()||c.nombre;
+  c.sigla=(document.getElementById("cfgSigla").value.trim()||c.nombre.slice(0,3)).toUpperCase();
+  c.sub=document.getElementById("cfgSub").value.trim();
+  c.whatsapp=document.getElementById("cfgWa").value.replace(/\D/g,"");
+  c.email=document.getElementById("cfgMail").value.trim();
+  const f=parseFloat(document.getElementById("cfgFee").value); c.adminFee=isNaN(f)?0.08:f/100;
+  saveClients();
+}
+function renderEditor(){
+  const box=document.getElementById("pEditor"); box.innerHTML="";
+  prods().forEach(p=>{
+    const d=document.createElement("div"); d.className="prow";
+    d.innerHTML=`
+      <input class="pn" value="${esc(p.n)}" data-f="n" data-id="${p.id}" placeholder="Nombre del producto">
+      <input class="pp" value="${esc(p.p||"")}" data-f="p" data-id="${p.id}" placeholder="Presentación">
+      <input class="pf" type="number" value="${p.f}" data-f="f" data-id="${p.id}" placeholder="Precio ₡">
+      <button class="pdel" data-del="${p.id}" aria-label="Eliminar">🗑</button>`;
+    box.appendChild(d);
+  });
+  document.getElementById("pcount").textContent = `(${prods().length})`;
+}
+document.getElementById("pEditor").addEventListener("input",e=>{
+  const id=+e.target.dataset.id, f=e.target.dataset.f; if(!id||!f) return;
+  const p=prods().find(x=>x.id===id); if(!p) return;
+  if(f==="f"){ p.f=parseFloat(e.target.value)||0; } else { p[f]=e.target.value; }
+  saveClients();
+});
+document.getElementById("pEditor").addEventListener("click",e=>{
+  const id=+e.target.dataset.del; if(!id) return;
+  if(!confirm("¿Eliminar este producto?")) return;
+  const c=cur(); c.productos=c.productos.filter(p=>p.id!==id); delete qty[id];
+  saveClients(); saveDraft(); renderEditor();
+});
+document.getElementById("addProdBtn").addEventListener("click",()=>{
+  prods().push({id:nextProdId(),n:"Nuevo producto",p:"",f:0,u:"",d:""}); saveClients(); renderEditor();
+  const box=document.getElementById("pEditor"); box.scrollTop=box.scrollHeight;
+});
+
+document.getElementById("newClientBtn").addEventListener("click",()=>{
+  saveClientFields();
+  const nombre=prompt("Nombre del cliente nuevo:"); if(!nombre) return;
+  const id="c"+Date.now();
+  clients.push({id,nombre:nombre.trim(),sigla:nombre.trim().slice(0,3).toUpperCase(),sub:"",whatsapp:"",email:"",adminFee:0.08,productos:[]});
+  currentId=id; lsSet("op_current",id); saveClients();
+  qty={}; lastOrder=null; saveDraft();
+  renderClientSel(); applyBranding(); render(); openCfg();
+  toast("Cliente creado — agregá productos o importá su Excel");
+});
+document.getElementById("delClientBtn").addEventListener("click",()=>{
+  if(clients.length<=1){ alert("Tiene que quedar al menos un cliente."); return; }
+  if(!confirm(`¿Eliminar a ${cur().nombre} y todos sus datos?`)) return;
+  try{ localStorage.removeItem("op_state_"+currentId); }catch(e){}
+  clients=clients.filter(c=>c.id!==currentId); currentId=clients[0].id; lsSet("op_current",currentId); saveClients();
+  loadClientState(); renderClientSel(); applyBranding(); render(); closeCfg();
+});
+
+function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),1800); }
+
+/* ============================================================
+   INIT
+   ============================================================ */
+loadClients(); loadClientState(); renderClientSel(); initPeriod(); applyBranding(); render(); resetAiStatus();
+</script>
+</body>
+</html>

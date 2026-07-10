@@ -1,0 +1,1986 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rommel Pro – Asistente de Obras</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;600;700&family=Bebas+Neue&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #8b1a1a;
+      --green-dark: #5c0f0f;
+      --green-light: #f5e6e6;
+      --black: #111;
+      --dark: #1c1c1c;
+      --mid: #444;
+      --silver: #888;
+      --border: #dde8e3;
+      --bg: #181818;
+      --white: #ffffff;
+      --card-bg: #232323;
+      --card-border: #2e2e2e;
+      --red: #c0392b;
+      --orange: #e07b20;
+      --radius: 16px;
+      --shadow: 0 4px 20px rgba(0,0,0,.09);
+      --font: 'DM Sans', sans-serif;
+      --display: 'Bebas Neue', sans-serif;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: #e0e0e0;
+      padding-bottom: 160px;
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--black);
+      color: var(--white);
+      padding: 20px 16px 18px;
+      text-align: center;
+      position: sticky; top: 0; z-index: 100;
+    }
+    header h1 {
+      font-family: var(--display);
+      font-size: 28px;
+      letter-spacing: 2px;
+      color: var(--white);
+    }
+    header h1 span { color: #c94040; }
+    header p { font-size: 13px; color: #aaa; margin-top: 2px; }
+
+    /* ── TABS ── */
+    .tabs {
+      display: flex;
+      background: #1a1a1a;
+      border-bottom: 2px solid #2a2a2a;
+    }
+    .tab {
+      flex: 1;
+      padding: 12px 4px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #888;
+      text-align: center;
+      cursor: pointer;
+      border: none;
+      background: none;
+      transition: color .2s, border-color .2s;
+      border-bottom: 3px solid transparent;
+      font-family: var(--font);
+    }
+    .tab.active { color: #c94040; border-bottom-color: #c94040; }
+
+    /* ── PANELS ── */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ── MAIN ── */
+    main { max-width: 780px; margin: 0 auto; padding: 14px 14px 0; }
+
+    /* ── CARDS ── */
+    .card {
+      background: #242424;
+      border-radius: var(--radius);
+      padding: 18px;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.3);
+      border: 1px solid #2e2e2e;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #c94040;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title span { font-size: 20px; }
+
+    /* ── MODE OPTIONS ── */
+    .mode-grid { display: grid; gap: 10px; }
+    .mode-btn {
+      border: 2px solid #333;
+      background: #2a2a2a;
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 16px;
+      font-weight: 700;
+      text-align: left;
+      cursor: pointer;
+      transition: all .2s;
+      font-family: var(--font);
+      color: #ccc;
+    }
+    .mode-btn small { display: block; font-size: 12px; font-weight: 400; color: #777; margin-top: 3px; }
+    .mode-btn.active { background: var(--green); color: white; border-color: var(--green); }
+    .mode-btn.active small { color: #f5c6c6; }
+
+    /* ── INPUTS ── */
+    label { display: block; font-size: 13px; font-weight: 700; color: #aaa; margin: 12px 0 5px; }
+    input[type="text"], input[type="number"], input[type="date"], textarea, select {
+      width: 100%; padding: 13px 14px;
+      border: 1.5px solid #333;
+      border-radius: 12px;
+      font-size: 16px;
+      font-family: var(--font);
+      background: #1e1e1e;
+      color: #e0e0e0;
+      color-scheme: dark;
+      transition: border-color .2s;
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--green);
+    }
+    textarea { min-height: 140px; resize: vertical; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      border: none; border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer; font-family: var(--font);
+      transition: all .2s;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn-green  { background: var(--green); color: white; }
+    .btn-green:hover { background: var(--green-dark); }
+    .btn-dark   { background: #111; color: white; }
+    .btn-light  { background: #2a2a2a; color: #ccc; border: 1px solid #444; }
+    .btn-red    { background: var(--red); color: white; }
+    .btn-orange { background: var(--orange); color: white; }
+    .btn-gray   { background: #2a2a2a; color: #bbb; }
+    .btn-whatsapp { background: #25D366; color: white; }
+    .btn-full   { width: 100%; }
+    .btn-sm     { padding: 9px 14px; font-size: 13px; border-radius: 10px; }
+
+    /* ── VOICE ROW ── */
+    .voice-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .status { font-size: 13px; color: #777; margin-top: 8px; min-height: 20px; }
+
+    /* ── PHOTO PREVIEW ── */
+    .photo-preview {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px,1fr));
+      gap: 8px; margin-top: 10px;
+    }
+    .photo-preview > div {
+      position: relative;
+    }
+    .photo-preview img {
+      width: 100%; height: 80px; object-fit: cover;
+      border-radius: 10px; border: 1px solid var(--border);
+      display: block;
+    }
+
+    /* ── CHAT AREA ── */
+    #chatBox {
+      max-height: 420px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 4px 0;
+      scroll-behavior: smooth;
+    }
+    .msg {
+      max-width: 88%;
+      padding: 12px 15px;
+      border-radius: 16px;
+      font-size: 14.5px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
+    .msg-ia {
+      background: #2a2a2a;
+      color: #e0e0e0;
+      border-bottom-left-radius: 4px;
+      align-self: flex-start;
+    }
+    .msg-user {
+      background: #3a1a1a;
+      color: #f0d0d0;
+      border-bottom-right-radius: 4px;
+      align-self: flex-end;
+      text-align: right;
+    }
+    .msg-system {
+      background: #2a2200;
+      color: #f0c040;
+      border-radius: 10px;
+      font-size: 13px;
+      align-self: center;
+      text-align: center;
+      padding: 8px 14px;
+      border: 1px solid #554400;
+    }
+    .msg-thinking {
+      background: #2a2a2a;
+      color: #888;
+      font-style: italic;
+      border-bottom-left-radius: 4px;
+      align-self: flex-start;
+    }
+
+    /* ── REPLY AREA ── */
+    .reply-area {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .reply-area textarea {
+      min-height: 56px;
+      padding: 12px;
+      font-size: 15px;
+    }
+    .reply-area .btn { padding: 12px 16px; }
+
+    /* ── COTIZATION RESULT ── */
+    #quoteFinal {
+      background: #1e1e1e;
+      border: 1.5px solid #333;
+      border-radius: 14px;
+      padding: 16px;
+      font-size: 14.5px;
+      white-space: pre-wrap;
+      min-height: 120px;
+      line-height: 1.65;
+      color: #ddd;
+    }
+    .quote-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+
+    /* ── SAVED LIST ── */
+    .saved-list { display: flex; flex-direction: column; gap: 10px; }
+    .saved-card {
+      background: #242424;
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.3);
+      cursor: pointer;
+      border-left: 4px solid var(--green);
+      transition: transform .2s;
+    }
+    .saved-card:hover { transform: translateX(3px); }
+    .saved-card h3 { font-size: 15px; font-weight: 700; color: #e0e0e0; }
+    .saved-card .meta { font-size: 12px; color: var(--silver); margin-top: 4px; }
+    .saved-card .preview { font-size: 13px; color: #aaa; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .saved-actions { display: flex; gap: 8px; margin-top: 10px; }
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--silver); }
+    .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+
+    /* ── EDIT MODAL ── */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.75);
+      z-index: 300;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #242424;
+      border-radius: 20px 20px 0 0;
+      padding: 22px 18px;
+      width: 100%; max-width: 780px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #e0e0e0;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .close-modal {
+      background: #333;
+      border: none;
+      border-radius: 50%;
+      width: 32px; height: 32px;
+      font-size: 16px; cursor: pointer;
+    }
+    .modal textarea {
+      min-height: 300px;
+      font-size: 14px;
+    }
+
+    /* ── PDF PREVIEW ── */
+    #pdfPreview {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.7);
+      z-index: 400;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    #pdfPreview.open { display: flex; }
+    #pdfContent {
+      background: white;
+      width: 100%; max-width: 680px;
+      max-height: 92vh;
+      overflow-y: auto;
+      border-radius: 16px;
+      padding: 32px;
+      font-family: var(--font);
+    }
+    .pdf-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 2px solid #eee; }
+    .pdf-logo-text { font-family: var(--display); font-size: 36px; color: var(--black); letter-spacing: 1px; }
+    .pdf-logo-text span { color: var(--green); }
+    .pdf-meta { text-align: right; font-size: 13px; color: var(--silver); }
+    .pdf-meta strong { color: var(--dark); }
+    .pdf-title { font-size: 20px; font-weight: 700; color: var(--green-dark); margin-bottom: 6px; }
+    .pdf-client { font-size: 15px; color: var(--dark); margin-bottom: 20px; }
+    .pdf-body { font-size: 14px; line-height: 1.7; color: var(--dark); white-space: pre-wrap; }
+    .pdf-footer { margin-top: 28px; padding-top: 16px; border-top: 1px solid #eee; text-align: center; font-size: 12px; color: var(--silver); }
+    .pdf-actions { display: flex; gap: 10px; padding: 14px 32px; background: #f5f5f5; border-radius: 0 0 16px 16px; }
+    .pdf-close-area { padding: 12px 32px 0; }
+
+    /* ── FOOTER ── */
+    footer {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: #1a1a1a;
+      padding: 10px 14px;
+      box-shadow: 0 -4px 16px rgba(0,0,0,.4);
+      border-top: 1px solid #2a2a2a;
+    }
+    .footer-nueva { display: flex; gap: 10px; }
+    .footer-nueva .btn { flex: 1; }
+    .footer-chat { display: none; }
+    .footer-chat textarea {
+      width: 100%; padding: 12px 14px;
+      border: 2px solid var(--green);
+      border-radius: 12px;
+      font-size: 16px;
+      font-family: var(--font);
+      color: #e0e0e0;
+      background: #1e1e1e;
+      min-height: 56px;
+      max-height: 120px;
+      resize: none;
+      margin-bottom: 8px;
+    }
+    .footer-chat textarea:focus { outline: none; border-color: var(--green-dark); }
+    .footer-chat-label {
+      font-size: 13px; font-weight: 700; color: #c94040;
+      margin-bottom: 6px; display: block;
+    }
+    .footer-chat-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+
+    /* ── UTIL ── */
+    .mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .small { font-size: 12px; color: var(--silver); margin-top: 6px; }
+    .badge {
+      display: inline-block;
+      background: #3a1a1a;
+      color: #c94040;
+      font-size: 11px; font-weight: 700;
+      padding: 3px 10px; border-radius: 100px;
+      margin-left: 8px;
+    }
+    #savedBadge { display: none; }
+
+    /* ── PRECIOS ── */
+    .precio-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 8px;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #2e2e2e;
+    }
+    .precio-row:last-child { border-bottom: none; }
+    .precio-nombre { font-size: 14px; font-weight: 600; color: #ddd; }
+    .precio-detalle { font-size: 12px; color: var(--silver); }
+    .precio-monto { font-size: 15px; font-weight: 700; color: #c94040; white-space: nowrap; }
+    .precio-unidad { font-size: 12px; color: var(--silver); }
+    .add-precio-form {
+      background: #1e1e1e;
+      border: 1.5px dashed #333;
+      border-radius: 14px;
+      padding: 16px;
+      margin-top: 12px;
+    }
+    .add-precio-form .mini-grid { grid-template-columns: 1fr 1fr; }
+    .precio-list { min-height: 40px; }
+    .precio-empty { text-align:center; padding: 20px; color: var(--silver); font-size: 14px; }
+    .btn-icon { background: none; border: none; cursor: pointer; font-size: 18px; padding: 4px 6px; border-radius: 8px; }
+    .btn-icon:hover { background: #2a2a2a; }
+    .categoria-tag {
+      display: inline-block;
+      background: #3a1a1a;
+      color: #c94040;
+      font-size: 10px; font-weight: 700;
+      padding: 2px 8px; border-radius: 100px;
+      margin-bottom: 2px;
+    }
+
+
+    @keyframes pulse {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.06); background: #27ae60; }
+      100% { transform: scale(1); }
+    }
+    @media (max-width: 560px) {
+      .voice-row, .mini-grid, .quote-actions { grid-template-columns: 1fr; }
+      #pdfContent { padding: 20px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;"><img src="imagenes/logo.png" alt="3Rs Remodelaciones" style="height:44px;width:auto;object-fit:contain;" /><h1 style="font-family:var(--display);font-size:22px;letter-spacing:2px;color:#fff;">Rommel <span>Pro</span></h1></div>
+  <p>Asistente de obras y cotizaciones</p>
+</header>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="showPanel('panelNuevo', this)">📋 Nueva</button>
+  <button class="tab" onclick="showPanel('panelChat', this)">💬 Conversación</button>
+  <button class="tab" onclick="showPanel('panelGuardadas', this); renderSaved()">
+    💾 Guardadas <span id="savedBadge" class="badge"></span>
+  </button>
+  <button class="tab" onclick="showPanel('panelPrecios', this)">💰 Mis Precios</button>
+  <button class="tab" onclick="showPanel('panelFinanzas', this); renderFinanzas()">📊 Finanzas</button>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PANEL 1: NUEVA COTIZACIÓN
+════════════════════════════════════════════ -->
+<div id="panelNuevo" class="panel active">
+<main>
+
+  <div class="card">
+    <div class="card-title"><span>1️⃣</span> ¿Qué quiere hacer?</div>
+    <div class="mode-grid">
+      <button class="mode-btn active" data-mode="cotizacion" onclick="setMode(this)">
+        🧾 Nueva cotización
+        <small>Para valorar un trabajo o proyecto completo</small>
+      </button>
+      <button class="mode-btn" data-mode="adicional" onclick="setMode(this)">
+        ➕ Agregar adicional
+        <small>Cuando el cliente pide algo extra</small>
+      </button>
+      <button class="mode-btn" data-mode="dinero" onclick="setMode(this)">
+        💰 Registrar plata
+        <small>Pagos, gastos, materiales o planilla</small>
+      </button>
+      <button class="mode-btn" data-mode="consulta" onclick="setMode(this)">
+        🔍 Consultar IA
+        <small>Analizar daño o problema con foto</small>
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span>2️⃣</span> Cliente o proyecto</div>
+    <input type="text" id="cliente" placeholder="Ej: Ana, Casa Escazú, Aparto Heredia"/>
+    <p class="small">Puede poner solo el nombre del cliente.</p>
+  </div>
+
+  <div class="card" id="cardRelato">
+    <div class="card-title"><span>3️⃣</span> Dígalo hablando o escribiendo</div>
+    <textarea id="relato" placeholder="Ej: La señora quiere remodelar el baño, cambiar cerámica, reparar paredes y poner agua caliente..."></textarea>
+    <div class="voice-row">
+      <button class="btn btn-green" onclick="iniciarVoz()">🎙️ Hablar</button>
+      <button class="btn btn-red"   onclick="detenerVoz()">⏹️ Detener</button>
+    </div>
+    <p id="estadoVoz" class="status">Toque "Hablar" y dicte el trabajo.</p>
+  </div>
+
+  <div class="card" id="cardFotos">
+    <div class="card-title"><span>4️⃣</span> Fotos del sitio</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <button class="btn btn-green" onclick="abrirCamara()" style="font-size:15px;padding:14px 10px">
+        📷 Tomar foto
+      </button>
+      <button class="btn btn-light" onclick="abrirGaleria()" style="font-size:15px;padding:14px 10px">
+        🖼️ Subir fotos
+      </button>
+    </div>
+    <!-- inputs ocultos -->
+    <input id="inputCamara"  type="file" accept="image/*" capture="environment" style="display:none"/>
+    <input id="inputGaleria" type="file" accept="image/*" multiple style="display:none"/>
+    <div id="preview" class="photo-preview"></div>
+    <p class="small" id="fotoCount">Sin fotos. Use los botones para agregar imágenes del proyecto.</p>
+  </div>
+
+  <!-- CARD MATERIALES -->
+  <div class="card" id="cardMateriales">
+    <div class="card-title"><span>5️⃣</span> ¿Incluye materiales?</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button id="btnConMat" class="btn btn-green mat-toggle active-mat" onclick="setMateriales(true)">
+        🧱 Con materiales
+        <small style="display:block;font-size:11px;font-weight:400;margin-top:3px;color:#cce">Rommel compra todo</small>
+      </button>
+      <button id="btnSinMat" class="btn btn-light mat-toggle" onclick="setMateriales(false)">
+        👷 Solo mano de obra
+        <small style="display:block;font-size:11px;font-weight:400;margin-top:3px;color:#aaa">Cliente compra materiales</small>
+      </button>
+    </div>
+    <div id="listaMaterialesBox" style="display:none;margin-top:12px;padding:10px;background:#1a2a1a;border-radius:10px;border:1px solid #2a4a2a">
+      <p style="font-size:12px;color:#4ade80;margin-bottom:6px">✅ La IA generará lista de compra con precios y cantidades</p>
+    </div>
+  </div>
+
+  <div id="cardDinero" class="card" style="display:none">
+    <div class="card-title"><span>💵</span> Movimiento de plata</div>
+    <div class="mini-grid">
+      <div>
+        <label>Monto</label>
+        <input type="text" id="monto" placeholder="Ej: ₡250,000"/>
+      </div>
+      <div>
+        <label>Tipo</label>
+        <select id="tipoDinero">
+          <option>Pago recibido</option>
+          <option>Gasto materiales</option>
+          <option>Pago planilla</option>
+          <option>Transporte</option>
+          <option>Otro gasto</option>
+        </select>
+      </div>
+    </div>
+    <label style="margin-top:14px">Nota (opcional)</label>
+    <input type="text" id="notaDinero" placeholder="Ej: Anticipo semana 1, compra de cerámica..."/>
+    <button class="btn btn-green btn-full" onclick="iniciarCotizacion()" style="margin-top:16px;font-size:17px;padding:18px;">
+      💰 Registrar este movimiento
+    </button>
+    <p class="small" style="text-align:center;margin-top:8px">La IA calculará el saldo, ganancias y alertas del proyecto.</p>
+  </div>
+
+  <!-- spacer for footer -->
+  <div style="height:14px"></div>
+</main>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PANEL 2: CONVERSACIÓN CON IA
+════════════════════════════════════════════ -->
+<div id="panelChat" class="panel">
+<main>
+
+  <div class="card">
+    <div class="card-title"><span>💬</span> Conversación del caso
+      <button class="btn btn-sm btn-gray" onclick="limpiarTodo()" style="margin-left:auto">🗑️ Limpiar todo</button>
+    </div>
+    <div id="chatBox"></div>
+  </div>
+
+  <p id="estadoVozReply" class="status" style="padding:0 14px;"></p>
+
+  <div id="cardFinal" class="card" style="display:none">
+    <div class="card-title"><span>📄</span> Cotización lista</div>
+    <div id="quoteFinal"></div>
+    <div class="quote-actions">
+      <button class="btn btn-green" onclick="abrirPDF()">🖨️ Ver PDF</button>
+      <button id="btnGuardar" class="btn btn-dark" onclick="guardarCotizacion()">&#128190; Guardar</button>
+      <button class="btn btn-light" onclick="copiarCotizacion()">📋 Copiar</button>
+      <button class="btn btn-whatsapp" onclick="enviarWA()">📲 Enviar al cliente</button>
+    </div>
+  </div>
+
+  <div style="height:14px"></div>
+</main>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PANEL 3: GUARDADAS
+════════════════════════════════════════════ -->
+<div id="panelGuardadas" class="panel">
+<main>
+  <div class="card">
+    <div class="card-title"><span>💾</span> Cotizaciones guardadas</div>
+    <div id="savedList" class="saved-list">
+      <div class="empty-state">
+        <div class="icon">📂</div>
+        <p>No hay cotizaciones guardadas aún.</p>
+      </div>
+    </div>
+  </div>
+  <div style="height:14px"></div>
+</main>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════ -->
+
+<!-- ═══════════════════════════════════════════
+     PANEL 4: MIS PRECIOS
+════════════════════════════════════════════ -->
+<div id="panelPrecios" class="panel">
+<main>
+  <div class="card">
+    <div class="card-title"><span>💰</span> Lista de precios de Rommel</div>
+    <p class="small" style="margin-bottom:12px">Estos precios los usa la IA para hacer cotizaciones más exactas. Agréguelos una vez y quedan guardados.</p>
+    <div id="precioList" class="precio-list">
+      <p class="precio-empty">📋 Aún no hay precios. Agregue el primero abajo.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span>➕</span> Agregar precio</div>
+    <div class="add-precio-form">
+      <label>Nombre del trabajo o material</label>
+      <input type="text" id="pNombre" placeholder="Ej: Pintura paredes, Cerámica, Mano de obra día"/>
+
+      <div class="mini-grid" style="margin-top:10px">
+        <div>
+          <label>Precio</label>
+          <input type="number" id="pPrecio" placeholder="Ej: 4000"/>
+        </div>
+        <div>
+          <label>Unidad</label>
+          <select id="pUnidad">
+            <option value="m²">Por m²</option>
+            <option value="ml">Por metro lineal</option>
+            <option value="unidad">Por unidad</option>
+            <option value="día">Por día (mano de obra)</option>
+            <option value="hora">Por hora</option>
+            <option value="kg">Por kg</option>
+            <option value="saco">Por saco</option>
+            <option value="galón">Por galón</option>
+            <option value="global">Precio global/fijo</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+      </div>
+
+      <label style="margin-top:10px">Categoría</label>
+      <select id="pCategoria">
+        <option value="Pintura">🎨 Pintura</option>
+        <option value="Cerámica y pisos">🟦 Cerámica y pisos</option>
+        <option value="Mano de obra">👷 Mano de obra</option>
+        <option value="Materiales">🧱 Materiales</option>
+        <option value="Electricidad">⚡ Electricidad</option>
+        <option value="Plomería">🔧 Plomería</option>
+        <option value="Cielos y paredes">🏠 Cielos y paredes</option>
+        <option value="Puertas y ventanas">🚪 Puertas y ventanas</option>
+        <option value="Otro">📦 Otro</option>
+      </select>
+
+      <label style="margin-top:10px">Nota (opcional)</label>
+      <input type="text" id="pNota" placeholder="Ej: incluye pintura y mano de obra, solo material..."/>
+
+      <button class="btn btn-green btn-full" onclick="agregarPrecio()" style="margin-top:14px">
+        ✅ Guardar este precio
+      </button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+        <button class="btn btn-gray btn-sm" onclick="if(confirm('¿Restaurar lista original de Rommel?')) { localStorage.removeItem('rp_precios'); cargarPreciosDefault(); renderPrecios(); alert('Lista restaurada.'); }">🔄 Restaurar lista</button>
+        <button class="btn btn-light btn-sm" onclick="exportarPrecios()">📋 Copiar lista</button>
+      </div>
+    </div>
+  </div>
+  <div style="height:14px"></div>
+</main>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     PANEL FINANZAS
+════════════════════════════════════════════ -->
+<div id="panelFinanzas" class="panel">
+<main>
+
+  <!-- Selector de proyecto -->
+  <div class="card">
+    <div class="card-title"><span>📁</span> Proyecto</div>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end">
+      <div>
+        <label>Nombre del proyecto</label>
+        <input type="text" id="finProyecto" placeholder="Ej: Casa Escazú, Apto Heredia..." oninput="filtrarProyectos(this.value)"/>
+        <div id="finSugerencias" style="display:none;background:#1e1e1e;border:1px solid #333;border-radius:8px;margin-top:4px;max-height:150px;overflow-y:auto;"></div>
+      </div>
+      <button class="btn btn-green" onclick="seleccionarProyecto()" style="padding:13px 14px;white-space:nowrap">Abrir</button>
+    </div>
+  </div>
+
+  <!-- Dashboard del proyecto -->
+  <div id="finDashboard" style="display:none">
+
+    <div class="card" style="background:#1a2a1a;border-color:#2a4a2a">
+      <div class="card-title" style="color:#4ade80"><span>📊</span> <span id="finNombreActivo"></span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
+        <div style="background:#0d1f0d;border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:11px;color:#888;margin-bottom:4px">COBRADO</div>
+          <div id="finTotalCobrado" style="font-size:18px;font-weight:700;color:#4ade80">₡0</div>
+        </div>
+        <div style="background:#1f0d0d;border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:11px;color:#888;margin-bottom:4px">GASTADO</div>
+          <div id="finTotalGastado" style="font-size:18px;font-weight:700;color:#f87171">₡0</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="background:#1f1a0d;border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:11px;color:#888;margin-bottom:4px">GANANCIA</div>
+          <div id="finGanancia" style="font-size:18px;font-weight:700;color:#fbbf24">₡0</div>
+        </div>
+        <div style="background:#0d1820;border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:11px;color:#888;margin-bottom:4px">PENDIENTE</div>
+          <div id="finPendiente" style="font-size:18px;font-weight:700;color:#60a5fa">₡0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulario nuevo movimiento -->
+    <div class="card">
+      <div class="card-title"><span>➕</span> Agregar movimiento</div>
+      <div class="mini-grid">
+        <div>
+          <label>Tipo</label>
+          <select id="finTipo">
+            <option value="cobro">💰 Pago recibido</option>
+            <option value="anticipo">🤝 Anticipo recibido</option>
+            <option value="pendiente">📋 Por cobrar (presupuesto)</option>
+            <option value="material">🧱 Gasto materiales</option>
+            <option value="planilla">👷 Pago planilla</option>
+            <option value="transporte">🚗 Transporte</option>
+            <option value="otro_gasto">📦 Otro gasto</option>
+          </select>
+        </div>
+        <div>
+          <label>Monto (₡)</label>
+          <input type="number" id="finMonto" placeholder="Ej: 250000"/>
+        </div>
+      </div>
+      <label style="margin-top:10px">Nota</label>
+      <input type="text" id="finNota" placeholder="Ej: Anticipo semana 1, compra de cerámica..."/>
+      <label style="margin-top:10px">Fecha</label>
+      <input type="date" id="finFecha"/>
+      <button class="btn btn-green btn-full" onclick="agregarMovimiento()" style="margin-top:14px;font-size:16px;padding:16px">
+        ✅ Registrar movimiento
+      </button>
+    </div>
+
+    <!-- Historial -->
+    <div class="card">
+      <div class="card-title"><span>📋</span> Historial de movimientos</div>
+      <div id="finHistorial"></div>
+    </div>
+
+    <div style="text-align:center;margin-bottom:10px">
+      <button class="btn btn-gray btn-sm" onclick="if(confirm('¿Eliminar este proyecto y todos sus movimientos?')){eliminarProyecto()}">🗑️ Eliminar proyecto</button>
+    </div>
+  </div>
+
+  <div style="height:14px"></div>
+</main>
+</div>
+
+<footer>
+  <div class="footer-nueva" id="footerNueva">
+    <button class="btn btn-green" onclick="iniciarCotizacion()">🚀 Analizar con IA</button>
+    <button class="btn btn-gray"  onclick="limpiarTodo()">🗑️ Limpiar</button>
+  </div>
+  <div class="footer-chat" id="footerChat">
+    <span class="footer-chat-label">✏️ Escriba su respuesta aquí:</span>
+    <div class="footer-chat-row">
+      <textarea id="replyText" placeholder="Ej: El baño mide 3x2 metros, las paredes son de bloque..." rows="2"></textarea>
+      <button class="btn btn-green" onclick="enviarRespuesta()" style="font-size:22px;padding:0 18px;min-width:56px;">📨</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+      <button class="btn btn-light btn-sm" onclick="iniciarVozReply()">🎙️ Hablar respuesta</button>
+      <button class="btn btn-gray btn-sm"  onclick="limpiarTodo()">🗑️ Nuevo caso</button>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════════════════
+     MODAL EDITAR
+════════════════════════════════════════════ -->
+<div id="editModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-title">
+      ✏️ Editar cotización
+      <button class="close-modal" onclick="cerrarModal()">✕</button>
+    </div>
+    <label>Cliente / Proyecto</label>
+    <input type="text" id="editCliente"/>
+    <label>Contenido de la cotización</label>
+    <textarea id="editBody" style="min-height:280px"></textarea>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px">
+      <button class="btn btn-green btn-full" onclick="guardarEdicion()">💾 Guardar cambios</button>
+      <button class="btn btn-red   btn-full" onclick="eliminarCotizacion()">🗑️ Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PDF PREVIEW
+════════════════════════════════════════════ -->
+<div id="pdfPreview">
+  <div style="width:100%;max-width:680px;max-height:92vh;display:flex;flex-direction:column;border-radius:16px;overflow:hidden;">
+    <div id="pdfContent">
+      <div class="pdf-header">
+        <div>
+          <img src="imagenes/logo.png" alt="3Rs Remodelaciones" style="height:60px;width:auto;object-fit:contain;" />
+          <div style="font-size:12px;color:#888;margin-top:2px">San José, Costa Rica · 📱 +506 6214-5489</div>
+        </div>
+        <div class="pdf-meta">
+          <strong id="pdfFecha"></strong><br/>
+          Cotización #<span id="pdfNum"></span>
+        </div>
+      </div>
+      <div class="pdf-title">Cotización de Servicios</div>
+      <div class="pdf-client">👤 Cliente: <strong id="pdfCliente"></strong></div>
+      <div class="pdf-body" id="pdfBody"></div>
+      <div class="pdf-footer">
+        3Rs Remodelaciones · Tu proyecto en buenas manos<br/>
+        Esta cotización tiene vigencia de 15 días a partir de su fecha de emisión.
+      </div>
+    </div>
+    <div class="pdf-actions" style="padding:12px 20px;background:#f5f5f5;display:flex;gap:10px">
+      <button class="btn btn-green" style="flex:1" onclick="imprimirPDF()">🖨️ Imprimir / Guardar PDF</button>
+      <button class="btn btn-gray"  style="flex:1" onclick="cerrarPDF()">✕ Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   STATE
+════════════════════════════════════════════ */
+let modo = 'cotizacion';
+let recognition = null;
+let vozTarget = 'relato'; // which textarea voice goes to
+
+// Conversation history for API  [{role, content}]
+let conversacion = [];
+let clienteActivo = '';
+let modoActivo = 'cotizacion';
+let cotizacionFinalTexto = '';
+let cotizacionActivaId = null; // ID de la cotización abierta/actual para actualizarla al continuar
+let editingId = null;
+let quoteCounter = parseInt(localStorage.getItem('rp_counter') || '1');
+
+const MAKE_WEBHOOK   = 'https://hook.us2.make.com/vb5xuxp14ppgd0esfasm4azn9njwo3ik';
+const VISION_WEBHOOK = 'https://hook.us2.make.com/obu9whlvur8troxea4h9msrsfhj5qabe';
+
+/* ═══════════════════════════════════════════
+   TABS
+════════════════════════════════════════════ */
+function showPanel(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  // Switch footer based on panel
+  const isChat = (id === 'panelChat');
+  document.getElementById('footerNueva').style.display = isChat ? 'none' : 'flex';
+  document.getElementById('footerChat').style.display = isChat ? 'block' : 'none';
+}
+
+/* ═══════════════════════════════════════════
+   MODE
+════════════════════════════════════════════ */
+function setMode(el) {
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  modo = el.dataset.mode;
+  const esDinero   = modo === 'dinero';
+  const esConsulta = modo === 'consulta';
+  document.getElementById('cardDinero').style.display     = esDinero   ? 'block' : 'none';
+  document.getElementById('cardRelato').style.display     = esDinero   ? 'none'  : 'block';
+  document.getElementById('cardFotos').style.display      = esDinero   ? 'none'  : 'block';
+  document.getElementById('cardMateriales').style.display = (esDinero || esConsulta) ? 'none' : 'block';
+
+  // Cambiar placeholder del relato según modo
+  var relato = document.getElementById('relato');
+  if (relato) {
+    if (esConsulta) {
+      relato.placeholder = 'Ej: ¿Qué es esto en la pared? ¿Cómo se repara? ¿Es grave?...';
+    } else if (esDinero) {
+      relato.placeholder = 'Ej: El baño mide 3x2 metros, las paredes son de bloque...';
+    } else {
+      relato.placeholder = 'Ej: El baño mide 3x2 metros, las paredes son de bloque...';
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════
+   PHOTOS — array acumulado + cámara / galería
+════════════════════════════════════════════ */
+let fotosCapturadas = []; // DataURL strings
+let incluyeMateriales = true; // default: con materiales
+
+function setMateriales(val) {
+  incluyeMateriales = val;
+  document.getElementById('btnConMat').classList.toggle('active-mat', val);
+  document.getElementById('btnSinMat').classList.toggle('active-mat', !val);
+  document.getElementById('btnConMat').classList.toggle('btn-green', val);
+  document.getElementById('btnConMat').classList.toggle('btn-light', !val);
+  document.getElementById('btnSinMat').classList.toggle('btn-green', !val);
+  document.getElementById('btnSinMat').classList.toggle('btn-light', val);
+  document.getElementById('listaMaterialesBox').style.display = val ? 'block' : 'none';
+}
+
+function abrirCamara()  { document.getElementById('inputCamara').click(); }
+function abrirGaleria() { document.getElementById('inputGaleria').click(); }
+
+function agregarFotos(files) {
+  Array.from(files).forEach(function(file) {
+    var r = new FileReader();
+    r.onload = function(e) {
+      fotosCapturadas.push(e.target.result);
+      renderFotos();
+    };
+    r.readAsDataURL(file);
+  });
+}
+
+function eliminarFoto(idx) {
+  fotosCapturadas.splice(idx, 1);
+  renderFotos();
+}
+
+function renderFotos() {
+  var preview  = document.getElementById('preview');
+  var countEl  = document.getElementById('fotoCount');
+  preview.innerHTML = '';
+  fotosCapturadas.forEach(function(dataUrl, idx) {
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative';
+    var img = document.createElement('img');
+    img.src = dataUrl;
+    img.style.cssText = 'width:100%;height:80px;object-fit:cover;border-radius:10px;border:1px solid var(--border);display:block';
+    var btn = document.createElement('button');
+    btn.innerHTML = '✕';
+    btn.title = 'Eliminar';
+    btn.style.cssText = 'position:absolute;top:3px;right:3px;background:rgba(0,0,0,.65);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:11px;cursor:pointer;line-height:22px;padding:0;font-weight:700';
+    btn.onclick = (function(i){ return function(){ eliminarFoto(i); }; })(idx);
+    wrap.appendChild(img);
+    wrap.appendChild(btn);
+    preview.appendChild(wrap);
+  });
+  if (countEl) {
+    countEl.textContent = fotosCapturadas.length
+      ? fotosCapturadas.length + ' foto(s) lista(s). Puede agregar más o eliminar individual.'
+      : 'Sin fotos. Use los botones para agregar imágenes del proyecto.';
+  }
+}
+
+document.getElementById('inputCamara').addEventListener('change', function() {
+  if (this.files.length) agregarFotos(this.files);
+  this.value = '';
+});
+document.getElementById('inputGaleria').addEventListener('change', function() {
+  if (this.files.length) agregarFotos(this.files);
+  this.value = '';
+});
+
+/* ═══════════════════════════════════════════
+   VISIÓN IA — comprimir + analizar fotos
+════════════════════════════════════════════ */
+function comprimirImagen(dataUrl, maxPx) {
+  maxPx = maxPx || 900;
+  return new Promise(function(resolve) {
+    var img = new Image();
+    img.onload = function() {
+      var ratio = Math.min(maxPx / img.width, maxPx / img.height, 1);
+      var canvas = document.createElement('canvas');
+      canvas.width  = Math.round(img.width  * ratio);
+      canvas.height = Math.round(img.height * ratio);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', 0.72));
+    };
+    img.onerror = function() { resolve(dataUrl); };
+    img.src = dataUrl;
+  });
+}
+
+async function analizarFotosConIA() {
+  if (!fotosCapturadas.length) return '';
+  try {
+    var comprimidas = await Promise.all(
+      fotosCapturadas.map(function(d) { return comprimirImagen(d); })
+    );
+
+    var resp = await fetch(VISION_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        image:    comprimidas[0].split(',')[1],
+        fotos:    comprimidas.map(function(d){ return d.split(',')[1]; }),
+        cantidad: comprimidas.length
+      })
+    });
+
+    var texto = await resp.text();
+
+    if (!texto || texto.trim() === '') {
+      appendSystemMsg('⚠️ Rommel Vision no devolvió respuesta. Verifique que el escenario esté activo.');
+      return '';
+    }
+
+    // Análisis listo — NO mostrarlo en chat para evitar repetición
+    return texto.trim();
+
+  } catch(e) {
+    appendSystemMsg('⚠️ Error al analizar fotos: ' + e.message);
+    return '';
+  }
+}
+
+/* ═══════════════════════════════════════════
+   VOICE
+════════════════════════════════════════════ */
+function iniciarVoz() { startVoice('relato', 'estadoVoz'); }
+function iniciarVozReply() { startVoice('replyText', 'estadoVozReply'); }
+
+function startVoice(targetId, statusId) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    document.getElementById(statusId).textContent = 'Use el micrófono del teclado del celular.';
+    return;
+  }
+  if (recognition) recognition.stop();
+  vozTarget = targetId;
+  recognition = new SR();
+  recognition.lang = 'es-CR';
+  recognition.continuous = true;
+  recognition.interimResults = false;
+  recognition.onstart  = () => document.getElementById(statusId).textContent = '🎙️ Escuchando...';
+  recognition.onresult = ev => {
+    let t = '';
+    for (let i = ev.resultIndex; i < ev.results.length; i++) t += ev.results[i][0].transcript + ' ';
+    document.getElementById(targetId).value += t;
+  };
+  recognition.onerror  = () => document.getElementById(statusId).textContent = 'No se pudo usar el micrófono.';
+  recognition.onend    = () => document.getElementById(statusId).textContent = 'Dictado terminado.';
+  recognition.start();
+}
+function detenerVoz() { if (recognition) recognition.stop(); }
+
+/* ═══════════════════════════════════════════
+   LIMPIAR TODO
+════════════════════════════════════════════ */
+function limpiarTodo() {
+  if (conversacion.length > 0 && !confirm('¿Limpiar la conversación actual y empezar de cero?')) return;
+  conversacion = [];
+  clienteActivo = '';
+  cotizacionFinalTexto = '';
+  cotizacionActivaId = null;
+  document.getElementById('cliente').value = '';
+  document.getElementById('relato').value = '';
+  document.getElementById('monto').value = '';
+  document.getElementById('notaDinero').value = '';
+  document.getElementById('preview').innerHTML = '';
+  fotosCapturadas = [];
+  incluyeMateriales = true;
+  setMateriales(true);
+  renderFotos();
+  document.getElementById('chatBox').innerHTML = '';
+  document.getElementById('cardFinal').style.display = 'none';
+  document.getElementById('replyText').value = '';
+  // reset mode
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.mode-btn[data-mode="cotizacion"]').classList.add('active');
+  modo = 'cotizacion';
+  modoActivo = 'cotizacion';
+  document.getElementById('cardDinero').style.display = 'none';
+  document.getElementById('cardMateriales').style.display = 'block';
+  document.getElementById('cardFotos').style.display = 'block';
+  document.getElementById('cardRelato').style.display = 'block';
+  appendSystemMsg('Conversación limpia. Puede iniciar un nuevo caso.');
+  showPanel('panelNuevo', document.querySelector('.tab'));
+}
+
+/* ═══════════════════════════════════════════
+   BUILD SYSTEM PROMPT
+════════════════════════════════════════════ */
+function buildSystemPrompt() {
+
+  // Modo consulta: diagnóstico técnico, sin cotizar
+  if (modoActivo === 'consulta') {
+    return `Eres un maestro de obras experto con 30 años de experiencia en construcción y remodelación en Costa Rica.
+
+Rommel te está consultando sobre un problema o daño que ve en obra. Tu misión es ayudarle a entender qué está pasando y cómo resolverlo. NO cotices ni des precios, solo diagnóstico técnico claro.
+
+Cuando Rommel te describe o muestra algo, responde con este formato:
+
+🔍 DIAGNÓSTICO
+[Qué es lo que está viendo, nombre técnico del problema]
+
+⚠️ CAUSA PROBABLE
+[Por qué ocurre esto — humedad, asentamiento, materiales, instalación, etc.]
+
+🚨 NIVEL DE GRAVEDAD
+[Leve / Moderado / Grave — y por qué]
+
+🔧 CÓMO SE REPARA
+[Pasos claros y prácticos para resolverlo]
+
+🛒 MATERIALES QUE NECESITA
+[Lista de lo que hay que comprar para la reparación]
+
+💡 CONSEJO DE EXPERTO
+[Algo importante que no debe ignorar o un tip para evitar que vuelva a pasar]
+
+Habla como maestro de obras, directo y práctico. Sin rodeos. Si la foto o descripción no es suficiente para diagnosticar, pregunta puntualmente qué más necesitas ver.` + buildPreciosTexto();
+  }
+
+  var formatoMateriales = incluyeMateriales ? `
+MATERIALES ESTIMADOS
+[lista con cantidades aproximadas]
+
+LISTA DE COMPRA (cuando incluye materiales)
+[tabla con: Material | Cantidad | Precio unitario estimado | Total]
+Ejemplo:
+- Pintura acrílica interior | 4 galones | ₡18.000 | ₡72.000
+- Sellador | 1 galón | ₡12.000 | ₡12.000
+- Rodillo y brocha | 1 juego | ₡5.000 | ₡5.000
+TOTAL MATERIALES: ₡XX.XXX` : `
+NOTA: Esta cotización es SOLO MANO DE OBRA. El cliente compra los materiales por su cuenta. NO incluir costos de materiales en el precio. Sí puedes mencionar qué materiales necesitará el cliente comprar, pero sin precio.`;
+
+  return `Eres un maestro de obras experto en remodelaciones, reparaciones, construcción, presupuestos y control financiero de proyectos en Costa Rica.
+
+Tu rol es asistir a Rommel, un contratista con experiencia pero poco tecnológico. Debes:
+- Hablar de forma clara, directa y práctica. Sin tecnicismos innecesarios.
+- Si faltan datos críticos para la cotización (medidas, materiales, estado actual), PREGUNTA de forma concreta y numerada. Máximo 3 preguntas por vez.
+- Cuando tengas suficiente información, genera la cotización completa con este formato:
+
+RESUMEN DEL CASO
+[descripción clara]
+
+TRABAJOS A REALIZAR
+[lista de trabajos]
+${formatoMateriales}
+
+MANO DE OBRA
+[desglose]
+
+TIEMPO ESTIMADO
+[duración]
+
+COTIZACIÓN PRELIMINAR
+[precios en colones costarricenses]
+
+RIESGOS O CUIDADOS
+[alertas importantes]
+
+MENSAJE PARA EL CLIENTE (listo para copiar en WhatsApp)
+[mensaje profesional y amigable]
+
+Si el usuario responde tus preguntas, INCORPORA esa info al caso existente sin empezar de cero.
+
+REGLA IMPORTANTE SOBRE FOTOS: Cuando el mensaje incluya una sección "=== ANÁLISIS DE FOTOS (IA Visión) ===", ese análisis fue generado automáticamente por visión artificial mirando las fotos reales del sitio. Trátalo como información confirmada y confiable. NO preguntes sobre datos que ya aparecen en ese análisis (tipo de superficie, material, daños visibles, estado general). Solo pregunta lo que genuinamente no se puede ver en las fotos, como medidas o el alcance exacto del trabajo deseado.
+
+REGLA IMPORTANTE SOBRE ADICIONALES: Cuando el mensaje incluya una sección "=== COTIZACIÓN ORIGINAL DEL PROYECTO ===", úsala como contexto completo del trabajo ya cotizado. NO preguntes sobre lo que ya está descrito ahí. Genera directamente la cotización del adicional nuevo, complementando lo que ya existe.` + buildPreciosTexto();
+}
+
+/* ═══════════════════════════════════════════
+   INICIAR COTIZACIÓN (desde Panel 1)
+════════════════════════════════════════════ */
+async function iniciarCotizacion() {
+  const cliente = document.getElementById('cliente').value.trim();
+  const relato  = document.getElementById('relato').value.trim();
+
+  if (!relato) { alert('Por favor describa el trabajo primero.'); return; }
+
+  clienteActivo = cliente || 'Sin nombre';
+  modoActivo    = modo;
+
+  let userMsg = `MODO: ${modoActivo.toUpperCase()}\nCLIENTE: ${clienteActivo}\n\n${relato}`;
+
+  // Si es adicional, buscar cotización guardada del mismo cliente y adjuntarla como contexto
+  if (modoActivo === 'adicional' && clienteActivo !== 'Sin nombre') {
+    var saved = getSaved();
+    var match = saved.filter(function(s) {
+      return s.cliente && s.cliente.toLowerCase().includes(clienteActivo.toLowerCase());
+    });
+    if (match.length > 0) {
+      var ultima = match[match.length - 1];
+      userMsg += '\n\n=== COTIZACIÓN ORIGINAL DEL PROYECTO ===\n' + ultima.body + '\n=== FIN COTIZACIÓN ORIGINAL ===';
+      appendSystemMsg('📎 Se adjuntó la cotización guardada de "' + ultima.cliente + '" como contexto.');
+    }
+  }
+
+  if (modoActivo === 'dinero') {
+    const m = document.getElementById('monto').value.trim();
+    const t = document.getElementById('tipoDinero').value;
+    const n = document.getElementById('notaDinero').value.trim();
+    if (m) userMsg = `MODO: REGISTRO DE PLATA\nCLIENTE: ${clienteActivo}\n\nTIPO: ${t}\nMONTO: ${m}${n ? '\nNOTA: ' + n : ''}\n\nPor favor registra este movimiento, calcula el saldo acumulado del proyecto si hay historial, indica si hay alertas de liquidez o pendientes de cobro.`;
+  }
+
+  const nFotos = fotosCapturadas.length;
+  if (nFotos > 0) userMsg += `\n\n(Se adjuntaron ${nFotos} foto(s) de referencia)`;
+
+  // Analizar fotos con visión IA antes de enviar
+  if (nFotos > 0) {
+    const statusEl = document.getElementById('estadoVoz');
+    statusEl.textContent = '🔍 Analizando fotos con IA...';
+    let analisis = '';
+    try {
+      analisis = await analizarFotosConIA();
+    } catch(err) {
+      analisis = '';
+    }
+    statusEl.textContent = '';
+    if (analisis) {
+      userMsg += `\n\n=== ANÁLISIS DE FOTOS (IA Visión) ===\n${analisis}\n=== FIN ANÁLISIS ===`;
+      // Mostrar en chat para confirmar que funcionó
+      // (se mostrará como parte del mensaje del usuario)
+    } else {
+      // Análisis falló — avisar en el chat
+      appendSystemMsg('⚠️ El análisis de fotos no pudo completarse. Se continúa sin análisis visual.');
+    }
+  }
+
+  // Mensaje limpio para mostrar en la burbuja (sin el análisis técnico)
+  let userMsgVisible = `MODO: ${modoActivo.toUpperCase()}\nCLIENTE: ${clienteActivo}\n\n${relato}`;
+  if (nFotos > 0) userMsgVisible += `\n\n(Se adjuntaron ${nFotos} foto(s) de referencia)`;
+
+  // Reset conversation for new case
+  conversacion = [];
+  cotizacionActivaId = null;
+
+  // Switch to chat panel
+  showPanel('panelChat', document.querySelectorAll('.tab')[1]);
+  document.getElementById('cardFinal').style.display = 'none';
+
+  appendUserMsg(userMsgVisible);  // burbuja limpia
+  await callIA(userMsg);           // prompt completo con análisis va a la IA
+}
+
+/* ═══════════════════════════════════════════
+   ENVIAR RESPUESTA (desde Panel 2)
+════════════════════════════════════════════ */
+async function enviarRespuesta() {
+  const txt = document.getElementById('replyText').value.trim();
+  if (!txt) return;
+  document.getElementById('replyText').value = '';
+  appendUserMsg(txt);
+  await callIA(txt);
+}
+
+/* ═══════════════════════════════════════════
+   BUILD FULL PROMPT WITH HISTORY (for Make)
+   Embeds the entire conversation so Make's IA
+   always has complete context, never starts over.
+════════════════════════════════════════════ */
+function buildPromptConHistorial(nuevoMensaje) {
+  let historialTexto = '';
+  // conversacion already has the new user message pushed,
+  // so we include everything EXCEPT the last item (which is the new msg)
+  const previos = conversacion.slice(0, -1);
+  if (previos.length > 0) {
+    historialTexto = '\n\n=== HISTORIAL PREVIO DE ESTE CASO ===\n';
+    previos.forEach(m => {
+      const quien = m.role === 'user' ? 'ROMMEL' : 'ASISTENTE';
+      historialTexto += `\n[${quien}]:\n${m.content}\n`;
+    });
+    historialTexto += '\n=== FIN DEL HISTORIAL ===\n';
+    historialTexto += '\nCONTINÚA EL CASO. Rommel acaba de responder:\n';
+  }
+
+  return buildSystemPrompt() + historialTexto + '\n\nMENSAJE ACTUAL DE ROMMEL:\n' + nuevoMensaje;
+}
+
+/* ═══════════════════════════════════════════
+   CALL IA — siempre vía Make con historial
+════════════════════════════════════════════ */
+async function callIA(userContent) {
+  conversacion.push({ role: 'user', content: userContent });
+
+  const thinkingEl = appendThinkingMsg();
+  await callMakeOnly(userContent, thinkingEl);
+}
+
+async function callMakeOnly(userContent, existingThinking) {
+  const thinkingEl = existingThinking || appendThinkingMsg();
+  try {
+    const promptCompleto = buildPromptConHistorial(userContent);
+
+const payload = {
+  modo: modoActivo,
+  cliente: clienteActivo,
+  relato: userContent,
+  es_continuacion: conversacion.length > 2,
+  turno: Math.floor(conversacion.length / 2),
+  cotizacion_actual: cotizacionFinalTexto || '',
+  cotizacion_activa_id: cotizacionActivaId || '',
+  cantidad_fotos: fotosCapturadas.length, // fotos solo como referencia local, no se envían
+  incluye_materiales: incluyeMateriales,
+  prompt_ordenado: promptCompleto
+};
+
+    const r = await fetch(MAKE_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const txt = await r.text();
+    thinkingEl.remove();
+    const iaText = txt || 'Make no devolvió respuesta. Verifique que el escenario esté activo.';
+    conversacion.push({ role: 'assistant', content: iaText });
+    appendIAMsg(iaText);
+    detectarCotizacion(iaText);
+  } catch (e) {
+    thinkingEl.remove();
+    appendIAMsg('⚠️ No se pudo conectar con el asistente. Revise su conexión.');
+  }
+}
+
+/* ═══════════════════════════════════════════
+   DETECTAR SI IA YA ENTREGÓ COTIZACIÓN
+════════════════════════════════════════════ */
+function detectarCotizacion(texto) {
+  // Ahora toda respuesta de IA se trata como resultado útil del caso.
+  // Esto evita depender de palabras específicas del prompt.
+  cotizacionFinalTexto = texto;
+
+  document.getElementById('quoteFinal').textContent = texto;
+  document.getElementById('cardFinal').style.display = 'block';
+  document.getElementById('quoteFinal').scrollIntoView({ behavior: 'smooth' });
+
+  // Guardado automático silencioso: crea una cotización nueva o actualiza la activa.
+  guardarCotizacion(true);
+
+  var saveBtn = document.getElementById('btnGuardar');
+  if (saveBtn) {
+    saveBtn.textContent = '✅ Guardada automáticamente';
+    saveBtn.style.background = '#27ae60';
+    saveBtn.style.animation = 'pulse 1s 3';
+    setTimeout(function() {
+      saveBtn.textContent = 'Guardar';
+      saveBtn.style.background = '';
+      saveBtn.style.animation = '';
+    }, 1800);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   CHAT UI HELPERS
+════════════════════════════════════════════ */
+function appendUserMsg(txt) {
+  const box = document.getElementById('chatBox');
+  const el = document.createElement('div');
+  el.className = 'msg msg-user';
+  el.textContent = txt;
+  box.appendChild(el);
+  box.scrollTop = box.scrollHeight;
+}
+function appendIAMsg(txt) {
+  const box = document.getElementById('chatBox');
+  const el = document.createElement('div');
+  el.className = 'msg msg-ia';
+  el.textContent = txt;
+  box.appendChild(el);
+  box.scrollTop = box.scrollHeight;
+  return el;
+}
+function appendThinkingMsg() {
+  const box = document.getElementById('chatBox');
+  const el = document.createElement('div');
+  el.className = 'msg msg-thinking';
+  el.textContent = '🤔 Analizando el caso...';
+  box.appendChild(el);
+  box.scrollTop = box.scrollHeight;
+  return el;
+}
+function appendSystemMsg(txt) {
+  const box = document.getElementById('chatBox');
+  const el = document.createElement('div');
+  el.className = 'msg msg-system';
+  el.textContent = txt;
+  box.appendChild(el);
+  box.scrollTop = box.scrollHeight;
+}
+
+/* ═══════════════════════════════════════════
+   COTIZACIÓN ACTIONS
+════════════════════════════════════════════ */
+function copiarCotizacion() {
+  if (!cotizacionFinalTexto) return;
+  navigator.clipboard.writeText(cotizacionFinalTexto).then(() => alert('✅ Cotización copiada.'));
+}
+
+function enviarWA() {
+  if (!cotizacionFinalTexto) { alert('Primero genere una cotización.'); return; }
+
+  // Intentar extraer solo el "MENSAJE PARA EL CLIENTE" si existe
+  var texto = cotizacionFinalTexto;
+  var marcador = 'MENSAJE PARA EL CLIENTE';
+  var idx = texto.indexOf(marcador);
+  if (idx !== -1) {
+    texto = texto.substring(idx).trim();
+  }
+
+  // Abrir WhatsApp sin número — Rommel elige el contacto
+  var url = 'https://wa.me/?text=' + encodeURIComponent(texto);
+  window.open(url, '_blank');
+}
+
+/* ═══════════════════════════════════════════
+   GUARDAR
+════════════════════════════════════════════ */
+function guardarCotizacion(silencioso) {
+  silencioso = !!silencioso;
+
+  // Si no hay texto final, intenta tomar el último mensaje de la IA.
+  if (!cotizacionFinalTexto) {
+    var msgs = document.querySelectorAll('.msg-ia');
+    if (msgs.length > 0) {
+      cotizacionFinalTexto = msgs[msgs.length - 1].textContent;
+    }
+  }
+
+  if (!cotizacionFinalTexto) {
+    if (!silencioso) alert('No hay cotización para guardar. Genere una primero.');
+    return;
+  }
+
+  var saved = getSaved();
+  var ahora = new Date().toLocaleDateString('es-CR');
+
+  // Si estamos continuando una cotización guardada, actualiza esa misma.
+  if (cotizacionActivaId) {
+    var idx = saved.findIndex(function(x) { return x.id === cotizacionActivaId; });
+    if (idx !== -1) {
+      saved[idx].cliente = clienteActivo || saved[idx].cliente || 'Sin nombre';
+      saved[idx].modo = modoActivo || saved[idx].modo || 'cotizacion';
+      saved[idx].fecha = ahora;
+      saved[idx].body = cotizacionFinalTexto;
+      setSaved(saved);
+      updateSavedBadge();
+      if (!silencioso) {
+        alert('✅ Cotización actualizada.');
+        renderSaved();
+      }
+      return;
+    }
+  }
+
+  // Si no había cotización activa, crea una nueva.
+  var id = Date.now().toString();
+  quoteCounter++;
+  localStorage.setItem('rp_counter', quoteCounter);
+
+  saved.push({
+    id: id,
+    num: quoteCounter,
+    cliente: clienteActivo || 'Sin nombre',
+    modo: modoActivo || 'cotizacion',
+    fecha: ahora,
+    body: cotizacionFinalTexto
+  });
+
+  cotizacionActivaId = id;
+  setSaved(saved);
+  updateSavedBadge();
+
+  var btn = document.getElementById('btnGuardar');
+  if (btn && !silencioso) {
+    btn.textContent = '✅ Guardada!';
+    btn.style.background = '#27ae60';
+  }
+
+  if (!silencioso) {
+    setTimeout(function() {
+      var guardadasTab = document.querySelectorAll('.tab')[2];
+      showPanel('panelGuardadas', guardadasTab);
+      renderSaved();
+      if (btn) {
+        btn.textContent = 'Guardar';
+        btn.style.background = '';
+      }
+    }, 800);
+  }
+}
+
+function getSaved() {
+  try { return JSON.parse(localStorage.getItem('rp_saved') || '[]'); } catch { return []; }
+}
+function setSaved(arr) { localStorage.setItem('rp_saved', JSON.stringify(arr)); }
+
+function updateSavedBadge() {
+  const n = getSaved().length;
+  const b = document.getElementById('savedBadge');
+  if (n > 0) { b.textContent = n; b.style.display = 'inline-block'; }
+  else b.style.display = 'none';
+}
+
+/* ═══════════════════════════════════════════
+   RENDER GUARDADAS
+════════════════════════════════════════════ */
+function renderSaved() {
+  const list = document.getElementById('savedList');
+  const saved = getSaved();
+  updateSavedBadge();
+  if (!saved.length) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">📂</div><p>No hay cotizaciones guardadas aún.</p></div>';
+    return;
+  }
+  list.innerHTML = '';
+  [...saved].reverse().forEach(q => {
+    const card = document.createElement('div');
+    card.className = 'saved-card';
+    card.innerHTML = `
+      <h3>👤 ${q.cliente} <span style="color:#888;font-weight:400;font-size:13px">#${q.num}</span></h3>
+      <div class="meta">📅 ${q.fecha} · ${q.modo}</div>
+      <div class="preview">${q.body.substring(0, 90)}...</div>
+      <div class="saved-actions">
+        <button class="btn btn-sm btn-green" onclick="abrirPDFGuardado('${q.id}')">🖨️ PDF</button>
+        <button class="btn btn-sm btn-light" onclick="abrirEditar('${q.id}')">✏️ Editar</button>
+        <button class="btn btn-sm btn-orange" onclick="cargarEnChat('${q.id}')">💬 Continuar</button>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+/* ═══════════════════════════════════════════
+   EDITAR
+════════════════════════════════════════════ */
+function abrirEditar(id) {
+  const saved = getSaved();
+  const q = saved.find(x => x.id === id);
+  if (!q) return;
+  editingId = id;
+  document.getElementById('editCliente').value = q.cliente;
+  document.getElementById('editBody').value = q.body;
+  document.getElementById('editModal').classList.add('open');
+}
+function cerrarModal() {
+  document.getElementById('editModal').classList.remove('open');
+  editingId = null;
+}
+function guardarEdicion() {
+  const saved = getSaved();
+  const idx = saved.findIndex(x => x.id === editingId);
+  if (idx === -1) return;
+  saved[idx].cliente = document.getElementById('editCliente').value;
+  saved[idx].body    = document.getElementById('editBody').value;
+  setSaved(saved);
+  if (editingId === cotizacionActivaId) {
+    clienteActivo = saved[idx].cliente;
+    cotizacionFinalTexto = saved[idx].body;
+    document.getElementById('quoteFinal').textContent = cotizacionFinalTexto;
+  }
+  cerrarModal();
+  renderSaved();
+  alert('✅ Cambios guardados.');
+}
+function eliminarCotizacion() {
+  if (!confirm('¿Eliminar esta cotización? No se puede deshacer.')) return;
+  var idEliminado = editingId;
+  var saved = getSaved().filter(function(x) { return x.id !== editingId; });
+  setSaved(saved);
+  if (idEliminado === cotizacionActivaId) {
+    cotizacionActivaId = null;
+    cotizacionFinalTexto = '';
+    document.getElementById('quoteFinal').textContent = '';
+  }
+  cerrarModal();
+  renderSaved();
+  updateSavedBadge();
+}
+
+/* ═══════════════════════════════════════════
+   CONTINUAR DESDE GUARDADA
+════════════════════════════════════════════ */
+function cargarEnChat(id) {
+  const q = getSaved().find(x => x.id === id);
+  if (!q) return;
+  clienteActivo = q.cliente;
+  modoActivo    = q.modo;
+  cotizacionFinalTexto = q.body;
+  cotizacionActivaId = q.id;
+  conversacion  = [
+    { role: 'user', content: `Cliente: ${q.cliente}` },
+    { role: 'assistant', content: q.body }
+  ];
+  document.getElementById('chatBox').innerHTML = '';
+  appendSystemMsg(`📂 Cargado: ${q.cliente} (${q.fecha})`);
+  appendIAMsg(q.body);
+  document.getElementById('quoteFinal').textContent = q.body;
+  document.getElementById('cardFinal').style.display = 'block';
+  showPanel('panelChat', document.querySelectorAll('.tab')[1]);
+}
+
+/* ═══════════════════════════════════════════
+   PDF
+════════════════════════════════════════════ */
+function abrirPDF() {
+  if (!cotizacionFinalTexto) { alert('Primero genere una cotización.'); return; }
+  renderPDF(clienteActivo, cotizacionFinalTexto, quoteCounter);
+}
+function abrirPDFGuardado(id) {
+  const q = getSaved().find(x => x.id === id);
+  if (!q) return;
+  renderPDF(q.cliente, q.body, q.num);
+}
+function renderPDF(cliente, body, num) {
+  document.getElementById('pdfFecha').textContent = new Date().toLocaleDateString('es-CR', { year:'numeric', month:'long', day:'numeric' });
+  document.getElementById('pdfNum').textContent = String(num).padStart(4,'0');
+  document.getElementById('pdfCliente').textContent = cliente;
+  document.getElementById('pdfBody').textContent = body;
+  document.getElementById('pdfPreview').classList.add('open');
+}
+function cerrarPDF() { document.getElementById('pdfPreview').classList.remove('open'); }
+function imprimirPDF() { window.print(); }
+
+/* ═══════════════════════════════════════════
+   INIT
+════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════
+   PRECIOS — DEFAULT LIST + CRUD
+════════════════════════════════════════════ */
+function getPrecios() {
+  try { return JSON.parse(localStorage.getItem('rp_precios') || '[]'); } catch(e) { return []; }
+}
+function setPrecios(arr) { localStorage.setItem('rp_precios', JSON.stringify(arr)); }
+
+var PRECIOS_DEFAULT = [
+  {nombre:'Pintura interior paredes',   precio:2400,   unidad:'m2',    categoria:'Pintura',            nota:''},
+  {nombre:'Pintura exterior paredes',   precio:2800,   unidad:'m2',    categoria:'Pintura',            nota:''},
+  {nombre:'Pintura cielos',             precio:2600,   unidad:'m2',    categoria:'Pintura',            nota:''},
+  {nombre:'Pintura techo zinc',         precio:3200,   unidad:'m2',    categoria:'Pintura',            nota:''},
+  {nombre:'Puertas y verjas pintura',   precio:28000,  unidad:'unidad',categoria:'Pintura',            nota:''},
+  {nombre:'Ceramica piso',              precio:8000,   unidad:'m2',    categoria:'Ceramica y pisos',   nota:''},
+  {nombre:'Ceramica pared bano cocina', precio:9000,   unidad:'m2',    categoria:'Ceramica y pisos',   nota:''},
+  {nombre:'Porcelanato',                precio:10000,  unidad:'m2',    categoria:'Ceramica y pisos',   nota:''},
+  {nombre:'Zocalo ceramico',            precio:2500,   unidad:'ml',    categoria:'Ceramica y pisos',   nota:''},
+  {nombre:'Cielorraso PVC',             precio:8000,   unidad:'m2',    categoria:'Cielos y paredes',   nota:''},
+  {nombre:'Gypsum estructura y lamina', precio:11000,  unidad:'m2',    categoria:'Cielos y paredes',   nota:''},
+  {nombre:'Gypsum solo instalacion',    precio:7000,   unidad:'m2',    categoria:'Cielos y paredes',   nota:''},
+  {nombre:'Cajones decorativos gypsum', precio:20000,  unidad:'ml',    categoria:'Cielos y paredes',   nota:''},
+  {nombre:'Repello fino',               precio:5000,   unidad:'m2',    categoria:'Cielos y paredes',   nota:''},
+  {nombre:'Levantar pared bloque',      precio:15000,  unidad:'m2',    categoria:'Cielos y paredes',   nota:''},
+  {nombre:'Punto electrico nuevo',      precio:15000,  unidad:'unidad',categoria:'Electricidad',       nota:''},
+  {nombre:'Canalizacion por punto',     precio:13000,  unidad:'unidad',categoria:'Electricidad',       nota:''},
+  {nombre:'Breaker en caja',            precio:20000,  unidad:'unidad',categoria:'Electricidad',       nota:''},
+  {nombre:'Instalar lampara',           precio:10000,  unidad:'unidad',categoria:'Electricidad',       nota:''},
+  {nombre:'Punto de agua nuevo',        precio:50000,  unidad:'unidad',categoria:'Plomeria',           nota:''},
+  {nombre:'Instalar inodoro',           precio:32000,  unidad:'unidad',categoria:'Plomeria',           nota:''},
+  {nombre:'Instalar lavamanos',         precio:28000,  unidad:'unidad',categoria:'Plomeria',           nota:''},
+  {nombre:'Mezcladora ducha',           precio:35000,  unidad:'unidad',categoria:'Plomeria',           nota:''},
+  {nombre:'Tapar goteras',              precio:40000,  unidad:'global',categoria:'Otro',               nota:'servicio'},
+  {nombre:'Estructura liviana techo',   precio:12000,  unidad:'m2',    categoria:'Materiales',         nota:''},
+  {nombre:'Estructura techo soldadura', precio:15000,  unidad:'m2',    categoria:'Materiales',         nota:''},
+  {nombre:'Colocar lamina zinc',        precio:5500,   unidad:'m2',    categoria:'Materiales',         nota:''},
+  {nombre:'Cambio de lamina zinc',      precio:6500,   unidad:'m2',    categoria:'Materiales',         nota:''},
+  {nombre:'Demolicion liviana',         precio:5500,   unidad:'m2',    categoria:'Materiales',         nota:''},
+  {nombre:'Hueco puerta o ventana',     precio:50000,  unidad:'unidad',categoria:'Puertas y ventanas', nota:''},
+  {nombre:'Porton pequeno soldadura',   precio:110000, unidad:'unidad',categoria:'Puertas y ventanas', nota:''},
+  {nombre:'Reja ventana soldadura',     precio:35000,  unidad:'unidad',categoria:'Puertas y ventanas', nota:''},
+  {nombre:'Reparacion soldadura',       precio:22000,  unidad:'global',categoria:'Otro',               nota:'servicio'}
+];
+
+function cargarPreciosDefault() {
+  if (getPrecios().length === 0) {
+    var ts = Date.now();
+    setPrecios(PRECIOS_DEFAULT.map(function(p, i) {
+      return {id:(ts+i).toString(36), nombre:p.nombre, precio:p.precio,
+              unidad:p.unidad, categoria:p.categoria, nota:p.nota};
+    }));
+  }
+}
+
+function agregarPrecio() {
+  var nombre = document.getElementById('pNombre').value.trim();
+  var precio = parseFloat(document.getElementById('pPrecio').value);
+  var unidad = document.getElementById('pUnidad').value;
+  var categoria = document.getElementById('pCategoria').value;
+  var nota = document.getElementById('pNota').value.trim();
+  if (!nombre || !precio) { alert('Ingrese nombre y precio.'); return; }
+  var arr = getPrecios();
+  arr.push({id: Date.now().toString(36), nombre:nombre, precio:precio,
+            unidad:unidad, categoria:categoria, nota:nota});
+  setPrecios(arr);
+  document.getElementById('pNombre').value = '';
+  document.getElementById('pPrecio').value = '';
+  document.getElementById('pNota').value = '';
+  renderPrecios();
+  alert('Precio guardado.');
+}
+
+function editarPrecio(id) {
+  var arr = getPrecios();
+  var p = null;
+  for (var i=0;i<arr.length;i++) { if (arr[i].id===id) { p=arr[i]; break; } }
+  if (!p) return;
+  document.getElementById('pNombre').value = p.nombre;
+  document.getElementById('pPrecio').value = p.precio;
+  document.getElementById('pNota').value = p.nota || '';
+  var sel1 = document.getElementById('pUnidad');
+  for (var j=0;j<sel1.options.length;j++) { if (sel1.options[j].value===p.unidad) { sel1.selectedIndex=j; break; } }
+  var sel2 = document.getElementById('pCategoria');
+  for (var k=0;k<sel2.options.length;k++) { if (sel2.options[k].value===p.categoria) { sel2.selectedIndex=k; break; } }
+  setPrecios(arr.filter(function(x){return x.id!==id;}));
+  renderPrecios();
+  document.getElementById('pNombre').scrollIntoView({behavior:'smooth',block:'center'});
+  document.getElementById('pNombre').focus();
+}
+
+function eliminarPrecio(id) {
+  if (!confirm('Eliminar este precio?')) return;
+  setPrecios(getPrecios().filter(function(x){return x.id!==id;}));
+  renderPrecios();
+}
+
+function renderPrecios() {
+  var list = document.getElementById('precioList');
+  if (!list) return;
+  var arr = getPrecios();
+  if (!arr.length) {
+    list.innerHTML = '<p style="text-align:center;padding:20px;color:#888">Sin precios. Agregue el primero abajo.</p>';
+    return;
+  }
+  var grupos = {};
+  arr.forEach(function(p){if(!grupos[p.categoria])grupos[p.categoria]=[];grupos[p.categoria].push(p);});
+  list.innerHTML = '';
+  Object.keys(grupos).forEach(function(cat) {
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'margin-bottom:10px';
+    var hdr = document.createElement('div');
+    hdr.style.cssText = 'font-size:11px;font-weight:700;color:#888;margin:10px 0 4px;text-transform:uppercase;letter-spacing:1px;padding-bottom:4px;border-bottom:1px solid #333';
+    hdr.textContent = cat;
+    wrap.appendChild(hdr);
+    grupos[cat].forEach(function(p) {
+      var row = document.createElement('div');
+      row.style.cssText = 'display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #2a2a2a';
+      var info = document.createElement('div');
+      var nm = document.createElement('div');
+      nm.style.cssText = 'font-size:14px;font-weight:600;color:#e0e0e0';
+      nm.textContent = p.nombre;
+      info.appendChild(nm);
+      if (p.nota) { var nt=document.createElement('div'); nt.style.cssText='font-size:11px;color:#888'; nt.textContent=p.nota; info.appendChild(nt); }
+      row.appendChild(info);
+      var pr = document.createElement('div');
+      pr.style.cssText = 'text-align:right';
+      var mn = document.createElement('div');
+      mn.style.cssText = 'font-size:14px;font-weight:700;color:#e05555;white-space:nowrap';
+      mn.textContent = '₡' + Number(p.precio).toLocaleString('es-CR');
+      var un = document.createElement('div');
+      un.style.cssText = 'font-size:11px;color:#888';
+      un.textContent = p.unidad;
+      pr.appendChild(mn); pr.appendChild(un);
+      row.appendChild(pr);
+      var eb = document.createElement('button');
+      eb.style.cssText = 'background:none;border:none;cursor:pointer;font-size:16px;padding:4px 6px;border-radius:8px';
+      eb.innerHTML = '&#9999;&#65039;';
+      eb.title = 'Editar';
+      eb.onclick = (function(pid){return function(){editarPrecio(pid);};})(p.id);
+      row.appendChild(eb);
+      var db = document.createElement('button');
+      db.style.cssText = 'background:none;border:none;cursor:pointer;font-size:16px;padding:4px 6px;border-radius:8px';
+      db.innerHTML = '&#128465;&#65039;';
+      db.title = 'Eliminar';
+      db.onclick = (function(pid){return function(){eliminarPrecio(pid);};})(p.id);
+      row.appendChild(db);
+      wrap.appendChild(row);
+    });
+    list.appendChild(wrap);
+  });
+}
+
+function exportarPrecios() {
+  var arr = getPrecios();
+  if (!arr.length) { alert('No hay precios.'); return; }
+  var txt = 'LISTA DE PRECIOS - 3Rs Remodelaciones\n================================\n\n';
+  var grupos = {};
+  arr.forEach(function(p){if(!grupos[p.categoria])grupos[p.categoria]=[];grupos[p.categoria].push(p);});
+  Object.keys(grupos).forEach(function(cat){
+    txt += cat.toUpperCase() + '\n';
+    grupos[cat].forEach(function(p){ txt += '  - ' + p.nombre + ': ' + Number(p.precio).toLocaleString('es-CR') + ' / ' + p.unidad + '\n'; });
+    txt += '\n';
+  });
+  navigator.clipboard.writeText(txt).then(function(){ alert('Lista copiada.'); });
+}
+
+function buildPreciosTexto() {
+  var arr = getPrecios();
+  if (!arr.length) return '';
+  var txt = '\n\n=== PRECIOS DE ROMMEL (USAR ESTOS AL COTIZAR) ===\n';
+  txt += 'Usa estos precios exactos. Si el trabajo no esta en la lista, estima.\n\n';
+  arr.forEach(function(p){
+    txt += '- ' + p.nombre + ': ' + Number(p.precio).toLocaleString('es-CR') + ' colones por ' + p.unidad;
+    if (p.nota) txt += ' (' + p.nota + ')';
+    txt += '\n';
+  });
+  txt += '=== FIN LISTA PRECIOS ===';
+  return txt;
+}
+
+// Init prices
+cargarPreciosDefault();
+renderPrecios();
+
+/* ═══════════════════════════════════════════
+   FINANZAS — libro de caja por proyecto
+════════════════════════════════════════════ */
+
+var finProyectoActivo = null;
+
+function getProyectos() {
+  try { return JSON.parse(localStorage.getItem('rp_finanzas') || '{}'); } catch(e) { return {}; }
+}
+
+function saveProyectos(data) {
+  localStorage.setItem('rp_finanzas', JSON.stringify(data));
+}
+
+function filtrarProyectos(q) {
+  var proyectos = getProyectos();
+  var nombres = Object.keys(proyectos);
+  var sugerencias = document.getElementById('finSugerencias');
+  if (!q || nombres.length === 0) { sugerencias.style.display = 'none'; return; }
+  var filtrados = nombres.filter(function(n) { return n.toLowerCase().includes(q.toLowerCase()); });
+  if (filtrados.length === 0) { sugerencias.style.display = 'none'; return; }
+  sugerencias.innerHTML = filtrados.map(function(n) {
+    return '<div onclick="document.getElementById(\'finProyecto\').value=\'' + n.replace(/'/g,"\\'") + '\';document.getElementById(\'finSugerencias\').style.display=\'none\';" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid #2a2a2a;color:#ddd;font-size:14px">' + n + '</div>';
+  }).join('');
+  sugerencias.style.display = 'block';
+}
+
+function seleccionarProyecto() {
+  var nombre = document.getElementById('finProyecto').value.trim();
+  if (!nombre) { alert('Escriba el nombre del proyecto.'); return; }
+  document.getElementById('finSugerencias').style.display = 'none';
+  var proyectos = getProyectos();
+  if (!proyectos[nombre]) {
+    proyectos[nombre] = { movimientos: [] };
+    saveProyectos(proyectos);
+  }
+  finProyectoActivo = nombre;
+  renderFinanzas();
+}
+
+function agregarMovimiento() {
+  if (!finProyectoActivo) { alert('Seleccione un proyecto primero.'); return; }
+  var tipo  = document.getElementById('finTipo').value;
+  var monto = parseFloat(document.getElementById('finMonto').value);
+  var nota  = document.getElementById('finNota').value.trim();
+  var fecha = document.getElementById('finFecha').value;
+  if (!monto || isNaN(monto) || monto <= 0) { alert('Ingrese un monto válido.'); return; }
+  if (!fecha) fecha = new Date().toISOString().split('T')[0];
+
+  var proyectos = getProyectos();
+  proyectos[finProyectoActivo].movimientos.push({ tipo: tipo, monto: monto, nota: nota, fecha: fecha, id: Date.now() });
+  saveProyectos(proyectos);
+
+  document.getElementById('finMonto').value = '';
+  document.getElementById('finNota').value  = '';
+  renderFinanzas();
+}
+
+function eliminarMovimiento(id) {
+  if (!confirm('¿Eliminar este movimiento?')) return;
+  var proyectos = getProyectos();
+  proyectos[finProyectoActivo].movimientos = proyectos[finProyectoActivo].movimientos.filter(function(m){ return m.id !== id; });
+  saveProyectos(proyectos);
+  renderFinanzas();
+}
+
+function eliminarProyecto() {
+  var proyectos = getProyectos();
+  delete proyectos[finProyectoActivo];
+  saveProyectos(proyectos);
+  finProyectoActivo = null;
+  document.getElementById('finProyecto').value = '';
+  document.getElementById('finDashboard').style.display = 'none';
+}
+
+function formatColones(n) {
+  return '₡' + Math.round(n).toLocaleString('es-CR');
+}
+
+var TIPO_INFO = {
+  cobro:      { label: 'Pago recibido',    icon: '💰', esIngreso: true,  esPendiente: false },
+  anticipo:   { label: 'Anticipo recibido',icon: '🤝', esIngreso: true,  esPendiente: false },
+  pendiente:  { label: 'Por cobrar',       icon: '📋', esIngreso: false, esPendiente: true  },
+  material:   { label: 'Gasto materiales', icon: '🧱', esIngreso: false, esPendiente: false },
+  planilla:   { label: 'Pago planilla',    icon: '👷', esIngreso: false, esPendiente: false },
+  transporte: { label: 'Transporte',       icon: '🚗', esIngreso: false, esPendiente: false },
+  otro_gasto: { label: 'Otro gasto',       icon: '📦', esIngreso: false, esPendiente: false }
+};
+
+function renderFinanzas() {
+  // Poner fecha de hoy por defecto
+  if (!document.getElementById('finFecha').value) {
+    document.getElementById('finFecha').value = new Date().toISOString().split('T')[0];
+  }
+
+  if (!finProyectoActivo) {
+    document.getElementById('finDashboard').style.display = 'none';
+    return;
+  }
+
+  var proyectos = getProyectos();
+  var proyecto  = proyectos[finProyectoActivo];
+  if (!proyecto) { finProyectoActivo = null; document.getElementById('finDashboard').style.display = 'none'; return; }
+
+  document.getElementById('finDashboard').style.display  = 'block';
+  document.getElementById('finNombreActivo').textContent = finProyectoActivo;
+
+  var movs = proyecto.movimientos || [];
+  var totalCobrado = 0, totalGastado = 0, totalPendiente = 0;
+
+  movs.forEach(function(m) {
+    var info = TIPO_INFO[m.tipo] || {};
+    if (info.esIngreso)   totalCobrado   += m.monto;
+    else if (info.esPendiente) totalPendiente += m.monto;
+    else                  totalGastado   += m.monto;
+  });
+
+  var ganancia = totalCobrado - totalGastado;
+
+  document.getElementById('finTotalCobrado').textContent = formatColones(totalCobrado);
+  document.getElementById('finTotalGastado').textContent = formatColones(totalGastado);
+  document.getElementById('finGanancia').textContent     = formatColones(ganancia);
+  document.getElementById('finGanancia').style.color     = ganancia >= 0 ? '#4ade80' : '#f87171';
+  document.getElementById('finPendiente').textContent    = formatColones(totalPendiente);
+
+  // Historial (más reciente primero)
+  var historial = document.getElementById('finHistorial');
+  if (movs.length === 0) {
+    historial.innerHTML = '<p class="small" style="text-align:center;color:#666">Sin movimientos aún.</p>';
+    return;
+  }
+
+  var sorted = movs.slice().sort(function(a,b){ return (b.fecha||'').localeCompare(a.fecha||'') || b.id - a.id; });
+  historial.innerHTML = sorted.map(function(m) {
+    var info   = TIPO_INFO[m.tipo] || { label: m.tipo, icon: '•', esIngreso: false, esPendiente: false };
+    var color  = info.esIngreso ? '#4ade80' : info.esPendiente ? '#60a5fa' : '#f87171';
+    var signo  = info.esIngreso ? '+' : info.esPendiente ? '' : '-';
+    var fecha  = m.fecha ? m.fecha.split('-').reverse().join('/') : '';
+    return '<div style="display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid #2a2a2a">' +
+      '<span style="font-size:18px">' + info.icon + '</span>' +
+      '<div><div style="font-size:13px;font-weight:600;color:#ccc">' + info.label + '</div>' +
+        (m.nota ? '<div style="font-size:11px;color:#777">' + m.nota + '</div>' : '') +
+        (fecha   ? '<div style="font-size:11px;color:#555">' + fecha + '</div>'   : '') +
+      '</div>' +
+      '<div style="font-size:15px;font-weight:700;color:' + color + '">' + signo + formatColones(m.monto) + '</div>' +
+      '<button onclick="eliminarMovimiento(' + m.id + ')" style="background:none;border:none;color:#555;font-size:16px;cursor:pointer;padding:4px">✕</button>' +
+    '</div>';
+  }).join('');
+}
+
+</script>
+
+<!-- PRINT STYLES: only show PDF content when printing -->
+<style media="print">
+  body > *:not(#pdfPreview) { display: none !important; }
+  #pdfPreview { display: block !important; position: static !important; background: none !important; }
+  #pdfPreview > div { max-height: none !important; border-radius: 0 !important; box-shadow: none !important; }
+  .pdf-actions { display: none !important; }
+  #pdfContent { padding: 0 !important; }
+</style>
+
+</body>
+</html>

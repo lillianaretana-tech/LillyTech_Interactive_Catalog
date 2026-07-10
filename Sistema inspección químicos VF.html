@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Inspección Química</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+        
+        .container { max-width: 1100px; margin: 0 auto; }
+        
+        .header {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            animation: slideDown 0.5s ease-out;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header p { color: #666; font-size: 16px; }
+        .header .stats { color: #667eea; font-weight: bold; margin-top: 15px; font-size: 18px; }
+        
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .hidden { display: none !important; }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        button:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
+        
+        .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .btn-success { background: linear-gradient(135deg, #48bb78, #38a169); color: white; }
+        .btn-danger { background: linear-gradient(135deg, #f56565, #e53e3e); color: white; }
+        .btn-info { background: linear-gradient(135deg, #4299e1, #3182ce); color: white; }
+        .btn-warning { background: linear-gradient(135deg, #ed8936, #dd6b20); color: white; }
+        .btn-purple { background: linear-gradient(135deg, #9f7aea, #805ad5); color: white; }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        h2 { color: #333; margin: 20px 0; font-size: 24px; }
+        h3 { color: #333; margin: 15px 0; font-size: 18px; }
+        
+        .button-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        .button-group button { flex: 1; min-width: 120px; }
+        
+        .req-item {
+            padding: 12px;
+            margin: 8px 0;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .req-item:hover { background: #f0f4ff; }
+        
+        .req-buttons { display: flex; gap: 6px; }
+        
+        .req-btn {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .req-btn.pass { background: #48bb78; color: white; border-color: #48bb78; }
+        .req-btn.fail { background: #f56565; color: white; border-color: #f56565; }
+        .req-btn.na { background: #a0aec0; color: white; border-color: #a0aec0; }
+        
+        .requirements {
+            max-height: 450px;
+            overflow-y: auto;
+            border: 2px solid #e0e0e0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            background: #fafbfc;
+        }
+        
+        .requirements::-webkit-scrollbar { width: 6px; }
+        .requirements::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .requirements::-webkit-scrollbar-thumb { background: #667eea; border-radius: 10px; }
+        
+        .inspection-item {
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 5px solid #667eea;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+        
+        .inspection-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        
+        .inspection-item h3 { color: #333; margin-bottom: 8px; }
+        .inspection-item p { color: #666; font-size: 14px; margin: 4px 0; }
+        
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            margin: 5px 5px 5px 0;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-project { background: linear-gradient(135deg, #bee3f8, #90cdf4); color: #2c5282; }
+        .badge-pass { background: linear-gradient(135deg, #c6f6d5, #9ae6b4); color: #22543d; }
+        .badge-fail { background: linear-gradient(135deg, #fed7d7, #fc8181); color: #742a2a; }
+        .badge-warning { background: linear-gradient(135deg, #feebc8, #fbd38d); color: #7c2d12; }
+        
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+        
+        .actions button { min-width: 70px; padding: 8px 16px; font-size: 12px; }
+        
+        .view-details {
+            background: linear-gradient(135deg, #f0f4ff, #f8f9fa);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+        
+        .view-details p { margin: 10px 0; color: #555; }
+        .view-details strong { color: #333; }
+    </style>
+    <!-- URL del Web App de Google (reemplazar si cambias despliegue) -->
+    <script>
+      const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwmgV2bugONOfuwIEhbZ1Gvn1CK4vRa6UnT6G40kh04-KaNW4B0LSzhO4WiJxtCA8GJ/exec';
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Sistema de Inspección Química</h1>
+            <p>Verificación de Etiquetado - RTCA 71.03.38:07</p>
+            <div class="stats" id="stats">0 inspecciones guardadas</div>
+        </div>
+
+        <!-- VISTA LISTA -->
+        <div id="listView" class="card">
+            <div class="button-group">
+                <button class="btn-primary" onclick="showNewInspection()">➕ Nueva Inspección</button>
+            </div>
+            <div id="inspectionsList"></div>
+        </div>
+
+        <!-- VISTA EDITAR -->
+        <div id="editView" class="hidden card">
+            <h2>✏️ Nueva Inspección</h2>
+            
+            <input type="text" id="project" placeholder="📁 Proyecto *" required>
+            <input type="text" id="product" placeholder="🧴 Producto *" required>
+            <input type="text" id="inspector" placeholder="👤 Inspector *" required>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <input type="date" id="date" required>
+                <input type="time" id="time" required>
+            </div>
+            
+            <input type="text" id="signature" placeholder="✍️ Firma">
+            <textarea id="observations" placeholder="📝 Observaciones" rows="3"></textarea>
+            
+            <h3>Requisitos (marca X/O/NA)</h3>
+            <div id="requirementsEdit" class="requirements"></div>
+            
+            <div class="button-group">
+                <button class="btn-success" onclick="saveInspection()">💾 Guardar</button>
+                <button class="btn-danger" onclick="showListView()">❌ Cancelar</button>
+            </div>
+        </div>
+
+        <!-- VISTA DETALLES -->
+        <div id="viewView" class="hidden card">
+            <h2 id="viewTitle"></h2>
+            <div id="viewDetails" class="view-details"></div>
+            <h3>Requisitos Verificados</h3>
+            <div id="viewRequirements" class="requirements"></div>
+            <div class="button-group">
+                <button class="btn-warning" onclick="exportarCSV()">📊 Descargar CSV</button>
+                <button class="btn-info" onclick="copyToEmail()">✉️ Copiar Email</button>
+                <button class="btn-success" onclick="shareWhatsApp()">💬 WhatsApp</button>
+                <button class="btn-danger" onclick="showListView()">← Volver</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const requirements = [
+            { id: '6.1', label: 'Nombre comercial del producto' },
+            { id: '6.2', label: 'Número de registro sanitario' },
+            { id: '6.3', label: 'Tipo de producto' },
+            { id: '6.4', label: 'Nombre y país del titular' },
+            { id: '6.5', label: 'Nombre del importador' },
+            { id: '6.6', label: 'Ingredientes peligrosos' },
+            { id: '6.7', label: 'Contenido neto' },
+            { id: '6.8', label: 'Instrucciones de uso' },
+            { id: '6.9', label: 'Advertencias y precauciones' },
+            { id: '6.10', label: 'Riesgos para la salud' },
+            { id: '6.11', label: 'Procedimientos de emergencia' },
+            { id: '6.12', label: 'Antídoto e indicaciones' },
+            { id: '6.13', label: 'Mantener fuera del alcance' },
+            { id: '6.14', label: 'Teléfono de intoxicaciones' },
+            { id: '6.15', label: 'Simbología de peligrosidad' },
+            { id: '6.16', label: 'Número de lote' },
+        ];
+
+        let inspections = [];
+        let currentInspection = null;
+
+        function cargarDatos() {
+            const saved = localStorage.getItem('inspeccionesQuimicas');
+            if (saved) inspections = JSON.parse(saved);
+            renderInspections();
+        }
+
+        function guardarDatos() {
+            localStorage.setItem('inspeccionesQuimicas', JSON.stringify(inspections));
+        }
+
+        function renderInspections() {
+            const list = document.getElementById('inspectionsList');
+            if (!inspections.length) {
+                list.innerHTML = '<p style="color: #999; text-align: center; padding: 40px; font-size: 16px;">📭 Sin inspecciones. ¡Crea una nueva!</p>';
+                updateStats();
+                return;
+            }
+            
+            list.innerHTML = inspections.map(i => {
+                const compliant = Object.values(i.checks).filter(v => v === 'X').length;
+                const pct = ((compliant / requirements.length) * 100).toFixed(1);
+                const badgeClass = pct === '100' ? 'badge-pass' : pct >= '80' ? 'badge-warning' : 'badge-fail';
+                
+                return `
+                    <div class="inspection-item">
+                        <h3>${i.productName}</h3>
+                        <p><strong>📁 Proyecto:</strong> ${i.project}</p>
+                        <p><strong>👤 Inspector:</strong> ${i.inspector} | <strong>📅 Fecha:</strong> ${i.date}</p>
+                        <div>
+                            <span class="badge badge-project">${i.project}</span>
+                            <span class="badge ${badgeClass}">${pct}% Cumplimiento</span>
+                        </div>
+                        <div class="actions">
+                            <button class="btn-info" onclick="viewInspection(${i.id})">👁️ Ver</button>
+                            <button class="btn-danger" onclick="deleteInspection(${i.id})">🗑️ Eliminar</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('stats').textContent = `${inspections.length} inspecciones guardadas`;
+        }
+
+        function showNewInspection() {
+            currentInspection = {
+                id: Date.now(),
+                project: '', productName: '', inspector: '',
+                date: new Date().toISOString().split('T')[0],
+                time: new Date().toTimeString().slice(0, 5),
+                signature: '', observations: '', checks: {}
+            };
+            requirements.forEach(r => currentInspection.checks[r.id] = null);
+            renderEditView();
+            document.getElementById('listView').classList.add('hidden');
+            document.getElementById('editView').classList.remove('hidden');
+        }
+
+        function renderEditView() {
+            document.getElementById('requirementsEdit').innerHTML = requirements.map(r => `
+                <div class="req-item">
+                    <span><strong>${r.id}:</strong> ${r.label}</span>
+                    <div class="req-buttons">
+                        <button class="req-btn ${currentInspection.checks[r.id] === 'X' ? 'pass' : ''}" onclick="setCheck('${r.id}', 'X')">X</button>
+                        <button class="req-btn ${currentInspection.checks[r.id] === 'O' ? 'fail' : ''}" onclick="setCheck('${r.id}', 'O')">O</button>
+                        <button class="req-btn ${currentInspection.checks[r.id] === 'NA' ? 'na' : ''}" onclick="setCheck('${r.id}', 'NA')">NA</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function setCheck(id, value) {
+            currentInspection.checks[id] = value;
+            renderEditView();
+        }
+
+        function saveInspection() {
+            currentInspection.project = document.getElementById('project').value;
+            currentInspection.productName = document.getElementById('product').value;
+            currentInspection.inspector = document.getElementById('inspector').value;
+            currentInspection.date = document.getElementById('date').value;
+            currentInspection.time = document.getElementById('time').value;
+            currentInspection.signature = document.getElementById('signature').value;
+            currentInspection.observations = document.getElementById('observations').value;
+
+            if (!currentInspection.project || !currentInspection.productName || !currentInspection.inspector) {
+                alert('⚠️ Completa los campos obligatorios');
+                return;
+            }
+            
+            inspections.push(currentInspection);
+            guardarDatos();
+            // --- Envío al Google Sheet ---
+            sendToSheet(currentInspection);
+
+            alert('✅ Inspección guardada correctamente');
+            showListView();
+        }
+
+        function viewInspection(id) {
+            currentInspection = inspections.find(i => i.id == id);
+            const compliant = Object.values(currentInspection.checks).filter(v => v === 'X').length;
+            const noncompliant = Object.values(currentInspection.checks).filter(v => v === 'O').length;
+            
+            document.getElementById('viewTitle').textContent = `👁️ ${currentInspection.productName}`;
+            document.getElementById('viewDetails').innerHTML = `
+                <p><strong>📁 Proyecto:</strong> ${currentInspection.project}</p>
+                <p><strong>👤 Inspector:</strong> ${currentInspection.inspector}</p>
+                <p><strong>📅 Fecha:</strong> ${currentInspection.date} ${currentInspection.time}</p>
+                <p><strong>✍️ Firma:</strong> ${currentInspection.signature || 'N/A'}</p>
+                <p style="font-size: 20px; color: #667eea; margin-top: 15px;"><strong>📊 CUMPLIMIENTO: ${((compliant / requirements.length) * 100).toFixed(1)}%</strong></p>
+                <p>✅ Cumplidos: ${compliant} | ❌ No Cumplidos: ${noncompliant} | ⊘ No Aplica: ${Object.values(currentInspection.checks).filter(v => v === 'NA').length}</p>
+                ${currentInspection.observations ? `<p><strong>📝 Observaciones:</strong> ${currentInspection.observations}</p>` : ''}
+            `;
+            
+            document.getElementById('viewRequirements').innerHTML = requirements.map(r => {
+                const status = currentInspection.checks[r.id];
+                let icon = '?', color = 'gray';
+                if (status === 'X') { icon = '✅'; color = '#48bb78'; }
+                else if (status === 'O') { icon = '❌'; color = '#f56565'; }
+                else if (status === 'NA') { icon = '⊘'; color = '#a0aec0'; }
+                return `<div class="req-item"><span><strong>${r.id}:</strong> ${r.label}</span><span style="color: ${color}; font-weight: bold; font-size: 18px;">${icon}</span></div>`;
+            }).join('');
+            
+            document.getElementById('listView').classList.add('hidden');
+            document.getElementById('viewView').classList.remove('hidden');
+        }
+
+        function exportarCSV() {
+            const compliant = Object.values(currentInspection.checks).filter(v => v === 'X').length;
+            let csv = 'REPORTE DE INSPECCIÓN QUÍMICA\n\n';
+            csv += 'INFORMACIÓN GENERAL\n';
+            csv += `Proyecto,${currentInspection.project}\n`;
+            csv += `Producto,${currentInspection.productName}\n`;
+            csv += `Inspector,${currentInspection.inspector}\n`;
+            csv += `Fecha,${currentInspection.date}\n`;
+            csv += `Hora,${currentInspection.time}\n`;
+            csv += `Firma,${currentInspection.signature}\n`;
+            csv += `Observaciones,${currentInspection.observations}\n\n`;
+            
+            csv += 'RESULTADOS\n';
+            csv += `Cumplidos,${compliant}\n`;
+            csv += `No Cumplidos,${Object.values(currentInspection.checks).filter(v => v === 'O').length}\n`;
+            csv += `No Aplica,${Object.values(currentInspection.checks).filter(v => v === 'NA').length}\n`;
+            csv += `Porcentaje,${((compliant / requirements.length) * 100).toFixed(1)}%\n\n`;
+            
+            csv += 'DETALLE POR REQUISITO\n';
+            csv += 'Requisito,Descripción,Estado\n';
+            requirements.forEach(r => {
+                const status = currentInspection.checks[r.id];
+                const statusText = status === 'X' ? 'CUMPLE' : status === 'O' ? 'NO CUMPLE' : 'N/A';
+                csv += `"${r.id}","${r.label}","${statusText}"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `inspeccion_${currentInspection.productName}_${currentInspection.date}.csv`;
+            a.click();
+        }
+
+        function copyToEmail() {
+            let txt = `REPORTE DE INSPECCIÓN QUÍMICA\n\nPRODUCTO: ${currentInspection.productName}\nPROYECTO: ${currentInspection.project}\nINSPECTOR: ${currentInspection.inspector}\nFECHA: ${currentInspection.date}\n\nDETALLE DE REQUISITOS:\n\n`;
+            requirements.forEach(r => {
+                const status = currentInspection.checks[r.id];
+                const statusText = status === 'X' ? 'CUMPLE' : status === 'O' ? 'NO CUMPLE' : 'N/A';
+                txt += `${r.id} - ${r.label}: ${statusText}\n`;
+            });
+            
+            navigator.clipboard.writeText(txt).then(() => {
+                alert('✅ Reporte copiado. Pega en tu email');
+            });
+        }
+
+        function shareWhatsApp() {
+            const compliant = Object.values(currentInspection.checks).filter(v => v === 'X').length;
+            const msg = `📋 INSPECCIÓN QUÍMICA\n\n🧴 Producto: ${currentInspection.productName}\n📁 Proyecto: ${currentInspection.project}\n👤 Inspector: ${currentInspection.inspector}\n📅 Fecha: ${currentInspection.date}\n\n📊 Cumplimiento: ${((compliant / requirements.length) * 100).toFixed(1)}%`;
+            window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+        }
+
+        function deleteInspection(id) {
+            if (confirm('¿Estás seguro de eliminar esta inspección?')) {
+                inspections = inspections.filter(i => i.id != id);
+                guardarDatos();
+                renderInspections();
+            }
+        }
+
+        function showListView() {
+            document.getElementById('listView').classList.remove('hidden');
+            document.getElementById('editView').classList.add('hidden');
+            document.getElementById('viewView').classList.add('hidden');
+            renderInspections();
+        }
+
+        cargarDatos();
+    </script>
+
+    <!-- Sender a Google Sheets -->
+    <script>
+    async function sendToSheet(inspection) {
+      try {
+        if (typeof WEBAPP_URL === 'undefined' || !WEBAPP_URL) {
+          console.warn('WEBAPP_URL no está definida.');
+          return;
+        }
+        const fd = new FormData();
+        fd.append('project',       inspection.project || '');
+        fd.append('product',       inspection.productName || '');
+        fd.append('inspector',     inspection.inspector || '');
+        fd.append('date',          inspection.date || '');
+        fd.append('time',          inspection.time || '');
+        fd.append('signature',     inspection.signature || '');
+        fd.append('observations',  inspection.observations || '');
+        fd.append('id',            String(inspection.id || ''));
+        try {
+          fd.append('checks_json', JSON.stringify(inspection.checks || {}));
+        } catch (e) {
+          fd.append('checks_json', '{}');
+        }
+        await fetch(WEBAPP_URL, { method: 'POST', body: fd });
+        console.log('✔️ Enviado al Sheet');
+      } catch (err) {
+        console.warn('⚠️ Error enviando al Sheet:', err);
+      }
+    }
+    </script>
+</body>
+</html>

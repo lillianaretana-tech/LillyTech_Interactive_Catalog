@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Presupuesto - Clasificador Automático</title>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; padding: 0; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const BudgetClassifier = () => {
+            const [data, setData] = useState([]);
+            const [summary, setSummary] = useState(null);
+            const [showKeywords, setShowKeywords] = useState(false);
+            const [keywords, setKeywords] = useState({
+                'Químico': ['clean', 'jabon', 'cleaner', 'peroxy', 'nabc', 'desinfectante', 'detergente', 'sparc', 'tribase'],
+                'EPP': ['guante', 'lente', 'tapón', 'tapon', 'protec', 'seguridad', 'casco', 'chaleco'],
+                'Uniforme': ['pantalon', 'camisa', 'polo', 'uniforme', 'camiseta', 'zapato', 'bota'],
+                'Suministro': []
+            });
+            const [newKeyword, setNewKeyword] = useState('');
+            const [selectedCategory, setSelectedCategory] = useState('Químico');
+            const [newCategoryName, setNewCategoryName] = useState('');
+            const [categoryColors, setCategoryColors] = useState({
+                'Químico': { bg: 'bg-purple-100', text: 'text-purple-800', border: 'border-purple-600' },
+                'EPP': { bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-600' },
+                'Uniforme': { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-600' },
+                'Suministro': { bg: 'bg-gray-100', text: 'text-gray-800', border: 'border-gray-600' }
+            });
+
+            // Cargar configuración desde localStorage
+            useEffect(() => {
+                const savedKeywords = localStorage.getItem('budgetKeywords');
+                const savedColors = localStorage.getItem('budgetColors');
+                
+                if (savedKeywords) {
+                    setKeywords(JSON.parse(savedKeywords));
+                }
+                if (savedColors) {
+                    setCategoryColors(JSON.parse(savedColors));
+                }
+            }, []);
+
+            // Guardar configuración en localStorage
+            useEffect(() => {
+                localStorage.setItem('budgetKeywords', JSON.stringify(keywords));
+                localStorage.setItem('budgetColors', JSON.stringify(categoryColors));
+            }, [keywords, categoryColors]);
+
+            const categorizeItem = (descripcion) => {
+                const desc = descripcion?.toLowerCase() || '';
+                
+                // Buscar en cada categoría (excepto Suministro que es por defecto)
+                for (const [categoria, palabras] of Object.entries(keywords)) {
+                    if (categoria === 'Suministro') continue;
+                    
+                    for (const palabra of palabras) {
+                        if (desc.includes(palabra.toLowerCase())) {
+                            return categoria;
+                        }
+                    }
+                }
+                
+                return 'Suministro';
+            };
+
+            const processData = (text) => {
+                const lines = text.trim().split('\n');
+                const headers = lines[0].split('\t');
+                
+                const processed = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const values = lines[i].split('\t');
+                    const row = {};
+                    headers.forEach((header, index) => {
+                        row[header.trim()] = values[index]?.trim() || '';
+                    });
+                    
+                    const categoria = categorizeItem(row['Descripción']);
+                    const importe = parseFloat(row['Importe Total Local']) || 0;
+                    
+                    processed.push({
+                        orden: row['Orden Compra'],
+                        descripcion: row['Descripción'],
+                        proveedor: row['Nombre Proveedor'],
+                        importe: importe,
+                        categoria: categoria
+                    });
+                }
+                
+                setData(processed);
+                calculateSummary(processed);
+            };
+
+            const calculateSummary = (items) => {
+                // Inicializar totales con todas las categorías existentes
+                const totals = {};
+                Object.keys(keywords).forEach(cat => {
+                    totals[cat] = 0;
+                });
+                
+                items.forEach(item => {
+                    if (totals[item.categoria] !== undefined) {
+                        totals[item.categoria] += item.importe;
+                    } else {
+                        totals[item.categoria] = item.importe;
+                    }
+                });
+                
+                const total = Object.values(totals).reduce((sum, val) => sum + val, 0);
+                
+                const percentages = {};
+                Object.keys(totals).forEach(cat => {
+                    percentages[cat] = total > 0 ? (totals[cat] / total * 100).toFixed(1) : '0.0';
+                });
+                
+                setSummary({ totals, total, percentages });
+            };
+
+            const handlePaste = (e) => {
+                const text = e.clipboardData.getData('text');
+                processData(text);
+            };
+
+            const addCategory = () => {
+                if (!newCategoryName.trim()) return;
+                if (keywords[newCategoryName]) {
+                    alert('Esta categoría ya existe');
+                    return;
+                }
+                
+                const colors = [
+                    { bg: 'bg-pink-100', text: 'text-pink-800', border: 'border-pink-600' },
+                    { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-600' },
+                    { bg: 'bg-orange-100', text: 'text-orange-800', border: 'border-orange-600' },
+                    { bg: 'bg-teal-100', text: 'text-teal-800', border: 'border-teal-600' },
+                    { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-600' },
+                    { bg: 'bg-indigo-100', text: 'text-indigo-800', border: 'border-indigo-600' },
+                ];
+                
+                const randomColor = colors[Object.keys(keywords).length % colors.length];
+                
+                setKeywords({...keywords, [newCategoryName]: []});
+                setCategoryColors({...categoryColors, [newCategoryName]: randomColor});
+                setNewCategoryName('');
+                setSelectedCategory(newCategoryName);
+            };
+
+            const removeCategory = (categoria) => {
+                if (['Químico', 'EPP', 'Uniforme', 'Suministro'].includes(categoria)) {
+                    alert('No puedes eliminar las categorías predeterminadas');
+                    return;
+                }
+                
+                if (!confirm(`¿Eliminar la categoría "${categoria}"?`)) return;
+                
+                const updatedKeywords = {...keywords};
+                delete updatedKeywords[categoria];
+                setKeywords(updatedKeywords);
+                
+                const updatedColors = {...categoryColors};
+                delete updatedColors[categoria];
+                setCategoryColors(updatedColors);
+                
+                // Reclasificar datos existentes
+                if (data.length > 0) {
+                    const reclassified = data.map(item => ({
+                        ...item,
+                        categoria: item.categoria === categoria ? 'Suministro' : item.categoria
+                    }));
+                    setData(reclassified);
+                    calculateSummary(reclassified);
+                }
+                
+                setSelectedCategory('Químico');
+            };
+
+            const addKeyword = () => {
+                if (!newKeyword.trim()) return;
+                
+                const updatedKeywords = {...keywords};
+                if (!updatedKeywords[selectedCategory].includes(newKeyword.toLowerCase())) {
+                    updatedKeywords[selectedCategory] = [...updatedKeywords[selectedCategory], newKeyword.toLowerCase()];
+                    setKeywords(updatedKeywords);
+                    setNewKeyword('');
+                    
+                    if (data.length > 0) {
+                        const reclassified = data.map(item => ({
+                            ...item,
+                            categoria: categorizeItem(item.descripcion)
+                        }));
+                        setData(reclassified);
+                        calculateSummary(reclassified);
+                    }
+                }
+            };
+
+            const removeKeyword = (categoria, palabra) => {
+                const updatedKeywords = {...keywords};
+                updatedKeywords[categoria] = updatedKeywords[categoria].filter(k => k !== palabra);
+                setKeywords(updatedKeywords);
+                
+                if (data.length > 0) {
+                    const reclassified = data.map(item => ({
+                        ...item,
+                        categoria: categorizeItem(item.descripcion)
+                    }));
+                    setData(reclassified);
+                    calculateSummary(reclassified);
+                }
+            };
+
+            const exportToCSV = () => {
+                if (data.length === 0) return;
+                
+                let csv = 'Orden Compra,Descripción,Proveedor,Importe,Categoría\n';
+                data.forEach(row => {
+                    csv += `${row.orden},"${row.descripcion}",${row.proveedor},${row.importe},${row.categoria}\n`;
+                });
+                
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'gastos_categorizados.csv';
+                a.click();
+            };
+
+            const exportToHTML = () => {
+                if (data.length === 0) return;
+                
+                const categoriesHTML = Object.keys(summary.totals).map(cat => 
+                    `<div class="card"><div class="card-title">${cat}</div><div class="card-value">₡${summary.totals[cat].toLocaleString('es-CR')}</div></div>`
+                ).join('');
+                
+                const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Gastos - ${new Date().toLocaleDateString('es-CR')}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
+        h1 { color: #1e40af; border-bottom: 3px solid #1e40af; padding-bottom: 10px; }
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 30px 0; }
+        .card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; }
+        .card.total { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .card-title { font-size: 14px; opacity: 0.9; }
+        .card-value { font-size: 28px; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: #1e40af; color: white; padding: 12px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #e5e7eb; }
+        tr:hover { background: #f9fafb; }
+        .badge { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; background: #e5e7eb; color: #4b5563; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Reporte de Control de Presupuesto</h1>
+        <p><strong>Fecha:</strong> ${new Date().toLocaleString('es-CR')}</p>
+        <div class="summary">
+            ${categoriesHTML}
+            <div class="card total"><div class="card-title">TOTAL</div><div class="card-value">₡${summary.total.toLocaleString('es-CR')}</div></div>
+        </div>
+        <table>
+            <thead><tr><th>Orden</th><th>Descripción</th><th>Proveedor</th><th>Importe</th><th>Categoría</th></tr></thead>
+            <tbody>
+                ${data.map(row => `<tr><td>${row.orden}</td><td>${row.descripcion}</td><td>${row.proveedor}</td><td>₡${row.importe.toLocaleString('es-CR')}</td><td><span class="badge">${row.categoria}</span></td></tr>`).join('')}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>`;
+                
+                const blob = new Blob([html], { type: 'text/html' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `reporte_gastos_${new Date().toISOString().split('T')[0]}.html`;
+                a.click();
+            };
+
+            const clearData = () => {
+                setData([]);
+                setSummary(null);
+            };
+
+            const updateCategory = (index, newCategory) => {
+                const updatedData = [...data];
+                updatedData[index].categoria = newCategory;
+                setData(updatedData);
+                calculateSummary(updatedData);
+            };
+
+            const getCategoryColor = (categoria) => {
+                return categoryColors[categoria] || { bg: 'bg-gray-100', text: 'text-gray-800', border: 'border-gray-600' };
+            };
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+                            <h1 className="text-3xl font-bold text-gray-800 mb-2">Control de Presupuesto - Clasificador Automático</h1>
+                            <p className="text-gray-600">Pega los datos de Exactus y obtén la clasificación automática</p>
+                            <button 
+                                onClick={() => setShowKeywords(!showKeywords)}
+                                className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 text-sm"
+                            >
+                                {showKeywords ? '🔽 Ocultar' : '⚙️ Configurar'} Categorías y Palabras Clave
+                            </button>
+                        </div>
+
+                        {showKeywords && (
+                            <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+                                <h2 className="text-xl font-semibold text-gray-800 mb-4">🔧 Gestión de Categorías</h2>
+                                
+                                <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
+                                    <h3 className="font-semibold text-gray-700 mb-3">➕ Crear Nueva Categoría</h3>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={newCategoryName}
+                                            onChange={(e) => setNewCategoryName(e.target.value)}
+                                            onKeyPress={(e) => e.key === 'Enter' && addCategory()}
+                                            placeholder="Ej: Papelería, Repuestos, Capacitación..."
+                                            className="flex-1 px-3 py-2 border rounded-lg"
+                                        />
+                                        <button
+                                            onClick={addCategory}
+                                            className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
+                                        >
+                                            Crear Categoría
+                                        </button>
+                                    </div>
+                                    <p className="text-sm text-gray-600 mt-2">💡 Ejemplo: "Papelería", "Repuestos", "Capacitación", "Tecnología"</p>
+                                </div>
+
+                                <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                    <h3 className="font-semibold text-gray-700 mb-3">🏷️ Agregar Palabra Clave a Categoría</h3>
+                                    <div className="flex gap-2">
+                                        <select 
+                                            value={selectedCategory}
+                                            onChange={(e) => setSelectedCategory(e.target.value)}
+                                            className="px-3 py-2 border rounded-lg"
+                                        >
+                                            {Object.keys(keywords).filter(k => k !== 'Suministro').map(cat => (
+                                                <option key={cat} value={cat}>{cat}</option>
+                                            ))}
+                                        </select>
+                                        <input
+                                            type="text"
+                                            value={newKeyword}
+                                            onChange={(e) => setNewKeyword(e.target.value)}
+                                            onKeyPress={(e) => e.key === 'Enter' && addKeyword()}
+                                            placeholder="Escribe una palabra..."
+                                            className="flex-1 px-3 py-2 border rounded-lg"
+                                        />
+                                        <button
+                                            onClick={addKeyword}
+                                            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                                        >
+                                            Agregar
+                                        </button>
+                                    </div>
+                                    <p className="text-sm text-gray-600 mt-2">💡 Agrega palabras que ayuden a identificar productos de cada categoría</p>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                                    {Object.entries(keywords).filter(([cat]) => cat !== 'Suministro').map(([categoria, palabras]) => (
+                                        <div key={categoria} className="border rounded-lg p-4">
+                                            <div className="flex justify-between items-center mb-3">
+                                                <h4 className="font-semibold text-gray-700">{categoria} ({palabras.length})</h4>
+                                                {!['Químico', 'EPP', 'Uniforme'].includes(categoria) && (
+                                                    <button
+                                                        onClick={() => removeCategory(categoria)}
+                                                        className="text-red-600 hover:text-red-800 text-sm font-bold"
+                                                        title="Eliminar categoría"
+                                                    >
+                                                        🗑️
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {palabras.length === 0 ? (
+                                                    <span className="text-sm text-gray-400 italic">Sin palabras clave</span>
+                                                ) : (
+                                                    palabras.map(palabra => (
+                                                        <span 
+                                                            key={palabra}
+                                                            className="inline-flex items-center gap-1 bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-sm"
+                                                        >
+                                                            {palabra}
+                                                            <button
+                                                                onClick={() => removeKeyword(categoria, palabra)}
+                                                                className="text-red-600 hover:text-red-800 font-bold"
+                                                            >
+                                                                ×
+                                                            </button>
+                                                        </span>
+                                                    ))
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200 text-sm text-gray-700">
+                                    <strong>📌 Nota:</strong> La categoría "Suministro" es la categoría por defecto. Todo lo que no coincida con las palabras clave de otras categorías será clasificado como Suministro.
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+                            <h2 className="text-xl font-semibold text-gray-800 mb-4">📋 Pegar Datos</h2>
+                            <textarea
+                                className="w-full h-32 p-4 border-2 border-dashed border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                                placeholder="Pega aquí los datos de Exactus (incluye encabezados)..."
+                                onPaste={handlePaste}
+                            />
+                            <p className="text-sm text-gray-500 mt-2">💡 Copia desde Excel y pega con Ctrl+V</p>
+                        </div>
+
+                        {summary && (
+                            <>
+                                <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+                                    <h2 className="text-xl font-semibold text-gray-800 mb-4">💰 Resumen de Gastos</h2>
+                                    
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
+                                        {Object.keys(summary.totals).map(cat => {
+                                            const color = getCategoryColor(cat);
+                                            return (
+                                                <div key={cat} className={`${color.bg} rounded-lg p-4 border-l-4 ${color.border}`}>
+                                                    <div className="text-sm font-medium text-gray-600">{cat}</div>
+                                                    <div className={`text-2xl font-bold ${color.text}`}>
+                                                        ₡{summary.totals[cat].toLocaleString('es-CR')}
+                                                    </div>
+                                                    <div className="text-sm text-gray-500">{summary.percentages[cat]}%</div>
+                                                </div>
+                                            );
+                                        })}
+                                        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border-l-4 border-green-600">
+                                            <div className="text-sm font-medium text-gray-600">TOTAL</div>
+                                            <div className="text-2xl font-bold text-gray-800">₡{summary.total.toLocaleString('es-CR')}</div>
+                                            <div className="text-sm text-gray-500">{data.length} items</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-4">
+                                        <button onClick={exportToCSV} className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">📥 CSV</button>
+                                        <button onClick={exportToHTML} className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700">📄 HTML</button>
+                                        <button onClick={clearData} className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700">🗑️ Limpiar</button>
+                                    </div>
+                                </div>
+
+                                <div className="bg-white rounded-lg shadow-lg p-6">
+                                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Detalle ({data.length} items)</h3>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-sm">
+                                            <thead className="bg-gray-50">
+                                                <tr>
+                                                    <th className="px-4 py-3 text-left">Orden</th>
+                                                    <th className="px-4 py-3 text-left">Descripción</th>
+                                                    <th className="px-4 py-3 text-left">Proveedor</th>
+                                                    <th className="px-4 py-3 text-right">Importe</th>
+                                                    <th className="px-4 py-3 text-center">Categoría</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-200">
+                                                {data.map((row, idx) => {
+                                                    const color = getCategoryColor(row.categoria);
+                                                    return (
+                                                        <tr key={idx} className="hover:bg-gray-50">
+                                                            <td className="px-4 py-3">{row.orden}</td>
+                                                            <td className="px-4 py-3">{row.descripcion}</td>
+                                                            <td className="px-4 py-3">{row.proveedor}</td>
+                                                            <td className="px-4 py-3 text-right">₡{row.importe.toLocaleString('es-CR')}</td>
+                                                            <td className="px-4 py-3 text-center">
+                                                                <select
+                                                                    value={row.categoria}
+                                                                    onChange={(e) => updateCategory(idx, e.target.value)}
+                                                                    className={`px-3 py-1 rounded-full text-xs font-medium border-0 cursor-pointer ${color.bg} ${color.text}`}
+                                                                >
+                                                                    {Object.keys(keywords).map(cat => (
+                                                                        <option key={cat} value={cat}>{cat}</option>
+                                                                    ))}
+                                                                </select>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<BudgetClassifier />, document.getElementById('root'));
+    </script>
+</body>
+</html>

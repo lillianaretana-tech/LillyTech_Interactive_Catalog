@@ -1,0 +1,3094 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Control de Asistencia GPS</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --ink: #182033;
+      --muted: #667085;
+      --line: #d9e0ec;
+      --blue: #1769e0;
+      --blue-dark: #0f55ba;
+      --orange: #f28c28;
+      --orange-dark: #cf7015;
+      --green: #14804a;
+      --green-soft: #e7f6ee;
+      --red: #c92f35;
+      --red-soft: #fde9ea;
+      --yellow: #946200;
+      --yellow-soft: #fff5cc;
+      --dark: #1f2937;
+      --shadow: 0 12px 30px rgba(24, 32, 51, .08);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .55;
+    }
+
+    .app-shell {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      margin: -16px -16px 16px;
+      padding: 14px 16px 12px;
+      background: rgba(245, 247, 251, .96);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(10px);
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .mark {
+      display: grid;
+      place-items: center;
+      flex: 0 0 38px;
+      width: 38px;
+      height: 38px;
+      color: white;
+      background: var(--blue);
+      border-radius: 8px;
+      font-weight: 800;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.1rem;
+      line-height: 1.15;
+    }
+
+    .subtle {
+      color: var(--muted);
+      font-size: .86rem;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .tab-btn {
+      min-height: 42px;
+      color: var(--dark);
+      background: #e9eef7;
+      border-radius: 8px;
+      font-weight: 700;
+    }
+
+    .tab-btn.active {
+      color: #fff;
+      background: var(--dark);
+    }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    body:not(.admin-authenticated) .admin-protected {
+      display: none !important;
+    }
+
+    body.admin-authenticated .admin-login-required {
+      display: none !important;
+    }
+
+    body:not(.admin-session) .session-only {
+      display: none !important;
+    }
+
+    body.admin-authenticated .admin-login-form {
+      display: none !important;
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .two-col {
+      grid-template-columns: 1fr;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .panel-body {
+      padding: 14px;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--dark);
+      font-size: .88rem;
+      font-weight: 700;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 11px;
+      color: var(--ink);
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 84px;
+      resize: vertical;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(23, 105, 224, .14);
+    }
+
+    .actions {
+      display: grid;
+      gap: 10px;
+    }
+
+    .primary-actions {
+      grid-template-columns: 1fr;
+    }
+
+    .btn {
+      min-height: 46px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      color: #fff;
+      background: var(--dark);
+      font-weight: 800;
+    }
+
+    .btn.small {
+      min-height: 38px;
+      padding: 8px 10px;
+      font-size: .86rem;
+    }
+
+    .btn.blue { background: var(--blue); }
+    .btn.blue:hover { background: var(--blue-dark); }
+    .btn.orange { background: var(--orange); }
+    .btn.orange:hover { background: var(--orange-dark); }
+    .btn.ghost {
+      color: var(--dark);
+      background: #eef2f8;
+    }
+    .btn.danger { background: var(--red); }
+
+    .status-box {
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: #fafcff;
+    }
+
+    .status-title {
+      font-weight: 800;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+      min-height: 28px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: .8rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .badge.valid { color: var(--green); background: var(--green-soft); }
+    .badge.out { color: var(--red); background: var(--red-soft); }
+    .badge.warn { color: var(--yellow); background: var(--yellow-soft); }
+    .badge.neutral { color: var(--dark); background: #eef2f8; }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .metric {
+      padding: 10px;
+      background: #f8fafd;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .metric b {
+      display: block;
+      margin-bottom: 2px;
+      font-size: 1.1rem;
+    }
+
+    .filters {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 860px;
+      border-collapse: collapse;
+      background: #fff;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: .86rem;
+    }
+
+    th {
+      color: var(--dark);
+      background: #f3f6fb;
+      font-size: .78rem;
+      text-transform: uppercase;
+    }
+
+    tr.alert-out td { background: #fff7f7; }
+    tr.alert-warn td { background: #fffbed; }
+
+    .site-card {
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .site-card h3 {
+      margin: 0;
+      font-size: .98rem;
+    }
+
+    .site-meta {
+      color: var(--muted);
+      font-size: .84rem;
+      line-height: 1.45;
+    }
+
+    .site-actions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .empty {
+      padding: 18px;
+      color: var(--muted);
+      text-align: center;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: #fafcff;
+    }
+
+    .helper {
+      color: var(--muted);
+      font-size: .8rem;
+      font-weight: 500;
+    }
+
+    .toast {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      z-index: 20;
+      display: none;
+      max-width: min(420px, calc(100vw - 28px));
+      padding: 12px 14px;
+      color: #fff;
+      background: var(--dark);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      font-weight: 700;
+    }
+
+    .toast.show {
+      display: block;
+      animation: toastIn .2s ease-out;
+    }
+
+    @keyframes toastIn {
+      from { transform: translateY(8px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @media (min-width: 720px) {
+      .app-shell { padding: 22px; }
+      .topbar { margin: -22px -22px 20px; padding: 16px 22px 14px; }
+      .two-col { grid-template-columns: minmax(340px, .85fr) 1.15fr; align-items: start; }
+      .form-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+      .primary-actions { grid-template-columns: repeat(2, 1fr); }
+      .filters { grid-template-columns: repeat(4, 1fr); }
+      .metrics { grid-template-columns: repeat(4, 1fr); }
+      .site-list { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (min-width: 980px) {
+      .brand-row { margin-bottom: 0; }
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+      }
+      .tabs { width: 460px; flex: 0 0 460px; }
+      .site-list { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-row">
+        <div class="brand">
+          <div class="mark">GPS</div>
+          <div>
+            <h1>Control de Asistencia</h1>
+            <div class="subtle">Entrada y salida con validación por ubicación</div>
+          </div>
+        </div>
+        <button id="topLogoutBtn" class="btn small ghost session-only">Salir</button>
+      </div>
+      <nav class="tabs" aria-label="Vistas">
+        <button class="tab-btn active" data-view="attendanceView">Marcar</button>
+        <button class="tab-btn" data-view="adminView">Admin</button>
+        <button class="tab-btn" data-view="sitesView">Locales</button>
+      </nav>
+    </header>
+
+    <main>
+      <section id="attendanceView" class="view active">
+        <div class="grid two-col">
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Datos del funcionario</h2>
+              <button id="clearEmployeeBtn" class="btn small ghost">Borrar</button>
+            </div>
+            <div class="panel-body">
+              <div class="form-grid">
+                <label>
+                  Cédula
+                  <input id="employeeCode" autocomplete="off" inputmode="numeric" placeholder="Ingrese su cédula">
+                </label>
+                <label>
+                  Funcionario
+                  <input id="employeeName" autocomplete="name" placeholder="Se cargará desde Supabase" readonly>
+                </label>
+                <label>
+                  Site/local detectado
+                  <input id="siteSearch" list="siteOptions" placeholder="Se detecta automáticamente con GPS" readonly>
+                  <datalist id="siteOptions"></datalist>
+                </label>
+                <div id="selectedSiteInfo" class="status-box">
+                  <div class="status-title">Detección GPS obligatoria</div>
+                  <div class="subtle">Al marcar entrada o salida, el sistema detectará el site activo más cercano y validará el radio permitido.</div>
+                </div>
+                <label>
+                  Notas
+                  <textarea id="notes" placeholder="Observación opcional"></textarea>
+                </label>
+                <div class="actions primary-actions">
+                  <button id="checkInBtn" class="btn blue">Registrar entrada</button>
+                  <button id="checkOutBtn" class="btn orange">Registrar salida</button>
+                </div>
+                <button id="detectSiteBtn" class="btn ghost">Probar detección GPS</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Último resultado</h2>
+              <span id="clockNow" class="subtle"></span>
+            </div>
+            <div class="panel-body">
+              <div id="lastResult" class="status-box">
+                <span class="badge neutral">Pendiente</span>
+                <div class="status-title">Aún no hay marca en esta sesión</div>
+                <div class="subtle">La hora se registra automáticamente y no puede editarse manualmente.</div>
+              </div>
+              <div class="metrics" style="margin-top:12px">
+                <div class="metric"><b id="todayCount">0</b><span class="subtle">Marcas hoy</span></div>
+                <div class="metric"><b id="validCount">0</b><span class="subtle">Válidas</span></div>
+                <div class="metric"><b id="outCount">0</b><span class="subtle">Fuera sitio</span></div>
+                <div class="metric"><b id="gpsWarnCount">0</b><span class="subtle">Sin GPS</span></div>
+              </div>
+              <div style="margin-top:12px" class="helper">
+                Si la precisión GPS supera 100 metros, el sistema guardará la marca y mostrará advertencia.
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section id="adminView" class="view">
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Registros de asistencia</h2>
+            <button id="exportCsvBtn" class="btn small admin-protected">Exportar CSV</button>
+          </div>
+          <div class="panel-body">
+            <div id="supabaseStatus" class="status-box" style="margin-bottom:12px">
+              <span class="badge neutral">Conectando</span>
+              <div class="subtle">La app usa Supabase cuando está disponible y localStorage como respaldo.</div>
+            </div>
+            <div class="status-box" style="margin-bottom:12px">
+              <div class="status-title">Sesión administrativa</div>
+              <div class="form-grid cols-2 admin-login-form" style="margin-top:8px">
+                <label>Correo<input id="adminEmail" type="email" autocomplete="email" placeholder="admin@empresa.com"></label>
+                <label>Clave<input id="adminPassword" type="password" autocomplete="current-password" placeholder="Clave"></label>
+              </div>
+              <div class="actions primary-actions admin-login-form" style="margin-top:10px">
+                <button id="adminLoginBtn" class="btn blue">Ingresar con Supabase</button>
+                <button id="adminLogoutBtn" class="btn ghost">Cerrar sesión</button>
+              </div>
+              <button id="adminLogoutInlineBtn" class="btn small ghost session-only" style="margin-top:10px">Cerrar sesión</button>
+              <div id="adminAuthStatus" class="helper" style="margin-top:8px">Ingrese con correo y clave para administrar datos.</div>
+            </div>
+            <div class="filters admin-protected">
+              <label>Fecha<input id="filterDate" type="date"></label>
+              <label>Funcionario<input id="filterEmployee" placeholder="Nombre o código"></label>
+              <label>Site/local<select id="filterSite"><option value="">Todos</option></select></label>
+              <label>Provincia<select id="filterProvince"><option value="">Todas</option></select></label>
+              <label>Cantón<select id="filterCanton"><option value="">Todos</option></select></label>
+              <label>Tipo<select id="filterType"><option value="">Todos</option><option value="entrada">Entrada</option><option value="salida">Salida</option></select></label>
+              <label>Estado GPS<select id="filterGps"><option value="">Todos</option><option value="valido">Válido</option><option value="fuera_del_sitio">Fuera del sitio</option><option value="sin_permiso">Sin permiso</option><option value="error">Error</option></select></label>
+              <label>Orden<select id="filterOrder"><option value="desc">Más recientes</option><option value="asc">Más antiguos</option></select></label>
+            </div>
+            <div class="table-wrap admin-protected">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha/hora</th>
+                    <th>Funcionario</th>
+                    <th>Site/local</th>
+                    <th>Tipo</th>
+                    <th>GPS</th>
+                    <th>Distancia</th>
+                    <th>Precisión</th>
+                    <th>Notas</th>
+                  </tr>
+                </thead>
+                <tbody id="logsTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel admin-protected" style="margin-top:14px">
+          <div class="panel-head">
+            <h2>Resumen diario por funcionario</h2>
+            <span class="subtle" id="summaryHint"></span>
+          </div>
+          <div class="panel-body">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Funcionario</th>
+                    <th>Entrada</th>
+                    <th>Salida</th>
+                    <th>Horas trabajadas</th>
+                    <th>Site/local</th>
+                    <th>Alertas</th>
+                  </tr>
+                </thead>
+                <tbody id="summaryTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel admin-protected" style="margin-top:14px">
+          <div class="panel-head">
+            <h2>Clientes y proyectos</h2>
+            <button id="saveProjectBtn" class="btn small blue">Crear proyecto</button>
+          </div>
+          <div class="panel-body">
+            <div class="form-grid cols-2">
+              <label>Cliente<input id="adminClientName" placeholder="Ej. SBM / Proyecto propio"></label>
+              <label>Código cliente<input id="adminClientCode" placeholder="Ej. SBM_CR"></label>
+              <label>Proyecto<input id="adminProjectName" placeholder="Nombre del proyecto"></label>
+              <label>Código proyecto<input id="adminProjectCode" placeholder="Ej. SBM_OFICINAS"></label>
+            </div>
+            <div class="helper" style="margin-top:8px">Cree aquí sus propios proyectos. Luego podrá crear locales y funcionarios dentro del proyecto seleccionado.</div>
+          </div>
+        </section>
+
+        <section class="panel admin-protected" style="margin-top:14px">
+          <div class="panel-head">
+            <h2>Funcionarios y asignación</h2>
+            <button id="saveEmployeeAdminBtn" class="btn small blue">Guardar funcionario</button>
+          </div>
+          <div class="panel-body">
+            <div class="form-grid cols-2">
+              <label>Cédula<input id="adminEmployeeCedula" inputmode="numeric" placeholder="Cédula"></label>
+              <label>Nombre completo<input id="adminEmployeeName" placeholder="Nombre completo"></label>
+              <label>Teléfono<input id="adminEmployeePhone" placeholder="Teléfono"></label>
+              <label>Correo<input id="adminEmployeeEmail" type="email" placeholder="Correo opcional"></label>
+              <label>Puesto<input id="adminEmployeePosition" placeholder="Ej. Operario, Líder, Supervisor"></label>
+              <label>Rol operativo<select id="adminEmployeeRoleType"><option value="employee">Funcionario</option><option value="backup">Backup</option><option value="supervisor">Supervisor</option><option value="leader">Líder</option><option value="manager">Project Manager</option></select></label>
+              <label>Jornada<select id="adminEmployeeJornada"><option>Completa-Día-Discontinua</option><option>Completa-Día-Continua</option><option>Parcial-Día-Discontinua</option><option>Jornada continua</option></select></label>
+              <label>Horas semanales<input id="adminEmployeeHours" type="number" min="1" max="60" step="0.5" value="48"></label>
+              <label style="grid-column:1/-1">Proyecto<select id="adminProjectSelect"><option value="">Seleccione proyecto</option></select></label>
+              <label style="grid-column:1/-1">Site asignado<select id="adminEmployeeSite"><option value="">Seleccione site</option></select></label>
+              <label style="grid-column:1/-1">Supervisor asignado<select id="adminEmployeeSupervisor"><option value="">Sin supervisor asignado</option></select></label>
+              <label style="display:flex;align-items:center;gap:8px"><input id="adminEmployeeIsBackup" type="checkbox" style="width:auto;min-height:auto"> Es backup/cubre otros sites</label>
+              <label style="grid-column:1/-1">Notas<textarea id="adminEmployeeNotes" placeholder="Notas internas"></textarea></label>
+            </div>
+            <div class="helper" style="margin-top:8px">Requiere sesión Supabase con perfil admin, manager o supervisor autorizado.</div>
+            <div style="margin-top:14px" class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Funcionario</th>
+                    <th>Cédula</th>
+                    <th>Site</th>
+                    <th>Rol</th>
+                    <th>Jornada</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="employeesTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel admin-protected" style="margin-top:14px">
+          <div class="panel-head">
+            <h2>Horarios por funcionario</h2>
+            <button id="saveScheduleBtn" class="btn small blue">Guardar horario</button>
+          </div>
+          <div class="panel-body">
+            <div class="form-grid cols-2">
+              <label style="grid-column:1/-1">Funcionario<select id="scheduleEmployeeSelect"><option value="">Seleccione funcionario</option></select></label>
+            </div>
+            <div class="helper" style="margin-top:8px">Defina el horario esperado por día. El sistema lo usará para calcular tardías, salidas anticipadas, ausencias y horas trabajadas.</div>
+            <div style="margin-top:14px" class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Día</th>
+                    <th>Libre</th>
+                    <th>Entrada</th>
+                    <th>Salida</th>
+                    <th>Inicio descanso</th>
+                    <th>Fin descanso</th>
+                    <th>Horas esperadas</th>
+                  </tr>
+                </thead>
+                <tbody id="scheduleTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel admin-protected" style="margin-top:14px">
+          <div class="panel-head">
+            <h2>Importar horarios (Excel)</h2>
+            <button id="runScheduleImportBtn" class="btn small blue" disabled>Importar válidas</button>
+          </div>
+          <div class="panel-body">
+            <div class="helper">Use la plantilla oficial (hoja "horarios", cabecera en la fila 3). Se importan al <b>proyecto seleccionado arriba</b>, resolviendo cada funcionario por cédula o código. Las filas con error se omiten.</div>
+            <div class="form-grid cols-2" style="margin-top:10px">
+              <label style="grid-column:1/-1">Archivo .xlsx<input type="file" id="scheduleImportFile" accept=".xlsx,.xls"></label>
+            </div>
+            <div id="scheduleImportPreview" style="margin-top:12px"><div class="empty">Seleccione un archivo para previsualizar.</div></div>
+          </div>
+        </section>
+
+        <section class="panel admin-protected" style="margin-top:14px">
+          <div class="panel-head">
+            <h2>Incidencias pendientes</h2>
+            <button id="refreshIncidentsBtn" class="btn small ghost">Actualizar</button>
+          </div>
+          <div class="panel-body">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Funcionario</th>
+                    <th>Site</th>
+                    <th>Tipo</th>
+                    <th>Comentario</th>
+                    <th>Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="incidentsTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel admin-protected" style="margin-top:14px">
+          <div class="panel-head">
+            <h2>Solicitudes (permisos, vacaciones, coberturas)</h2>
+            <button id="saveRequestBtn" class="btn small blue">Guardar solicitud</button>
+          </div>
+          <div class="panel-body">
+            <div class="form-grid cols-2">
+              <label>Funcionario<select id="requestEmployeeSelect"><option value="">Seleccione funcionario</option></select></label>
+              <label>Tipo<select id="requestType">
+                <option value="permiso_horas">Permiso por horas</option>
+                <option value="permiso_dia">Permiso por día</option>
+                <option value="ausencia_justificada">Ausencia justificada</option>
+                <option value="vacaciones">Vacaciones</option>
+                <option value="incapacidad">Incapacidad</option>
+                <option value="cobertura">Cobertura en otro local</option>
+                <option value="cambio_horario">Cambio temporal de horario</option>
+              </select></label>
+              <label>Desde<input type="datetime-local" id="requestStart"></label>
+              <label>Hasta<input type="datetime-local" id="requestEnd"></label>
+              <label id="requestCoverWrap" style="grid-column:1/-1;display:none">Local de cobertura<select id="requestCoverSite"><option value="">Seleccione local</option></select></label>
+              <label style="grid-column:1/-1">Motivo<input id="requestReason" placeholder="Motivo de la solicitud"></label>
+              <label style="grid-column:1/-1">Comentarios<textarea id="requestComments" placeholder="Comentarios opcionales"></textarea></label>
+              <label style="grid-column:1/-1">Adjunto (URL)<input id="requestAttachment" placeholder="Enlace a comprobante (opcional)"></label>
+            </div>
+            <div class="helper" style="margin-top:8px">Al aprobarse, el cálculo de asistencia deja de marcar ausencia o tardía indebida en esas fechas.</div>
+            <div style="margin-top:14px" class="table-wrap">
+              <table>
+                <thead><tr><th>Funcionario</th><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Motivo</th><th>Estado</th><th>Acción</th></tr></thead>
+                <tbody id="requestsTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel admin-protected" style="margin-top:14px">
+          <div class="panel-head">
+            <h2>Cálculo de asistencia</h2>
+            <button id="runAttendanceCalcBtn" class="btn small blue">Calcular</button>
+          </div>
+          <div class="panel-body">
+            <div class="helper">Compara las marcas contra el horario para calcular tardías, salidas anticipadas, horas trabajadas y ausencias. Usa el proyecto seleccionado arriba.</div>
+            <div class="form-grid cols-2" style="margin-top:10px">
+              <label>Desde<input type="date" id="calcDateFrom"></label>
+              <label>Hasta<input type="date" id="calcDateTo"></label>
+            </div>
+            <div id="attendanceCalcSummary" style="margin-top:10px"></div>
+            <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap">
+              <button id="copyCalcCommentsBtn" class="btn small ghost" style="display:none">Copiar comentarios</button>
+            </div>
+            <div id="attendanceCalcResult" style="margin-top:12px"><div class="empty">Elija el rango de fechas y presione Calcular.</div></div>
+          </div>
+        </section>
+      </section>
+
+      <section id="sitesView" class="view">
+        <section class="panel admin-login-required">
+          <div class="panel-body">
+            <div class="empty">Ingrese en Admin con Supabase para administrar locales.</div>
+          </div>
+        </section>
+        <div class="grid two-col admin-protected">
+          <section class="panel">
+            <div class="panel-head">
+              <h2 id="siteFormTitle">Agregar local</h2>
+              <button id="resetSiteFormBtn" class="btn small ghost">Nuevo</button>
+            </div>
+            <div class="panel-body">
+                <div class="form-grid cols-2">
+                <input id="siteEditId" type="hidden">
+                <label style="grid-column:1/-1">Proyecto<select id="siteProjectSelect"><option value="">Seleccione proyecto</option></select></label>
+                <label>Nombre del local<input id="siteName" placeholder="Ej. Sucursal San José"></label>
+                <label>Provincia<input id="siteProvince" placeholder="Provincia"></label>
+                <label>Cantón<input id="siteCanton" placeholder="Cantón"></label>
+                <label>Radio permitido (m)<input id="siteRadius" type="number" min="10" step="1" value="100"></label>
+                <label>Latitud<input id="siteLat" type="number" step="0.000001" placeholder="9.932542"></label>
+                <label>Longitud<input id="siteLng" type="number" step="0.000001" placeholder="-84.079578"></label>
+                <label style="grid-column:1/-1">Dirección<textarea id="siteAddress" placeholder="Dirección física del local"></textarea></label>
+                <label>Activo<select id="siteActive"><option value="true">Activo</option><option value="false">Inactivo</option></select></label>
+              </div>
+              <div class="actions" style="margin-top:12px">
+                <button id="captureSiteLocationBtn" class="btn ghost">Capturar ubicación actual</button>
+                <button id="saveSiteBtn" class="btn blue">Guardar local</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Catálogo de sites/locales</h2>
+              <span id="siteCount" class="badge neutral">0</span>
+            </div>
+            <div class="panel-body">
+              <label style="margin-bottom:12px">
+                Buscar local
+                <input id="siteCatalogSearch" placeholder="Nombre, provincia, cantón o dirección">
+              </label>
+              <div id="siteList" class="grid site-list"></div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const STORAGE = {
+      employee: "gps_attendance_employee_v2",
+      sites: "gps_attendance_sites_v2",
+      logs: "gps_attendance_logs_v2"
+    };
+
+    const SUPABASE_URL = "https://nkxaudxuyftuevspbrki.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5reGF1ZHh1eWZ0dWV2c3BicmtpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2NDEzNDQsImV4cCI6MjA5NzIxNzM0NH0.yS5eaMaDaAstDz8suK_nGFlfzgXNjOxkvW_AjVWTo-c";
+    const supabaseClient = window.supabase
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+      : null;
+    let supabaseOnline = false;
+    let currentEmployee = null;
+    let adminProjectId = null;
+    let adminProjects = [];
+    let adminEmployees = [];
+    let adminSchedules = {};
+    let scheduleImportRows = [];
+    let adminAllSchedules = [];
+    let lastCalcRows = [];
+    let adminRequests = [];
+    let adminUsers = [];
+    let adminSession = null;
+    let adminProfile = null;
+    let adminAuthorized = false;
+    const DUPLICATE_WINDOW_MS = 2 * 60 * 1000;
+    const LOW_ACCURACY_METERS = 100;
+    const seedSites = [
+      {
+        site_id: "SJ-CENTRO",
+        site_name: "Sucursal San José Centro",
+        provincia: "San José",
+        canton: "San José",
+        direccion: "Avenida Central, San José",
+        latitud: 9.932542,
+        longitud: -84.079578,
+        radio_metros: 120,
+        activo: true
+      },
+      {
+        site_id: "AL-ALAJUELA",
+        site_name: "Local Alajuela",
+        provincia: "Alajuela",
+        canton: "Alajuela",
+        direccion: "Centro de Alajuela",
+        latitud: 10.01625,
+        longitud: -84.21163,
+        radio_metros: 150,
+        activo: true
+      },
+      {
+        site_id: "HE-HEREDIA",
+        site_name: "Local Heredia",
+        provincia: "Heredia",
+        canton: "Heredia",
+        direccion: "Centro de Heredia",
+        latitud: 9.99814,
+        longitud: -84.11725,
+        radio_metros: 130,
+        activo: true
+      },
+      {
+        site_id: "CA-CARTAGO",
+        site_name: "Local Cartago",
+        provincia: "Cartago",
+        canton: "Cartago",
+        direccion: "Centro de Cartago",
+        latitud: 9.86444,
+        longitud: -83.91944,
+        radio_metros: 140,
+        activo: true
+      }
+    ];
+
+    let sites = loadSites();
+    let logs = loadLogs();
+    let selectedSiteId = "";
+
+    const $ = (id) => document.getElementById(id);
+    const fmtDateTime = new Intl.DateTimeFormat("es-CR", { dateStyle: "medium", timeStyle: "short" });
+    const fmtTime = new Intl.DateTimeFormat("es-CR", { hour: "2-digit", minute: "2-digit" });
+
+    function loadSites() {
+      const saved = JSON.parse(localStorage.getItem(STORAGE.sites) || "null");
+      if (Array.isArray(saved) && saved.length) return saved;
+      return [];
+    }
+
+    function loadLogs() {
+      return JSON.parse(localStorage.getItem(STORAGE.logs) || "[]");
+    }
+
+    function saveSites() {
+      localStorage.setItem(STORAGE.sites, JSON.stringify(sites));
+    }
+
+    function saveLogs() {
+      localStorage.setItem(STORAGE.logs, JSON.stringify(logs));
+    }
+
+    function setSupabaseStatus(status, detail) {
+      const badge = {
+        online: `<span class="badge valid">Supabase activo</span>`,
+        offline: `<span class="badge warn">Modo local</span>`,
+        warn: `<span class="badge warn">Aviso</span>`,
+        error: `<span class="badge out">Revisar tablas</span>`,
+        loading: `<span class="badge neutral">Conectando</span>`
+      }[status] || `<span class="badge neutral">${escapeHtml(status)}</span>`;
+      $("supabaseStatus").innerHTML = `${badge}<div class="subtle">${escapeHtml(detail)}</div>`;
+    }
+
+    function normalizeSite(site) {
+      return {
+        site_id: site.id || site.site_id,
+        site_code: site.site_code || site.site_id || "",
+        site_name: site.site_name || "",
+        provincia: site.province ?? site.provincia ?? "",
+        canton: site.canton ?? "",
+        distrito: site.district ?? "",
+        direccion: site.address ?? site.direccion ?? "",
+        latitud: Number(site.latitude ?? site.latitud),
+        longitud: Number(site.longitude ?? site.longitud),
+        radio_metros: Number(site.allowed_radius_meters ?? site.radio_metros ?? 100),
+        activo: site.status ? site.status === "activo" : site.activo !== false,
+        assigned_to_employee: Boolean(site.assigned_to_employee)
+      };
+    }
+
+    function normalizeLog(log) {
+      return {
+        id: log.id,
+        employee_name: log.employees?.full_name || log.employee_name || "",
+        employee_code: log.employees?.cedula || log.employee_code || "",
+        site_id: log.detected_site_id || log.site_id || "",
+        site_name: log.sites?.site_name || log.site_name || "Sin sitio detectado",
+        provincia: log.sites?.province || log.provincia || "",
+        canton: log.sites?.canton || log.canton || "",
+        check_type: String(log.check_type || "").toLowerCase(),
+        timestamp: log.timestamp,
+        latitude: log.latitude,
+        longitude: log.longitude,
+        accuracy_meters: log.gps_accuracy_meters ?? log.accuracy_meters,
+        distance_to_site_meters: log.distance_to_site_meters,
+        gps_status: normalizeGpsStatus(log.gps_status),
+        device_info: log.device_info || {},
+        notes: log.observations || log.notes || ""
+      };
+    }
+
+    function normalizeGpsStatus(status) {
+      const value = String(status || "").toUpperCase();
+      return {
+        VALIDO: "valido",
+        FUERA_DEL_SITIO: "fuera_del_sitio",
+        SIN_PERMISO: "sin_permiso",
+        ERROR_GPS: "error"
+      }[value] || String(status || "error").toLowerCase();
+    }
+
+    function toDbGpsStatus(status) {
+      return {
+        valido: "VALIDO",
+        fuera_del_sitio: "FUERA_DEL_SITIO",
+        sin_permiso: "SIN_PERMISO",
+        error: "ERROR_GPS"
+      }[status] || "ERROR_GPS";
+    }
+
+    async function loadSupabaseData() {
+      if (!supabaseClient) {
+        setSupabaseStatus("offline", "No se cargó la librería de Supabase. Se usará localStorage.");
+        return;
+      }
+      supabaseOnline = true;
+      setSupabaseStatus("online", "Supabase conectado. Ingrese la cédula para cargar funcionario y sites asignados.");
+    }
+
+    async function loadEmployeeByCedula() {
+      const cedula = $("employeeCode").value.trim();
+      if (!cedula || !supabaseClient) return null;
+      setSupabaseStatus("loading", "Buscando funcionario por cédula...");
+      try {
+        const { data, error } = await supabaseClient.rpc("lookup_employee_by_cedula", { p_cedula: cedula });
+        if (error) throw error;
+        const employee = Array.isArray(data) ? data[0] : data;
+        if (!employee) {
+          currentEmployee = null;
+          $("employeeName").value = "";
+          sites = [];
+          saveSites();
+          renderAll();
+          setSupabaseStatus("warn", "No se encontró un funcionario activo con esa cédula.");
+          return null;
+        }
+        employee.cedula = cedula;
+        currentEmployee = employee;
+        $("employeeName").value = employee.full_name || "";
+        localStorage.setItem(STORAGE.employee, JSON.stringify({
+          employee_name: employee.full_name || "",
+          employee_code: cedula
+        }));
+
+        const { data: remoteSites, error: sitesError } = await supabaseClient.rpc("list_active_sites_for_employee", { p_employee_id: employee.employee_id });
+        if (sitesError) throw sitesError;
+        sites = (remoteSites || []).map(normalizeSite);
+        saveSites();
+        renderAll();
+        setSupabaseStatus("online", `${employee.full_name} cargado. Sites disponibles: ${sites.length}.`);
+        return employee;
+      } catch (error) {
+        currentEmployee = null;
+        setSupabaseStatus("error", error?.message || "No se pudo cargar el funcionario.");
+        return null;
+      }
+    }
+
+    async function persistLogToSupabase(log) {
+      if (!supabaseOnline || !supabaseClient || !currentEmployee) return;
+      try {
+        const { error } = await supabaseClient.rpc("submit_attendance_mark", {
+          p_employee_id: currentEmployee.employee_id,
+          p_detected_site_id: log.site_id === "SIN-SITIO" ? null : log.site_id,
+          p_check_type: log.check_type,
+          p_latitude: log.latitude,
+          p_longitude: log.longitude,
+          p_gps_accuracy_meters: log.accuracy_meters,
+          p_distance_to_site_meters: log.distance_to_site_meters,
+          p_gps_status: toDbGpsStatus(log.gps_status),
+          p_device_info: log.device_info || {},
+          p_observations: log.notes || null
+        });
+        if (error) throw error;
+      } catch (error) {
+        supabaseOnline = false;
+        setSupabaseStatus("error", `Registro guardado localmente. Supabase respondió: ${error.message}`);
+      }
+    }
+
+    async function upsertSiteToSupabase(site) {
+      await ensureAdminSession();
+      if (!supabaseClient || !adminAuthorized || !adminProjectId) {
+        toast("Ingrese con Supabase y seleccione un proyecto antes de guardar locales.");
+        return null;
+      }
+      const dbPayload = {
+        project_id: adminProjectId,
+        site_code: site.site_code || site.site_id,
+        site_name: site.site_name,
+        province: site.provincia,
+        canton: site.canton,
+        district: site.distrito || "",
+        address: site.direccion,
+        latitude: site.latitud,
+        longitude: site.longitud,
+        allowed_radius_meters: site.radio_metros,
+        status: site.activo ? "activo" : "inactivo",
+        metadata: { source: "app_admin" }
+      };
+      const { data, error } = await supabaseClient
+        .from("sites")
+        .upsert(dbPayload, { onConflict: "project_id,site_code" })
+        .select("*")
+        .single();
+      if (error) throw new Error(adminErrorMessage(error, "No se pudo guardar el local."));
+      return normalizeSite(data);
+    }
+
+    async function refreshAdminSession() {
+      if (!supabaseClient) return null;
+      const { data } = await supabaseClient.auth.getSession();
+      adminSession = data?.session || null;
+      await loadAdminProfile();
+      renderAdminAuthStatus();
+      if (adminAuthorized) await loadAdminData();
+      return adminSession;
+    }
+
+    async function ensureAdminSession() {
+      if (!supabaseClient) return null;
+      const { data } = await supabaseClient.auth.getSession();
+      adminSession = data?.session || null;
+      await loadAdminProfile();
+      renderAdminAuthStatus();
+      return adminSession;
+    }
+
+    async function loadAdminProfile() {
+      adminProfile = null;
+      adminAuthorized = false;
+      if (!supabaseClient || !adminSession?.user?.id) return null;
+      try {
+        const { data, error } = await supabaseClient
+          .from("user_profiles")
+          .select("id, role, full_name, email, status, client_id, project_id")
+          .eq("auth_user_id", adminSession.user.id)
+          .eq("status", "activo")
+          .maybeSingle();
+        if (error) throw error;
+        adminProfile = data || null;
+        adminAuthorized = Boolean(adminProfile && ["admin_general", "manager", "supervisor"].includes(adminProfile.role));
+        return adminProfile;
+      } catch (error) {
+        adminProfile = null;
+        adminAuthorized = false;
+        return null;
+      }
+    }
+
+    function adminErrorMessage(error, fallback) {
+      if (error?.code === "42501" || error?.status === 403 || /row-level security|permission|403/i.test(error?.message || "")) {
+        return "Sesión válida, pero sin permisos administrativos. Revise que su usuario esté en user_profiles como admin_general o manager.";
+      }
+      return error?.message || fallback;
+    }
+
+    function renderAdminAuthStatus() {
+      const el = $("adminAuthStatus");
+      if (!el) return;
+      if (adminAuthorized) {
+        el.textContent = `Sesión activa: ${adminSession.user.email} (${adminProfile.role})`;
+      } else if (adminSession?.user?.email) {
+        el.textContent = `Sesión activa: ${adminSession.user.email}, pero sin perfil administrativo autorizado.`;
+      } else {
+        el.textContent = "Ingrese con correo y clave para administrar datos.";
+      }
+      document.body.classList.toggle("admin-session", Boolean(adminSession));
+      document.body.classList.toggle("admin-authenticated", Boolean(adminAuthorized));
+      document.querySelectorAll(".admin-protected").forEach(node => {
+        node.style.display = adminAuthorized ? "" : "none";
+      });
+      document.querySelectorAll(".admin-login-required").forEach(node => {
+        node.style.display = adminAuthorized ? "none" : "";
+      });
+    }
+
+    async function adminLogin() {
+      if (!supabaseClient) {
+        toast("Supabase no está disponible.");
+        return;
+      }
+      const email = $("adminEmail").value.trim();
+      const password = $("adminPassword").value;
+      if (!email || !password) {
+        toast("Ingrese correo y clave.");
+        return;
+      }
+      $("adminLoginBtn").disabled = true;
+      try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        adminSession = data.session;
+        await loadAdminProfile();
+        renderAdminAuthStatus();
+        if (adminAuthorized) {
+          await loadAdminData();
+          toast("Sesión administrativa iniciada.");
+        } else {
+          clearAdminData();
+          toast("Sesión activa, pero sin perfil administrativo autorizado.");
+        }
+      } catch (error) {
+        toast(error?.message || "No se pudo iniciar sesión.");
+      } finally {
+        $("adminLoginBtn").disabled = false;
+      }
+    }
+
+    async function adminLogout() {
+      if (!supabaseClient) return;
+      await supabaseClient.auth.signOut();
+      adminSession = null;
+      adminProfile = null;
+      adminAuthorized = false;
+      adminProjectId = null;
+      clearAdminData();
+      renderAdminAuthStatus();
+      toast("Sesión cerrada.");
+    }
+
+    function clearAdminData() {
+      logs = [];
+      sites = [];
+      adminProjects = [];
+      adminEmployees = [];
+      saveLogs();
+      saveSites();
+      renderAll();
+      renderEmployees();
+      renderIncidents([]);
+    }
+
+    async function loadAdminData() {
+      if (!supabaseClient || !adminAuthorized) return;
+      try {
+        const { data: projects, error: projectError } = await supabaseClient
+          .from("projects")
+          .select("id, client_id, project_code, project_name, clients(client_code, client_name)")
+          .order("project_name", { ascending: true });
+        if (projectError) throw projectError;
+        adminProjects = projects || [];
+        renderProjectOptions();
+        if (!adminProjectId || !adminProjects.some(project => project.id === adminProjectId)) {
+          adminProjectId = adminProjects[0]?.id || null;
+        }
+        $("adminProjectSelect").value = adminProjectId || "";
+        if ($("siteProjectSelect")) $("siteProjectSelect").value = adminProjectId || "";
+        await selectAdminProject(adminProjectId);
+      } catch (error) {
+        toast(error?.message || "No se pudieron cargar datos administrativos.");
+      }
+    }
+
+    function renderProjectOptions() {
+      const options = `<option value="">Seleccione proyecto</option>` + adminProjects.map(project => {
+        return `<option value="${project.id}">${escapeHtml(project.project_name)}</option>`;
+      }).join("");
+      const select = $("adminProjectSelect");
+      if (select) select.innerHTML = options;
+      const siteSelect = $("siteProjectSelect");
+      if (siteSelect) siteSelect.innerHTML = options;
+    }
+
+    async function selectAdminProject(projectId) {
+      adminProjectId = projectId || null;
+      if ($("adminProjectSelect")) $("adminProjectSelect").value = adminProjectId || "";
+      if ($("siteProjectSelect")) $("siteProjectSelect").value = adminProjectId || "";
+      if (!adminProjectId) {
+        sites = [];
+        logs = [];
+        adminEmployees = [];
+        renderAll();
+        renderEmployees();
+        renderIncidents([]);
+        populateScheduleEmployeeSelect();
+        adminRequests = [];
+        renderRequests();
+        return;
+      }
+      try {
+        const { data: remoteSites, error: sitesError } = await supabaseClient
+          .from("sites")
+          .select("*")
+          .eq("project_id", adminProjectId)
+          .order("site_name", { ascending: true });
+        if (sitesError) throw sitesError;
+        sites = (remoteSites || []).map(normalizeSite);
+        saveSites();
+        renderAll();
+        await loadAdminUsers();
+        await loadEmployees();
+        populateScheduleEmployeeSelect();
+        await loadAllSchedules();
+        await loadAdminLogs();
+        await loadIncidents();
+        await loadRequests();
+        populateRequestSelectors();
+      } catch (error) {
+        toast(error?.message || "No se pudo cargar el proyecto seleccionado.");
+      }
+    }
+
+    async function loadAdminLogs() {
+      if (!supabaseClient || !adminAuthorized || !adminProjectId) return;
+      const { data, error } = await supabaseClient
+        .from("attendance_logs")
+        .select("*, employees(full_name, cedula), sites:detected_site_id(site_name, province, canton)")
+        .eq("project_id", adminProjectId)
+        .order("timestamp", { ascending: false })
+        .limit(1000);
+      if (error) throw error;
+      logs = (data || []).map(normalizeLog);
+      saveLogs();
+      renderLogs();
+      renderSummary();
+      renderMetrics();
+    }
+
+    async function loadAdminUsers() {
+      if (!supabaseClient || !adminAuthorized) {
+        adminUsers = [];
+        renderSupervisorOptions();
+        return;
+      }
+      try {
+        const project = adminProjects.find(item => item.id === adminProjectId);
+        let query = supabaseClient
+          .from("user_profiles")
+          .select("id, full_name, email, role, status, project_id, client_id, position")
+          .in("role", ["manager", "supervisor"])
+          .eq("status", "activo");
+        if (adminProjectId && project?.client_id) {
+          query = query.or(`project_id.eq.${adminProjectId},client_id.eq.${project.client_id}`);
+        } else if (adminProjectId) {
+          query = query.eq("project_id", adminProjectId);
+        }
+        const { data, error } = await query.order("full_name", { ascending: true });
+        if (error) throw error;
+        adminUsers = data || [];
+        renderSupervisorOptions();
+      } catch (error) {
+        adminUsers = [];
+        renderSupervisorOptions();
+      }
+    }
+
+    function renderSupervisorOptions() {
+      const select = $("adminEmployeeSupervisor");
+      if (!select) return;
+      const current = select.value;
+      const options = adminUsers.map(user => {
+        const label = `${user.full_name || user.email} (${user.role})`;
+        return `<option value="${user.id}">${escapeHtml(label)}</option>`;
+      }).join("");
+      select.innerHTML = `<option value="">Sin supervisor asignado</option>${options}`;
+      select.value = adminUsers.some(user => user.id === current) ? current : "";
+    }
+
+    async function saveEmployeeAdmin() {
+      await ensureAdminSession();
+      if (!supabaseClient || !adminAuthorized) {
+        toast("Ingrese con Supabase antes de guardar funcionarios.");
+        return;
+      }
+      if (!adminProjectId) {
+        toast("Seleccione el proyecto donde desea crear el funcionario.");
+        return;
+      }
+      const cedula = $("adminEmployeeCedula").value.trim();
+      const fullName = $("adminEmployeeName").value.trim();
+      const siteId = $("adminEmployeeSite").value;
+      if (!cedula || !fullName || !siteId) {
+        toast("Complete cédula, nombre y site asignado.");
+        return;
+      }
+      $("saveEmployeeAdminBtn").disabled = true;
+      try {
+        const { data: employee, error: empError } = await supabaseClient
+          .from("employees")
+          .upsert({
+            project_id: adminProjectId,
+            cedula,
+            full_name: fullName,
+            employee_code: cedula,
+            phone: $("adminEmployeePhone").value.trim() || null,
+            email: $("adminEmployeeEmail").value.trim() || null,
+            position: $("adminEmployeePosition").value.trim() || null,
+            role_type: $("adminEmployeeRoleType").value,
+            jornada: $("adminEmployeeJornada").value,
+            weekly_hours: Number($("adminEmployeeHours").value || 0),
+            default_site_id: siteId,
+            supervisor_user_id: $("adminEmployeeSupervisor").value || null,
+            is_backup: $("adminEmployeeIsBackup").checked,
+            status: "activo",
+            notes: $("adminEmployeeNotes").value.trim() || null,
+            updated_at: new Date().toISOString()
+          }, { onConflict: "project_id,cedula" })
+          .select("id, full_name, cedula")
+          .single();
+        if (empError) throw empError;
+
+        const { error: assignError } = await supabaseClient
+          .from("employee_site_assignments")
+          .upsert({
+            employee_id: employee.id,
+            site_id: siteId,
+            assignment_type: "principal",
+            valid_from: todayISO(),
+            status: "activo",
+            notes: "Asignación principal desde admin"
+          }, { onConflict: "employee_id,site_id,assignment_type,valid_from" });
+        if (assignError) throw assignError;
+        toast(`Funcionario guardado: ${employee.full_name}`);
+        await loadEmployees();
+      } catch (error) {
+        toast(adminErrorMessage(error, "No se pudo guardar el funcionario."));
+      } finally {
+        $("saveEmployeeAdminBtn").disabled = false;
+      }
+    }
+
+    async function loadEmployees() {
+      if (!supabaseClient || !adminAuthorized || !adminProjectId) {
+        adminEmployees = [];
+        renderEmployees();
+        return;
+      }
+      try {
+        const { data, error } = await supabaseClient
+          .from("employees")
+          .select("id, cedula, employee_code, full_name, phone, email, position, role_type, jornada, weekly_hours, default_site_id, supervisor_user_id, is_backup, status, notes, sites:default_site_id(site_name)")
+          .eq("project_id", adminProjectId)
+          .order("full_name", { ascending: true });
+        if (error) throw error;
+        adminEmployees = data || [];
+        renderEmployees();
+      } catch (error) {
+        $("employeesTable").innerHTML = `<tr><td colspan="7"><div class="empty">${escapeHtml(adminErrorMessage(error, "No se pudieron cargar funcionarios."))}</div></td></tr>`;
+      }
+    }
+
+    function renderEmployees() {
+      const table = $("employeesTable");
+      if (!table) return;
+      table.innerHTML = adminEmployees.map(employee => `
+        <tr class="${employee.status !== "activo" ? "alert-warn" : ""}">
+          <td><b>${escapeHtml(employee.full_name || "-")}</b><br><span class="subtle">${escapeHtml(employee.email || employee.phone || "")}</span></td>
+          <td>${escapeHtml(employee.cedula || "-")}</td>
+          <td>${escapeHtml(employee.sites?.site_name || "Sin asignar")}</td>
+          <td>${escapeHtml(roleTypeLabel(employee.role_type))}<br><span class="subtle">${escapeHtml(employee.position || "")}${employee.is_backup ? " · Backup" : ""}</span></td>
+          <td>${escapeHtml(employee.jornada || "-")}<br><span class="subtle">${employee.weekly_hours || "-"} h/sem</span></td>
+          <td>${employee.status === "activo" ? `<span class="badge valid">Activo</span>` : `<span class="badge neutral">Inactivo</span>`}</td>
+          <td>
+            <button class="btn small ghost" data-edit-employee="${employee.id}">Editar</button>
+            <button class="btn small ${employee.status === "activo" ? "danger" : "blue"}" data-toggle-employee="${employee.id}" style="margin-top:6px">${employee.status === "activo" ? "Desactivar" : "Activar"}</button>
+          </td>
+        </tr>
+      `).join("") || `<tr><td colspan="7"><div class="empty">No hay funcionarios en este proyecto.</div></td></tr>`;
+    }
+
+    function roleTypeLabel(value) {
+      return {
+        employee: "Funcionario",
+        backup: "Backup",
+        supervisor: "Supervisor",
+        leader: "Líder",
+        manager: "Project Manager"
+      }[value] || value || "Funcionario";
+    }
+
+    function editEmployee(employeeId) {
+      const employee = adminEmployees.find(item => item.id === employeeId);
+      if (!employee) return;
+      $("adminEmployeeCedula").value = employee.cedula || "";
+      $("adminEmployeeName").value = employee.full_name || "";
+      $("adminEmployeePhone").value = employee.phone || "";
+      $("adminEmployeeEmail").value = employee.email || "";
+      $("adminEmployeePosition").value = employee.position || "";
+      $("adminEmployeeRoleType").value = employee.role_type || "employee";
+      $("adminEmployeeJornada").value = employee.jornada || $("adminEmployeeJornada").value;
+      $("adminEmployeeHours").value = employee.weekly_hours || 48;
+      $("adminEmployeeSite").value = employee.default_site_id || "";
+      $("adminEmployeeSupervisor").value = employee.supervisor_user_id || "";
+      $("adminEmployeeIsBackup").checked = Boolean(employee.is_backup);
+      $("adminEmployeeNotes").value = employee.notes || "";
+      toast("Funcionario cargado para edición.");
+    }
+
+    async function toggleEmployee(employeeId) {
+      if (!supabaseClient || !adminAuthorized) {
+        toast("Ingrese con Supabase para cambiar estado.");
+        return;
+      }
+      const employee = adminEmployees.find(item => item.id === employeeId);
+      if (!employee) return;
+      const nextStatus = employee.status === "activo" ? "inactivo" : "activo";
+      try {
+        const { error } = await supabaseClient
+          .from("employees")
+          .update({ status: nextStatus, updated_at: new Date().toISOString() })
+          .eq("id", employeeId);
+        if (error) throw error;
+        toast(nextStatus === "activo" ? "Funcionario activado." : "Funcionario desactivado.");
+        await loadEmployees();
+      } catch (error) {
+        toast(adminErrorMessage(error, "No se pudo cambiar el estado."));
+      }
+    }
+
+    const SCHEDULE_DAYS = [
+      { dow: 1, label: "Lunes" },
+      { dow: 2, label: "Martes" },
+      { dow: 3, label: "Miércoles" },
+      { dow: 4, label: "Jueves" },
+      { dow: 5, label: "Viernes" },
+      { dow: 6, label: "Sábado" },
+      { dow: 0, label: "Domingo" }
+    ];
+
+    function computeExpectedHours(start, end, breakStart, breakEnd) {
+      if (!start || !end) return null;
+      const toMin = (value) => {
+        const [h, m] = value.split(":").map(Number);
+        return (h * 60) + m;
+      };
+      let worked = toMin(end) - toMin(start);
+      if (worked < 0) worked += 24 * 60;
+      if (breakStart && breakEnd) {
+        let rest = toMin(breakEnd) - toMin(breakStart);
+        if (rest < 0) rest += 24 * 60;
+        worked -= rest;
+      }
+      return Math.max(0, Math.round((worked / 60) * 100) / 100);
+    }
+
+    function populateScheduleEmployeeSelect() {
+      const select = $("scheduleEmployeeSelect");
+      if (!select) return;
+      const current = select.value;
+      select.innerHTML = `<option value="">Seleccione funcionario</option>` + adminEmployees
+        .filter(employee => employee.status === "activo")
+        .map(employee => `<option value="${employee.id}">${escapeHtml(employee.full_name || employee.cedula || "Funcionario")}</option>`)
+        .join("");
+      if (current && adminEmployees.some(employee => employee.id === current)) {
+        select.value = current;
+      } else {
+        adminSchedules = {};
+      }
+      renderScheduleEditor();
+    }
+
+    async function loadEmployeeSchedules() {
+      adminSchedules = {};
+      const employeeId = $("scheduleEmployeeSelect")?.value;
+      if (!supabaseClient || !adminAuthorized || !employeeId) {
+        renderScheduleEditor();
+        return;
+      }
+      try {
+        const { data, error } = await supabaseClient
+          .from("schedules")
+          .select("day_of_week, start_time, end_time, break_start_time, break_end_time, is_day_off, expected_hours")
+          .eq("employee_id", employeeId)
+          .eq("effective_from", "2000-01-01");
+        if (error) throw error;
+        (data || []).forEach(row => { adminSchedules[row.day_of_week] = row; });
+        renderScheduleEditor();
+      } catch (error) {
+        toast(adminErrorMessage(error, "No se pudo cargar el horario."));
+      }
+    }
+
+    function renderScheduleEditor() {
+      const table = $("scheduleTable");
+      if (!table) return;
+      const employeeId = $("scheduleEmployeeSelect")?.value;
+      if (!employeeId) {
+        table.innerHTML = `<tr><td colspan="7"><div class="empty">Seleccione un funcionario para definir su horario.</div></td></tr>`;
+        return;
+      }
+      table.innerHTML = SCHEDULE_DAYS.map(day => {
+        const schedule = adminSchedules[day.dow] || {};
+        const off = Boolean(schedule.is_day_off);
+        const time = (value) => value ? value.slice(0, 5) : "";
+        const hoursLabel = off ? "Libre" : (schedule.expected_hours != null ? `${schedule.expected_hours} h` : "—");
+        return `
+          <tr data-dow="${day.dow}" class="${off ? "alert-warn" : ""}">
+            <td><b>${day.label}</b></td>
+            <td><input type="checkbox" class="sch-off" ${off ? "checked" : ""} style="width:auto;min-height:auto"></td>
+            <td><input type="time" class="sch-start" value="${time(schedule.start_time)}" ${off ? "disabled" : ""}></td>
+            <td><input type="time" class="sch-end" value="${time(schedule.end_time)}" ${off ? "disabled" : ""}></td>
+            <td><input type="time" class="sch-bstart" value="${time(schedule.break_start_time)}" ${off ? "disabled" : ""}></td>
+            <td><input type="time" class="sch-bend" value="${time(schedule.break_end_time)}" ${off ? "disabled" : ""}></td>
+            <td><span class="sch-hours subtle">${hoursLabel}</span></td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function onScheduleTableInput(event) {
+      const row = event.target.closest("tr[data-dow]");
+      if (!row) return;
+      const off = row.querySelector(".sch-off").checked;
+      row.classList.toggle("alert-warn", off);
+      ["sch-start", "sch-end", "sch-bstart", "sch-bend"].forEach(cls => {
+        const input = row.querySelector(`.${cls}`);
+        if (input) input.disabled = off;
+      });
+      const hoursEl = row.querySelector(".sch-hours");
+      if (off) { hoursEl.textContent = "Libre"; return; }
+      const hours = computeExpectedHours(
+        row.querySelector(".sch-start").value,
+        row.querySelector(".sch-end").value,
+        row.querySelector(".sch-bstart").value,
+        row.querySelector(".sch-bend").value
+      );
+      hoursEl.textContent = hours != null ? `${hours} h` : "—";
+    }
+
+    async function saveSchedule() {
+      await ensureAdminSession();
+      if (!supabaseClient || !adminAuthorized) {
+        toast("Ingrese con Supabase antes de guardar horarios.");
+        return;
+      }
+      const employeeId = $("scheduleEmployeeSelect").value;
+      if (!employeeId) {
+        toast("Seleccione un funcionario.");
+        return;
+      }
+      const rows = Array.from(document.querySelectorAll("#scheduleTable tr[data-dow]"));
+      const payload = rows.map(row => {
+        const off = row.querySelector(".sch-off").checked;
+        const start = row.querySelector(".sch-start").value || null;
+        const end = row.querySelector(".sch-end").value || null;
+        const breakStart = row.querySelector(".sch-bstart").value || null;
+        const breakEnd = row.querySelector(".sch-bend").value || null;
+        return {
+          employee_id: employeeId,
+          day_of_week: Number(row.dataset.dow),
+          effective_from: "2000-01-01",
+          effective_to: null,
+          is_day_off: off,
+          start_time: off ? null : start,
+          end_time: off ? null : end,
+          break_start_time: off ? null : breakStart,
+          break_end_time: off ? null : breakEnd,
+          expected_hours: off ? 0 : (computeExpectedHours(start, end, breakStart, breakEnd) || 0),
+          updated_at: new Date().toISOString()
+        };
+      });
+      const invalid = payload.find(item => !item.is_day_off && (!item.start_time || !item.end_time));
+      if (invalid) {
+        toast("Los días laborables requieren hora de entrada y salida.");
+        return;
+      }
+      $("saveScheduleBtn").disabled = true;
+      try {
+        const { error } = await supabaseClient
+          .from("schedules")
+          .upsert(payload, { onConflict: "employee_id,day_of_week,effective_from" });
+        if (error) throw error;
+        toast("Horario guardado.");
+        await loadEmployeeSchedules();
+      } catch (error) {
+        toast(adminErrorMessage(error, "No se pudo guardar el horario."));
+      } finally {
+        $("saveScheduleBtn").disabled = false;
+      }
+    }
+
+    function normalizeWeekday(value) {
+      const s = String(value || "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      if (/^[0-6]$/.test(s)) return Number(s);
+      return { domingo: 0, lunes: 1, martes: 2, miercoles: 3, jueves: 4, viernes: 5, sabado: 6 }[s] ?? null;
+    }
+
+    function normalizeImportTime(value) {
+      if (value == null || value === "") return null;
+      if (typeof value === "number") {
+        const totalMin = Math.round(value * 24 * 60);
+        return `${String(Math.floor(totalMin / 60)).padStart(2, "0")}:${String(totalMin % 60).padStart(2, "0")}`;
+      }
+      const match = String(value).trim().match(/^(\d{1,2}):(\d{2})/);
+      return match ? `${match[1].padStart(2, "0")}:${match[2]}` : null;
+    }
+
+    function normalizeImportDate(value) {
+      if (value == null || value === "") return null;
+      if (value instanceof Date) return value.toISOString().slice(0, 10);
+      if (typeof value === "number") return new Date(Date.UTC(1899, 11, 30) + value * 86400000).toISOString().slice(0, 10);
+      const s = String(value).trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+      const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      return m ? `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}` : null;
+    }
+
+    function normalizeImportBool(value) {
+      return ["si", "sí", "s", "true", "1", "x"].includes(String(value ?? "").trim().toLowerCase());
+    }
+
+    async function handleScheduleImportFile(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      if (typeof XLSX === "undefined") { toast("No se cargó la librería de Excel. Revise la conexión."); return; }
+      if (!adminProjectId) { toast("Seleccione el proyecto destino antes de importar."); return; }
+      try {
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: "array" });
+        const sheet = workbook.Sheets["horarios"] || workbook.Sheets[workbook.SheetNames[0]];
+        const matrix = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: null });
+        parseScheduleImport(matrix);
+      } catch (error) {
+        toast("No se pudo leer el archivo: " + (error?.message || ""));
+      }
+    }
+
+    function parseScheduleImport(matrix) {
+      const headerRowIdx = matrix.findIndex(row => Array.isArray(row) && row.some(cell => String(cell || "").trim().toLowerCase() === "employee_code"));
+      if (headerRowIdx === -1) { toast("No encontré la cabecera (employee_code). Revise la plantilla."); return; }
+      const headers = matrix[headerRowIdx].map(cell => String(cell || "").trim().toLowerCase());
+      const col = (name) => headers.indexOf(name);
+      const results = [];
+      matrix.slice(headerRowIdx + 1).forEach(row => {
+        if (!Array.isArray(row) || row.every(cell => cell == null || cell === "")) return;
+        const get = (name) => { const idx = col(name); return idx >= 0 ? row[idx] : null; };
+        const cedula = String(get("cedula") || "").trim();
+        const empCode = String(get("employee_code") || "").trim();
+        if (!cedula && !empCode) return;
+        const weekdayRaw = String(get("weekday") || "").trim();
+        const dow = normalizeWeekday(weekdayRaw);
+        const isOff = normalizeImportBool(get("is_day_off"));
+        const start = normalizeImportTime(get("start_time"));
+        const end = normalizeImportTime(get("end_time"));
+        const breakStart = normalizeImportTime(get("break_start_time"));
+        const breakEnd = normalizeImportTime(get("break_end_time"));
+        const effFrom = normalizeImportDate(get("effective_from")) || "2000-01-01";
+        const effTo = normalizeImportDate(get("effective_to"));
+        const expRaw = get("expected_hours");
+        const employee = adminEmployees.find(item => (cedula && item.cedula === cedula) || (empCode && item.employee_code === empCode));
+        const errors = [];
+        if (!employee) errors.push("funcionario no está en este proyecto");
+        if (dow == null) errors.push("día inválido");
+        if (!isOff && (!start || !end)) errors.push("falta entrada/salida");
+        const expected = isOff ? 0 : (expRaw != null && expRaw !== "" && !isNaN(Number(expRaw)) ? Number(expRaw) : (computeExpectedHours(start, end, breakStart, breakEnd) ?? 0));
+        results.push({
+          display: { who: cedula || empCode || "-", weekday: weekdayRaw || "-", effFrom, effTo },
+          valid: errors.length === 0,
+          errors,
+          record: (employee && dow != null) ? {
+            employee_id: employee.id,
+            day_of_week: dow,
+            effective_from: effFrom,
+            effective_to: effTo,
+            is_day_off: isOff,
+            start_time: isOff ? null : start,
+            end_time: isOff ? null : end,
+            break_start_time: isOff ? null : breakStart,
+            break_end_time: isOff ? null : breakEnd,
+            expected_hours: expected,
+            notes: (get("notes") != null ? String(get("notes")).trim() : "") || null,
+            updated_at: new Date().toISOString()
+          } : null
+        });
+      });
+      scheduleImportRows = results;
+      renderScheduleImportPreview();
+    }
+
+    function renderScheduleImportPreview() {
+      const wrap = $("scheduleImportPreview");
+      if (!wrap) return;
+      if (!scheduleImportRows.length) {
+        wrap.innerHTML = `<div class="empty">Seleccione un archivo para previsualizar.</div>`;
+        if ($("runScheduleImportBtn")) $("runScheduleImportBtn").disabled = true;
+        return;
+      }
+      const ok = scheduleImportRows.filter(item => item.valid).length;
+      const bad = scheduleImportRows.length - ok;
+      const rowsHtml = scheduleImportRows.map(item => `
+        <tr class="${item.valid ? "" : "alert-warn"}">
+          <td>${escapeHtml(item.display.who)}</td>
+          <td>${escapeHtml(item.display.weekday)}</td>
+          <td>${escapeHtml(item.display.effFrom)}${item.display.effTo ? " → " + escapeHtml(item.display.effTo) : ""}</td>
+          <td>${item.valid ? `<span class="badge valid">OK</span>` : `<span class="badge neutral">${escapeHtml(item.errors.join(", "))}</span>`}</td>
+        </tr>
+      `).join("");
+      wrap.innerHTML = `<div class="helper" style="margin-bottom:8px">Válidas: <b>${ok}</b> · Con error: <b>${bad}</b>. Solo se importarán las válidas.</div>
+        <div class="table-wrap"><table><thead><tr><th>Funcionario</th><th>Día</th><th>Vigencia</th><th>Estado</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>`;
+      if ($("runScheduleImportBtn")) $("runScheduleImportBtn").disabled = ok === 0;
+    }
+
+    async function runScheduleImport() {
+      await ensureAdminSession();
+      if (!supabaseClient || !adminAuthorized) { toast("Ingrese con Supabase antes de importar."); return; }
+      const records = scheduleImportRows.filter(item => item.valid).map(item => item.record);
+      if (!records.length) { toast("No hay filas válidas para importar."); return; }
+      $("runScheduleImportBtn").disabled = true;
+      try {
+        for (let i = 0; i < records.length; i += 200) {
+          const batch = records.slice(i, i + 200);
+          const { error } = await supabaseClient
+            .from("schedules")
+            .upsert(batch, { onConflict: "employee_id,day_of_week,effective_from" });
+          if (error) throw error;
+        }
+        toast(`Importados ${records.length} horarios.`);
+        scheduleImportRows = [];
+        if ($("scheduleImportFile")) $("scheduleImportFile").value = "";
+        renderScheduleImportPreview();
+        await loadEmployeeSchedules();
+        await loadAllSchedules();
+      } catch (error) {
+        toast(adminErrorMessage(error, "No se pudo importar."));
+      } finally {
+        if ($("runScheduleImportBtn")) $("runScheduleImportBtn").disabled = false;
+      }
+    }
+
+    const REQUEST_TYPES = {
+      permiso_horas: "Permiso por horas",
+      permiso_dia: "Permiso por día",
+      ausencia_justificada: "Ausencia justificada",
+      vacaciones: "Vacaciones",
+      incapacidad: "Incapacidad",
+      cobertura: "Cobertura en otro local",
+      cambio_horario: "Cambio temporal de horario"
+    };
+
+    function requestTypeLabel(type) {
+      return REQUEST_TYPES[type] || type || "Solicitud";
+    }
+
+    function approvedDayStatus(req) {
+      return {
+        vacaciones: "Vacaciones",
+        incapacidad: "Incapacidad",
+        permiso_dia: "Permiso aprobado",
+        ausencia_justificada: "Ausencia justificada",
+        cobertura: "Cobertura"
+      }[req.request_type] || "Aprobado";
+    }
+
+    function approvedDayComment(req) {
+      switch (req.request_type) {
+        case "vacaciones": return "Funcionario en vacaciones aprobadas.";
+        case "incapacidad": return "Funcionario con incapacidad aprobada.";
+        case "permiso_dia": return "Ausencia con permiso aprobado.";
+        case "ausencia_justificada": return "Ausencia justificada aprobada.";
+        case "cobertura": return `Funcionario cubre temporalmente ${req.cover_site_name || "otro local"}.`;
+        default: return "";
+      }
+    }
+
+    function requestCoversDate(req, dateKey) {
+      const start = localDateKey(req.start_datetime);
+      const end = localDateKey(req.end_datetime);
+      return start <= dateKey && dateKey <= end;
+    }
+
+    function findApprovedRequests(employeeId, dateKey) {
+      return adminRequests.filter(req => req.status === "aprobado" && req.employee_id === employeeId && requestCoversDate(req, dateKey));
+    }
+
+    function populateRequestSelectors() {
+      const empSelect = $("requestEmployeeSelect");
+      if (empSelect) {
+        const current = empSelect.value;
+        empSelect.innerHTML = `<option value="">Seleccione funcionario</option>` + adminEmployees
+          .filter(employee => employee.status === "activo")
+          .map(employee => `<option value="${employee.id}">${escapeHtml(employee.full_name || employee.cedula || "Funcionario")}</option>`)
+          .join("");
+        if (current && adminEmployees.some(e => e.id === current)) empSelect.value = current;
+      }
+      const siteSelect = $("requestCoverSite");
+      if (siteSelect) {
+        siteSelect.innerHTML = `<option value="">Seleccione local</option>` + sites
+          .filter(site => site.activo)
+          .map(site => `<option value="${site.site_id}">${escapeHtml(site.site_name || "")}</option>`)
+          .join("");
+      }
+    }
+
+    async function loadRequests() {
+      adminRequests = [];
+      if (!supabaseClient || !adminAuthorized || !adminProjectId) { renderRequests(); return; }
+      try {
+        const { data, error } = await supabaseClient
+          .from("requests")
+          .select("*, employees(full_name, cedula), cover:cover_site_id(site_name)")
+          .eq("project_id", adminProjectId)
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        adminRequests = (data || []).map(req => ({
+          ...req,
+          employee_name: req.employees?.full_name || req.employees?.cedula || "Funcionario",
+          cover_site_name: req.cover?.site_name || ""
+        }));
+        renderRequests();
+      } catch (error) {
+        const table = $("requestsTable");
+        if (table) table.innerHTML = `<tr><td colspan="7"><div class="empty">${escapeHtml(adminErrorMessage(error, "No se pudieron cargar las solicitudes."))}</div></td></tr>`;
+      }
+    }
+
+    function renderRequests() {
+      const table = $("requestsTable");
+      if (!table) return;
+      const statusBadgeReq = (status) => {
+        if (status === "aprobado") return `<span class="badge valid">Aprobado</span>`;
+        if (status === "rechazado") return `<span class="badge out">Rechazado</span>`;
+        return `<span class="badge neutral">Pendiente</span>`;
+      };
+      table.innerHTML = adminRequests.map(req => {
+        const action = req.status === "pendiente"
+          ? `<button class="btn small blue" data-approve-request="${req.id}">Aprobar</button>
+             <button class="btn small danger" data-reject-request="${req.id}" style="margin-top:6px">Rechazar</button>`
+          : (req.status === "rechazado" && req.rejection_reason
+              ? `<span class="subtle">${escapeHtml(req.rejection_reason)}</span>`
+              : `<span class="subtle">${req.approved_at ? fmtDateTime.format(new Date(req.approved_at)) : ""}</span>`);
+        return `
+          <tr class="${req.status === "pendiente" ? "alert-warn" : ""}">
+            <td><b>${escapeHtml(req.employee_name)}</b></td>
+            <td>${escapeHtml(requestTypeLabel(req.request_type))}${req.request_type === "cobertura" && req.cover_site_name ? `<br><span class="subtle">→ ${escapeHtml(req.cover_site_name)}</span>` : ""}</td>
+            <td>${req.start_datetime ? fmtDateTime.format(new Date(req.start_datetime)) : "-"}</td>
+            <td>${req.end_datetime ? fmtDateTime.format(new Date(req.end_datetime)) : "-"}</td>
+            <td><span class="subtle">${escapeHtml(req.reason || "")}</span></td>
+            <td>${statusBadgeReq(req.status)}</td>
+            <td>${action}</td>
+          </tr>`;
+      }).join("") || `<tr><td colspan="7"><div class="empty">No hay solicitudes en este proyecto.</div></td></tr>`;
+    }
+
+    async function saveRequest() {
+      await ensureAdminSession();
+      if (!supabaseClient || !adminAuthorized) { toast("Ingrese con Supabase antes de crear solicitudes."); return; }
+      if (!adminProjectId) { toast("Seleccione un proyecto."); return; }
+      const employeeId = $("requestEmployeeSelect").value;
+      const type = $("requestType").value;
+      const startRaw = $("requestStart").value;
+      const endRaw = $("requestEnd").value;
+      if (!employeeId || !type || !startRaw || !endRaw) { toast("Complete funcionario, tipo, desde y hasta."); return; }
+      if (new Date(startRaw) > new Date(endRaw)) { toast("La fecha 'Desde' no puede ser mayor que 'Hasta'."); return; }
+      $("saveRequestBtn").disabled = true;
+      try {
+        const { error } = await supabaseClient.from("requests").insert({
+          employee_id: employeeId,
+          project_id: adminProjectId,
+          request_type: type,
+          start_datetime: new Date(startRaw).toISOString(),
+          end_datetime: new Date(endRaw).toISOString(),
+          reason: $("requestReason").value.trim() || null,
+          comments: $("requestComments").value.trim() || null,
+          cover_site_id: type === "cobertura" ? ($("requestCoverSite").value || null) : null,
+          attachment_url: $("requestAttachment").value.trim() || null,
+          status: "pendiente"
+        });
+        if (error) throw error;
+        toast("Solicitud creada (pendiente de aprobación).");
+        ["requestReason", "requestComments", "requestAttachment", "requestStart", "requestEnd"].forEach(id => { if ($(id)) $(id).value = ""; });
+        await loadRequests();
+      } catch (error) {
+        toast(adminErrorMessage(error, "No se pudo crear la solicitud."));
+      } finally {
+        $("saveRequestBtn").disabled = false;
+      }
+    }
+
+    async function approveRequest(id) {
+      await ensureAdminSession();
+      if (!supabaseClient || !adminAuthorized) { toast("Sin permisos para aprobar."); return; }
+      try {
+        const { error } = await supabaseClient.from("requests").update({
+          status: "aprobado",
+          approved_by: adminProfile?.id || null,
+          approved_at: new Date().toISOString(),
+          rejection_reason: null,
+          updated_at: new Date().toISOString()
+        }).eq("id", id);
+        if (error) throw error;
+        toast("Solicitud aprobada. El cálculo ya la considera.");
+        await loadRequests();
+      } catch (error) {
+        toast(adminErrorMessage(error, "No se pudo aprobar."));
+      }
+    }
+
+    async function rejectRequest(id) {
+      const reason = window.prompt("Motivo del rechazo (opcional):", "");
+      if (reason === null) return;
+      await ensureAdminSession();
+      if (!supabaseClient || !adminAuthorized) { toast("Sin permisos para rechazar."); return; }
+      try {
+        const { error } = await supabaseClient.from("requests").update({
+          status: "rechazado",
+          approved_by: adminProfile?.id || null,
+          approved_at: new Date().toISOString(),
+          rejection_reason: reason.trim() || null,
+          updated_at: new Date().toISOString()
+        }).eq("id", id);
+        if (error) throw error;
+        toast("Solicitud rechazada.");
+        await loadRequests();
+      } catch (error) {
+        toast(adminErrorMessage(error, "No se pudo rechazar."));
+      }
+    }
+
+    async function loadAllSchedules() {
+      adminAllSchedules = [];
+      if (!supabaseClient || !adminAuthorized || !adminEmployees.length) return;
+      try {
+        const ids = adminEmployees.map(employee => employee.id);
+        const { data, error } = await supabaseClient
+          .from("schedules")
+          .select("employee_id, day_of_week, effective_from, effective_to, start_time, end_time, break_start_time, break_end_time, is_day_off, expected_hours")
+          .in("employee_id", ids);
+        if (error) throw error;
+        adminAllSchedules = data || [];
+      } catch (error) {
+        adminAllSchedules = [];
+      }
+    }
+
+    function resolveSchedule(employeeId, dow, dateKey) {
+      const candidates = adminAllSchedules.filter(item => item.employee_id === employeeId && item.day_of_week === dow);
+      if (!candidates.length) return null;
+      const covering = candidates.filter(item => item.effective_from !== "2000-01-01"
+        && item.effective_from <= dateKey
+        && (!item.effective_to || item.effective_to >= dateKey));
+      if (covering.length) {
+        covering.sort((a, b) => (a.effective_from < b.effective_from ? 1 : -1));
+        return covering[0];
+      }
+      return candidates.find(item => item.effective_from === "2000-01-01") || null;
+    }
+
+    function minutesFromClock(value) {
+      if (!value) return null;
+      const [h, m] = String(value).slice(0, 5).split(":").map(Number);
+      return (h * 60) + m;
+    }
+
+    function minutesFromTimestamp(ts) {
+      const d = new Date(ts);
+      return (d.getHours() * 60) + d.getMinutes();
+    }
+
+    function clockFromTimestamp(ts) {
+      const d = new Date(ts);
+      return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    }
+
+    function fmtMinutes(min) {
+      const h = Math.floor(min / 60);
+      const m = min % 60;
+      return h > 0 ? `${h}h ${m}m` : `${m}m`;
+    }
+
+    function enumerateDays(fromKey, toKey) {
+      const out = [];
+      const cursor = new Date(fromKey + "T12:00:00");
+      const end = new Date(toKey + "T12:00:00");
+      let guard = 0;
+      while (cursor <= end && guard < 370) {
+        out.push(localDateKey(cursor));
+        cursor.setDate(cursor.getDate() + 1);
+        guard++;
+      }
+      return out;
+    }
+
+    function computeAttendanceRows(fromKey, toKey) {
+      const byKey = {};
+      logs.forEach(log => {
+        if (!log.timestamp || !log.employee_code) return;
+        const key = `${log.employee_code}|${localDateKey(log.timestamp)}`;
+        (byKey[key] = byKey[key] || []).push(log);
+      });
+      const days = enumerateDays(fromKey, toKey);
+      const dayNames = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+      const rows = [];
+      adminEmployees.filter(employee => employee.status === "activo").forEach(employee => {
+        days.forEach(dateKey => {
+          const dow = new Date(dateKey + "T12:00:00").getDay();
+          const schedule = resolveSchedule(employee.id, dow, dateKey);
+          const marks = byKey[`${employee.cedula || ""}|${dateKey}`] || [];
+          const entradas = marks.filter(m => m.check_type === "entrada").sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+          const salidas = marks.filter(m => m.check_type === "salida").sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+          const entrada = entradas[0] || null;
+          const salida = salidas[salidas.length - 1] || null;
+          const offSite = marks.some(m => m.gps_status && m.gps_status !== "valido");
+
+          const approved = findApprovedRequests(employee.id, dateKey);
+          const fullDayReq = approved.find(r => ["vacaciones", "incapacidad", "permiso_dia", "ausencia_justificada", "cobertura"].includes(r.request_type));
+          const permisoHoras = approved.find(r => r.request_type === "permiso_horas");
+          const cambioHorario = approved.find(r => r.request_type === "cambio_horario");
+
+          if (!schedule && !marks.length && !approved.length) return;
+          if (schedule && schedule.is_day_off && !marks.length && !approved.length) return;
+
+          const row = {
+            employee: employee.full_name || employee.cedula,
+            cedula: employee.cedula,
+            dateKey,
+            dayLabel: `${dayNames[dow]} ${dateKey}`,
+            scheduleLabel: "—",
+            entradaLabel: entrada ? clockFromTimestamp(entrada.timestamp) : "—",
+            salidaLabel: salida ? clockFromTimestamp(salida.timestamp) : "—",
+            tardiaMin: 0,
+            earlyMin: 0,
+            workedHours: null,
+            expectedHours: schedule ? Number(schedule.expected_hours || 0) : null,
+            status: "OK",
+            offSite,
+            comment: ""
+          };
+          const parts = [];
+
+          if (fullDayReq) {
+            if (schedule && !schedule.is_day_off) {
+              row.scheduleLabel = `${(schedule.start_time || "").slice(0, 5)}–${(schedule.end_time || "").slice(0, 5)}`;
+            } else if (schedule && schedule.is_day_off) {
+              row.scheduleLabel = "Día libre";
+            }
+            row.status = approvedDayStatus(fullDayReq);
+            parts.push(approvedDayComment(fullDayReq));
+            if (offSite) parts.push("Marca realizada fuera del radio permitido del local asignado.");
+            row.comment = parts.join(" ");
+            rows.push(row);
+            return;
+          }
+
+          if (!schedule) {
+            row.scheduleLabel = "Sin horario";
+            row.status = "Sin horario";
+            parts.push("Funcionario sin horario definido para este día.");
+          } else if (schedule.is_day_off) {
+            row.scheduleLabel = "Día libre";
+            row.status = "Día libre (con marca)";
+            parts.push("Registra marca en día libre programado.");
+          } else {
+            const expStart = minutesFromClock(schedule.start_time);
+            const expEnd = minutesFromClock(schedule.end_time);
+            row.scheduleLabel = `${(schedule.start_time || "").slice(0, 5)}–${(schedule.end_time || "").slice(0, 5)}`;
+
+            if (!marks.length) {
+              row.status = "Ausencia";
+              parts.push(`Ausencia: no registra marcas (horario esperado ${(schedule.start_time || "").slice(0, 5)} a ${(schedule.end_time || "").slice(0, 5)}).`);
+            } else {
+              if (entrada && expStart != null) {
+                row.tardiaMin = Math.max(0, minutesFromTimestamp(entrada.timestamp) - expStart);
+              }
+              if (salida && expEnd != null) {
+                row.earlyMin = Math.max(0, expEnd - minutesFromTimestamp(salida.timestamp));
+              }
+              if (entrada && salida) {
+                let worked = minutesFromTimestamp(salida.timestamp) - minutesFromTimestamp(entrada.timestamp);
+                if (worked < 0) worked += 24 * 60;
+                const bStart = minutesFromClock(schedule.break_start_time);
+                const bEnd = minutesFromClock(schedule.break_end_time);
+                if (bStart != null && bEnd != null) {
+                  let brk = bEnd - bStart;
+                  if (brk < 0) brk += 24 * 60;
+                  worked -= brk;
+                }
+                row.workedHours = Math.max(0, Math.round((worked / 60) * 100) / 100);
+              }
+
+              if (permisoHoras) {
+                row.tardiaMin = 0;
+                row.earlyMin = 0;
+              }
+
+              const flags = [];
+              if (!entrada && salida) { flags.push("Omisión entrada"); parts.push("No registra marca de entrada."); }
+              if (entrada && !salida) { flags.push("Omisión salida"); parts.push("No registra marca de salida."); }
+              if (row.tardiaMin > 0) {
+                flags.push("Tardía");
+                parts.push(`Registra entrada a las ${clockFromTimestamp(entrada.timestamp)}, presentando tardía de ${row.tardiaMin} minutos.`);
+              } else if (entrada) {
+                parts.push(`Entrada puntual a las ${clockFromTimestamp(entrada.timestamp)}.`);
+              }
+              if (row.earlyMin > 0) {
+                flags.push("Salida anticipada");
+                parts.push(`Salida anticipada a las ${clockFromTimestamp(salida.timestamp)}, ${row.earlyMin} minutos antes del horario.`);
+              }
+              if (row.workedHours != null && row.expectedHours) {
+                const diff = Math.round((row.workedHours - row.expectedHours) * 100) / 100;
+                if (Math.abs(diff) >= 0.25) {
+                  parts.push(`Trabajó ${row.workedHours}h de ${row.expectedHours}h esperadas (diferencia ${diff > 0 ? "+" : ""}${diff}h).`);
+                }
+              }
+              if (permisoHoras) parts.push("Permiso por horas aprobado.");
+              if (cambioHorario) parts.push("Cambio temporal de horario aprobado.");
+              row.status = flags.length ? flags.join(" · ") : (permisoHoras ? "Permiso por horas" : "OK");
+            }
+          }
+
+          if (offSite) parts.push("Marca realizada fuera del radio permitido del local asignado.");
+          row.comment = parts.join(" ");
+          rows.push(row);
+        });
+      });
+      return rows;
+    }
+
+    function statusBadge(status) {
+      if (status === "OK") return `<span class="badge valid">OK</span>`;
+      if (status === "Ausencia") return `<span class="badge out">Ausencia</span>`;
+      if (status.startsWith("Día libre") || status === "Sin horario") return `<span class="badge neutral">${escapeHtml(status)}</span>`;
+      return `<span class="badge warn">${escapeHtml(status)}</span>`;
+    }
+
+    function runAttendanceCalc() {
+      const fromKey = $("calcDateFrom").value || todayISO();
+      const toKey = $("calcDateTo").value || fromKey;
+      if (fromKey > toKey) { toast("La fecha 'Desde' no puede ser mayor que 'Hasta'."); return; }
+      if (!adminProjectId) { toast("Seleccione un proyecto."); return; }
+      if (!adminEmployees.length) { toast("No hay funcionarios cargados en este proyecto."); return; }
+
+      lastCalcRows = computeAttendanceRows(fromKey, toKey);
+      const result = $("attendanceCalcResult");
+      const summary = $("attendanceCalcSummary");
+
+      if (!lastCalcRows.length) {
+        result.innerHTML = `<div class="empty">Sin marcas ni novedades en el rango seleccionado.</div>`;
+        summary.innerHTML = "";
+        $("copyCalcCommentsBtn").style.display = "none";
+        return;
+      }
+
+      const tardias = lastCalcRows.filter(r => r.tardiaMin > 0).length;
+      const ausencias = lastCalcRows.filter(r => r.status === "Ausencia").length;
+      const tempranas = lastCalcRows.filter(r => r.earlyMin > 0).length;
+      const fueraSitio = lastCalcRows.filter(r => r.offSite).length;
+      const totalHoras = Math.round(lastCalcRows.reduce((sum, r) => sum + (r.workedHours || 0), 0) * 100) / 100;
+
+      summary.innerHTML = `<div class="helper">Tardías: <b>${tardias}</b> · Ausencias: <b>${ausencias}</b> · Salidas anticipadas: <b>${tempranas}</b> · Marcas fuera de sitio: <b>${fueraSitio}</b> · Horas trabajadas: <b>${totalHoras}</b></div>`;
+
+      result.innerHTML = `<div class="table-wrap"><table>
+        <thead><tr>
+          <th>Funcionario</th><th>Día</th><th>Horario</th><th>Entrada</th><th>Salida</th>
+          <th>Tardía</th><th>Salida ant.</th><th>Horas (trab/esp)</th><th>Estado</th><th>Comentario</th>
+        </tr></thead>
+        <tbody>${lastCalcRows.map(r => `
+          <tr class="${r.status === "Ausencia" ? "alert-warn" : ""}">
+            <td><b>${escapeHtml(r.employee)}</b></td>
+            <td>${escapeHtml(r.dayLabel)}</td>
+            <td>${escapeHtml(r.scheduleLabel)}</td>
+            <td>${escapeHtml(r.entradaLabel)}</td>
+            <td>${escapeHtml(r.salidaLabel)}</td>
+            <td>${r.tardiaMin > 0 ? escapeHtml(fmtMinutes(r.tardiaMin)) : "—"}</td>
+            <td>${r.earlyMin > 0 ? escapeHtml(fmtMinutes(r.earlyMin)) : "—"}</td>
+            <td>${r.workedHours != null ? r.workedHours : "—"}${r.expectedHours ? " / " + r.expectedHours : ""}</td>
+            <td>${statusBadge(r.status)}</td>
+            <td><span class="subtle">${escapeHtml(r.comment)}</span></td>
+          </tr>`).join("")}</tbody>
+      </table></div>`;
+
+      $("copyCalcCommentsBtn").style.display = lastCalcRows.some(r => r.comment) ? "" : "none";
+    }
+
+    function copyCalcComments() {
+      const text = lastCalcRows
+        .filter(r => r.comment)
+        .map(r => `${r.employee} · ${r.dayLabel}: ${r.comment}`)
+        .join("\n");
+      if (!text) { toast("No hay comentarios para copiar."); return; }
+      navigator.clipboard?.writeText(text).then(
+        () => toast("Comentarios copiados."),
+        () => toast("No se pudo copiar al portapapeles.")
+      );
+    }
+
+    async function saveProjectAdmin() {
+      await ensureAdminSession();
+      if (!supabaseClient || !adminAuthorized) {
+        toast("Ingrese con Supabase antes de crear proyectos.");
+        return;
+      }
+      const clientName = $("adminClientName").value.trim();
+      const clientCode = $("adminClientCode").value.trim().toUpperCase();
+      const projectName = $("adminProjectName").value.trim();
+      const projectCode = $("adminProjectCode").value.trim().toUpperCase();
+      if (!clientName || !clientCode || !projectName || !projectCode) {
+        toast("Complete cliente, código cliente, proyecto y código proyecto.");
+        return;
+      }
+      $("saveProjectBtn").disabled = true;
+      try {
+        const { data, error } = await supabaseClient.rpc("admin_create_project", {
+          p_client_name: clientName,
+          p_client_code: clientCode,
+          p_project_name: projectName,
+          p_project_code: projectCode
+        });
+        if (error) throw error;
+        const project = Array.isArray(data) ? data[0] : data;
+        adminProjectId = project?.project_id || null;
+        await loadAdminData();
+        $("adminProjectSelect").value = adminProjectId;
+        toast(`Proyecto creado: ${projectName}`);
+      } catch (error) {
+        toast(adminErrorMessage(error, "No se pudo crear el proyecto."));
+      } finally {
+        $("saveProjectBtn").disabled = false;
+      }
+    }
+
+    async function loadIncidents() {
+      if (!supabaseClient || !adminAuthorized || !adminProjectId) return;
+      try {
+        const { data, error } = await supabaseClient
+          .from("attendance_incidents")
+          .select("id, created_at, incident_type, status, employee_comment, employees(full_name, cedula), sites:site_id(site_name)")
+          .eq("project_id", adminProjectId)
+          .eq("status", "pendiente")
+          .order("created_at", { ascending: false })
+          .limit(200);
+        if (error) throw error;
+        renderIncidents(data || []);
+      } catch (error) {
+        $("incidentsTable").innerHTML = `<tr><td colspan="6"><div class="empty">${escapeHtml(error?.message || "No se pudieron cargar incidencias.")}</div></td></tr>`;
+      }
+    }
+
+    function renderIncidents(items) {
+      $("incidentsTable").innerHTML = items.map(item => `
+        <tr>
+          <td>${fmtDateTime.format(new Date(item.created_at))}</td>
+          <td><b>${escapeHtml(item.employees?.full_name || "-")}</b><br><span class="subtle">${escapeHtml(item.employees?.cedula || "")}</span></td>
+          <td>${escapeHtml(item.sites?.site_name || "Sin sitio")}</td>
+          <td>${escapeHtml(alertLabel(item.incident_type))}</td>
+          <td>${escapeHtml(item.employee_comment || "-")}</td>
+          <td>
+            <button class="btn small blue" data-incident-action="aprobada" data-incident-id="${item.id}">Aprobar</button>
+            <button class="btn small danger" data-incident-action="rechazada" data-incident-id="${item.id}" style="margin-top:6px">Rechazar</button>
+          </td>
+        </tr>
+      `).join("") || `<tr><td colspan="6"><div class="empty">No hay incidencias pendientes.</div></td></tr>`;
+    }
+
+    async function resolveIncident(incidentId, status) {
+      if (!supabaseClient || !adminAuthorized) {
+        toast("Ingrese con Supabase para resolver incidencias.");
+        return;
+      }
+      const comment = window.prompt(status === "aprobada" ? "Comentario de aprobación" : "Comentario de rechazo") || "";
+      try {
+        const { error } = await supabaseClient
+          .from("attendance_incidents")
+          .update({
+            status,
+            supervisor_comment: comment,
+            resolved_at: new Date().toISOString()
+          })
+          .eq("id", incidentId);
+        if (error) throw error;
+        toast(status === "aprobada" ? "Incidencia aprobada." : "Incidencia rechazada.");
+        await loadIncidents();
+      } catch (error) {
+        toast(error?.message || "No se pudo resolver la incidencia.");
+      }
+    }
+
+    function toast(message) {
+      const el = $("toast");
+      el.textContent = message;
+      el.classList.add("show");
+      window.clearTimeout(toast.timer);
+      toast.timer = window.setTimeout(() => el.classList.remove("show"), 3600);
+    }
+
+    function normalizeText(value) {
+      return String(value || "").trim().toLowerCase();
+    }
+
+    function setActiveView(viewId) {
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.view === viewId);
+      });
+      document.querySelectorAll(".view").forEach(view => {
+        view.classList.toggle("active", view.id === viewId);
+      });
+    }
+
+    function uid(prefix) {
+      return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    }
+
+    function todayISO() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function localDateKey(timestamp) {
+      const d = new Date(timestamp);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    }
+
+    function getDeviceInfo() {
+      return {
+        userAgent: navigator.userAgent,
+        platform: navigator.platform || "",
+        language: navigator.language || "",
+        viewport: `${window.innerWidth}x${window.innerHeight}`
+      };
+    }
+
+    function haversineMeters(lat1, lon1, lat2, lon2) {
+      const R = 6371000;
+      const toRad = (value) => value * Math.PI / 180;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    function activeSites() {
+      return sites.filter(site => site.activo);
+    }
+
+    function findSelectedSite() {
+      return sites.find(site => site.site_id === selectedSiteId) || null;
+    }
+
+    function unknownSite() {
+      return {
+        site_id: "SIN-SITIO",
+        site_name: "Sin sitio detectado",
+        provincia: "",
+        canton: "",
+        direccion: "",
+        latitud: null,
+        longitud: null,
+        radio_metros: 0,
+        activo: false
+      };
+    }
+
+    function nearestActiveSite(latitude, longitude) {
+      const candidates = activeSites()
+        .filter(site => Number.isFinite(Number(site.latitud)) && Number.isFinite(Number(site.longitud)))
+        .map(site => ({
+          site,
+          distance: haversineMeters(latitude, longitude, Number(site.latitud), Number(site.longitud))
+        }))
+        .sort((a, b) => a.distance - b.distance);
+      return candidates[0] || null;
+    }
+
+    function fillSelect(selectId, values, allLabel) {
+      const select = $(selectId);
+      const current = select.value;
+      select.innerHTML = `<option value="">${allLabel}</option>` + values
+        .map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`)
+        .join("");
+      select.value = values.includes(current) ? current : "";
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#039;"
+      }[char]));
+    }
+
+    function hydrateEmployee() {
+      const saved = JSON.parse(localStorage.getItem(STORAGE.employee) || "{}");
+      $("employeeName").value = saved.employee_name || "";
+      $("employeeCode").value = saved.employee_code || "";
+    }
+
+    function saveEmployee() {
+      localStorage.setItem(STORAGE.employee, JSON.stringify({
+        employee_name: $("employeeName").value.trim(),
+        employee_code: $("employeeCode").value.trim()
+      }));
+    }
+
+    function clearLocalEmployee() {
+      localStorage.removeItem(STORAGE.employee);
+      localStorage.removeItem(STORAGE.sites);
+      currentEmployee = null;
+      selectedSiteId = "";
+      sites = [];
+      $("employeeCode").value = "";
+      $("employeeName").value = "";
+      $("siteSearch").value = "";
+      $("notes").value = "";
+      $("lastResult").innerHTML = `
+        <span class="badge neutral">Pendiente</span>
+        <div class="status-title">Aún no hay marca en esta sesión</div>
+        <div class="subtle">La hora se registra automáticamente y no puede editarse manualmente.</div>
+      `;
+      renderAll();
+      toast("Datos locales del funcionario borrados de este navegador.");
+    }
+
+    function renderSiteOptions() {
+      const options = activeSites().map(site => {
+        const label = `${site.site_name} | ${site.provincia}, ${site.canton} | ${site.site_id}`;
+        return `<option value="${escapeHtml(label)}"></option>`;
+      }).join("");
+      $("siteOptions").innerHTML = options;
+      fillSelect("filterSite", sites.map(site => site.site_name).sort(), "Todos");
+      fillSelect("filterProvince", [...new Set(sites.map(site => site.provincia).filter(Boolean))].sort(), "Todas");
+      fillSelect("filterCanton", [...new Set(sites.map(site => site.canton).filter(Boolean))].sort(), "Todos");
+      const adminSite = $("adminEmployeeSite");
+      if (adminSite) {
+        const current = adminSite.value;
+        adminSite.innerHTML = sites.length
+          ? `<option value="">Seleccione site</option>` + sites
+            .map(site => `<option value="${escapeHtml(site.site_id)}">${escapeHtml(site.site_name)}</option>`)
+            .join("")
+          : `<option value="">Este proyecto no tiene sites. Cree uno en Locales.</option>`;
+        adminSite.value = sites.some(site => site.site_id === current) ? current : "";
+      }
+    }
+
+    function parseSiteSearch() {
+      const value = $("siteSearch").value;
+      const exact = activeSites().find(site => value.endsWith(`| ${site.site_id}`));
+      selectedSiteId = exact ? exact.site_id : "";
+      renderSelectedSiteInfo();
+    }
+
+    function renderSelectedSiteInfo() {
+      const site = findSelectedSite();
+      const el = $("selectedSiteInfo");
+      if (!site) {
+        el.innerHTML = `<div class="status-title">Detección GPS obligatoria</div><div class="subtle">Al marcar entrada o salida, el sistema detectará el site activo más cercano y validará el radio permitido.</div>`;
+        return;
+      }
+      el.innerHTML = `
+        <span class="badge valid">Activo</span>
+        <div class="status-title">${escapeHtml(site.site_name)}</div>
+        <div class="subtle">${escapeHtml(site.provincia)}, ${escapeHtml(site.canton)} · Radio ${site.radio_metros} m</div>
+        <div class="subtle">${escapeHtml(site.direccion)}</div>
+      `;
+    }
+
+    function validateAttendanceForm() {
+      const cedula = $("employeeCode").value.trim();
+      if (!cedula) {
+        toast("Ingrese la cédula del funcionario.");
+        $("employeeCode").focus();
+        return null;
+      }
+      return { cedula, employeeName: $("employeeName").value.trim() };
+    }
+
+    function isDuplicate(checkType, employeeName, employeeCode, siteId) {
+      const now = Date.now();
+      return logs.some(log => {
+        const sameEmployee = normalizeText(log.employee_name) === normalizeText(employeeName)
+          && normalizeText(log.employee_code) === normalizeText(employeeCode);
+        return sameEmployee
+          && log.site_id === siteId
+          && log.check_type === checkType
+          && now - new Date(log.timestamp).getTime() < DUPLICATE_WINDOW_MS;
+      });
+    }
+
+    function getCurrentPosition() {
+      return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+          reject({ code: "UNSUPPORTED", message: "Geolocalización no disponible" });
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0
+        });
+      });
+    }
+
+    async function registerAttendance(checkType) {
+      const valid = validateAttendanceForm();
+      if (!valid) return;
+
+      setButtonsLoading(true);
+      const employee = currentEmployee?.cedula === valid.cedula ? currentEmployee : await loadEmployeeByCedula();
+      if (!employee) {
+        setButtonsLoading(false);
+        return;
+      }
+
+      const employeeCode = valid.cedula;
+      const employeeName = employee.full_name || valid.employeeName;
+      saveEmployee();
+      let siteForLog = unknownSite();
+      const baseLog = {
+        id: uid("log"),
+        employee_name: employeeName,
+        employee_code: employeeCode,
+        site_id: siteForLog.site_id,
+        site_name: siteForLog.site_name,
+        provincia: siteForLog.provincia,
+        canton: siteForLog.canton,
+        check_type: checkType,
+        timestamp: new Date().toISOString(),
+        latitude: null,
+        longitude: null,
+        accuracy_meters: null,
+        distance_to_site_meters: null,
+        gps_status: "error",
+        device_info: getDeviceInfo(),
+        notes: $("notes").value.trim()
+      };
+
+      try {
+        const position = await getCurrentPosition();
+        const { latitude, longitude, accuracy } = position.coords;
+        const detected = nearestActiveSite(latitude, longitude);
+        if (detected) {
+          siteForLog = detected.site;
+          baseLog.site_id = siteForLog.site_id;
+          baseLog.site_name = siteForLog.site_name;
+          baseLog.provincia = siteForLog.provincia;
+          baseLog.canton = siteForLog.canton;
+          selectedSiteId = siteForLog.site_id;
+          $("siteSearch").value = `${siteForLog.site_name} | ${siteForLog.provincia}, ${siteForLog.canton} | ${siteForLog.site_id}`;
+        }
+        if (isDuplicate(checkType, employeeName, employeeCode, baseLog.site_id)) {
+          toast("Registro duplicado: espere al menos 2 minutos para marcar otra vez.");
+          return;
+        }
+        baseLog.latitude = Number(latitude.toFixed(6));
+        baseLog.longitude = Number(longitude.toFixed(6));
+        baseLog.accuracy_meters = Number.isFinite(accuracy) ? Math.round(accuracy) : null;
+        baseLog.distance_to_site_meters = detected ? Math.round(detected.distance) : null;
+        baseLog.gps_status = detected && detected.distance <= Number(siteForLog.radio_metros) ? "valido" : "fuera_del_sitio";
+        logs.unshift(baseLog);
+        saveLogs();
+        await persistLogToSupabase(baseLog);
+        renderLastResult(baseLog);
+        const accuracyText = baseLog.accuracy_meters > LOW_ACCURACY_METERS ? " Precisión GPS baja." : "";
+        const autoText = ` Local detectado: ${baseLog.site_name}.`;
+        toast(`${checkType === "entrada" ? "Entrada" : "Salida"} registrada.${autoText}${accuracyText}`);
+      } catch (error) {
+        baseLog.gps_status = error && error.code === 1 ? "sin_permiso" : "error";
+        if (isDuplicate(checkType, employeeName, employeeCode, baseLog.site_id)) {
+          toast("Registro duplicado: espere al menos 2 minutos para marcar otra vez.");
+          return;
+        }
+        baseLog.notes = [baseLog.notes, error?.message || "No se pudo obtener ubicación"].filter(Boolean).join(" | ");
+        logs.unshift(baseLog);
+        saveLogs();
+        await persistLogToSupabase(baseLog);
+        renderLastResult(baseLog);
+        toast(baseLog.gps_status === "sin_permiso" ? "Intento registrado sin permiso de ubicación." : "Intento registrado con error de GPS.");
+      } finally {
+        setButtonsLoading(false);
+        renderAll();
+      }
+    }
+
+    function setButtonsLoading(isLoading) {
+      $("checkInBtn").disabled = isLoading;
+      $("checkOutBtn").disabled = isLoading;
+      $("checkInBtn").textContent = isLoading ? "Obteniendo GPS..." : "Registrar entrada";
+      $("checkOutBtn").textContent = isLoading ? "Obteniendo GPS..." : "Registrar salida";
+    }
+
+    function gpsBadge(status) {
+      const map = {
+        valido: ["valid", "Ubicación válida"],
+        fuera_del_sitio: ["out", "Fuera del sitio"],
+        sin_permiso: ["warn", "Sin permiso GPS"],
+        error: ["warn", "Error GPS"]
+      };
+      const [cls, text] = map[status] || ["neutral", status];
+      return `<span class="badge ${cls}">${text}</span>`;
+    }
+
+    function renderLastResult(log) {
+      const precision = log.accuracy_meters == null ? "No disponible" : `${log.accuracy_meters} m`;
+      const distance = log.distance_to_site_meters == null ? "No disponible" : `${log.distance_to_site_meters} m`;
+      const lowAccuracy = log.accuracy_meters > LOW_ACCURACY_METERS ? `<div class="badge warn">Precisión baja</div>` : "";
+      $("lastResult").innerHTML = `
+        ${gpsBadge(log.gps_status)}
+        ${lowAccuracy}
+        <div class="status-title">${log.check_type === "entrada" ? "Entrada" : "Salida"} registrada para ${escapeHtml(log.employee_name)}</div>
+        <div class="subtle">${escapeHtml(log.site_name)} · ${fmtDateTime.format(new Date(log.timestamp))}</div>
+        <div class="subtle">Distancia al local: ${distance} · Precisión: ${precision}</div>
+      `;
+    }
+
+    function filteredLogs() {
+      const date = $("filterDate").value;
+      const employee = normalizeText($("filterEmployee").value);
+      const site = $("filterSite").value;
+      const province = $("filterProvince").value;
+      const canton = $("filterCanton").value;
+      const type = $("filterType").value;
+      const gps = $("filterGps").value;
+      const order = $("filterOrder").value;
+      return logs.filter(log => {
+        const employeeHit = !employee || normalizeText(`${log.employee_name} ${log.employee_code}`).includes(employee);
+        return (!date || localDateKey(log.timestamp) === date)
+          && employeeHit
+          && (!site || log.site_name === site)
+          && (!province || log.provincia === province)
+          && (!canton || log.canton === canton)
+          && (!type || log.check_type === type)
+          && (!gps || log.gps_status === gps);
+      }).sort((a, b) => {
+        const diff = new Date(a.timestamp) - new Date(b.timestamp);
+        return order === "asc" ? diff : -diff;
+      });
+    }
+
+    function renderLogs() {
+      if (!adminAuthorized) {
+        $("logsTable").innerHTML = `<tr><td colspan="8"><div class="empty">Ingrese con una cuenta administrativa para ver registros.</div></td></tr>`;
+        return;
+      }
+      const rows = filteredLogs().map(log => {
+        const alertClass = log.gps_status === "fuera_del_sitio" ? "alert-out" : ["sin_permiso", "error"].includes(log.gps_status) ? "alert-warn" : "";
+        const distance = log.distance_to_site_meters == null ? "-" : `${log.distance_to_site_meters} m`;
+        const accuracy = log.accuracy_meters == null ? "-" : `${log.accuracy_meters} m`;
+        return `
+          <tr class="${alertClass}">
+            <td>${fmtDateTime.format(new Date(log.timestamp))}</td>
+            <td><b>${escapeHtml(log.employee_name)}</b><br><span class="subtle">${escapeHtml(log.employee_code || "-")}</span></td>
+            <td>${escapeHtml(log.site_name)}<br><span class="subtle">${escapeHtml(log.provincia)}, ${escapeHtml(log.canton)}</span></td>
+            <td>${escapeHtml(log.check_type)}</td>
+            <td>${gpsBadge(log.gps_status)}</td>
+            <td>${distance}</td>
+            <td>${accuracy}</td>
+            <td>${escapeHtml(log.notes || "-")}</td>
+          </tr>
+        `;
+      }).join("");
+      $("logsTable").innerHTML = rows || `<tr><td colspan="8"><div class="empty">No hay registros para los filtros seleccionados.</div></td></tr>`;
+    }
+
+    function renderSummary() {
+      if (!adminAuthorized) {
+        $("summaryTable").innerHTML = `<tr><td colspan="7"><div class="empty">Ingrese con una cuenta administrativa para ver el resumen.</div></td></tr>`;
+        $("summaryHint").textContent = "";
+        return;
+      }
+      const filtered = filteredLogs().slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      const groups = new Map();
+      filtered.forEach(log => {
+        const key = `${localDateKey(log.timestamp)}|${normalizeText(log.employee_name)}|${normalizeText(log.employee_code)}|${log.site_id}`;
+        if (!groups.has(key)) {
+          groups.set(key, {
+            date: localDateKey(log.timestamp),
+            employee: log.employee_name,
+            code: log.employee_code,
+            site: log.site_name,
+            entrada: null,
+            salida: null,
+            alerts: []
+          });
+        }
+        const group = groups.get(key);
+        if (log.check_type === "entrada" && (!group.entrada || new Date(log.timestamp) < new Date(group.entrada.timestamp))) group.entrada = log;
+        if (log.check_type === "salida" && (!group.salida || new Date(log.timestamp) > new Date(group.salida.timestamp))) group.salida = log;
+        if (log.gps_status !== "valido") group.alerts.push(log.gps_status);
+        if (log.accuracy_meters > LOW_ACCURACY_METERS) group.alerts.push("precision_baja");
+      });
+
+      const rows = [...groups.values()].reverse().map(group => {
+        let hours = "-";
+        if (group.entrada && group.salida) {
+          const ms = new Date(group.salida.timestamp) - new Date(group.entrada.timestamp);
+          hours = ms >= 0 ? (ms / 3600000).toFixed(2) : "-";
+        }
+        const alerts = [...new Set(group.alerts)];
+        const alertText = alerts.length ? alerts.map(alertLabel).join(", ") : "Sin alertas";
+        return `
+          <tr class="${alerts.length ? "alert-warn" : ""}">
+            <td>${group.date}</td>
+            <td><b>${escapeHtml(group.employee)}</b><br><span class="subtle">${escapeHtml(group.code || "-")}</span></td>
+            <td>${group.entrada ? fmtTime.format(new Date(group.entrada.timestamp)) : "-"}</td>
+            <td>${group.salida ? fmtTime.format(new Date(group.salida.timestamp)) : "-"}</td>
+            <td>${hours}</td>
+            <td>${escapeHtml(group.site)}</td>
+            <td>${escapeHtml(alertText)}</td>
+          </tr>
+        `;
+      }).join("");
+      $("summaryTable").innerHTML = rows || `<tr><td colspan="7"><div class="empty">No hay resumen disponible.</div></td></tr>`;
+      $("summaryHint").textContent = `${groups.size} filas`;
+    }
+
+    function alertLabel(value) {
+      return {
+        fuera_del_sitio: "Fuera del sitio",
+        sin_permiso: "Sin permiso GPS",
+        error: "Error GPS",
+        precision_baja: "Precisión baja"
+      }[value] || value;
+    }
+
+    function renderMetrics() {
+      const todayLogs = logs.filter(log => localDateKey(log.timestamp) === todayISO());
+      $("todayCount").textContent = todayLogs.length;
+      $("validCount").textContent = todayLogs.filter(log => log.gps_status === "valido").length;
+      $("outCount").textContent = todayLogs.filter(log => log.gps_status === "fuera_del_sitio").length;
+      $("gpsWarnCount").textContent = todayLogs.filter(log => ["sin_permiso", "error"].includes(log.gps_status)).length;
+    }
+
+    function resetSiteForm() {
+      $("siteEditId").value = "";
+      $("siteName").value = "";
+      $("siteProvince").value = "";
+      $("siteCanton").value = "";
+      $("siteAddress").value = "";
+      $("siteLat").value = "";
+      $("siteLng").value = "";
+      $("siteRadius").value = "100";
+      $("siteActive").value = "true";
+      $("siteFormTitle").textContent = "Agregar local";
+    }
+
+    function renderSites() {
+      const q = normalizeText($("siteCatalogSearch").value);
+      const filtered = sites.filter(site => {
+        const haystack = normalizeText(`${site.site_name} ${site.provincia} ${site.canton} ${site.direccion} ${site.site_id}`);
+        return !q || haystack.includes(q);
+      });
+      $("siteCount").textContent = `${sites.length}`;
+      $("siteList").innerHTML = filtered.map(site => `
+        <article class="site-card">
+          <div>${site.activo ? `<span class="badge valid">Activo</span>` : `<span class="badge neutral">Inactivo</span>`}</div>
+          <h3>${escapeHtml(site.site_name)}</h3>
+          <div class="site-meta">
+            ${escapeHtml(site.site_id)}<br>
+            ${escapeHtml(site.provincia)}, ${escapeHtml(site.canton)}<br>
+            ${escapeHtml(site.direccion)}<br>
+            ${site.latitud}, ${site.longitud} · ${site.radio_metros} m
+          </div>
+          <div class="site-actions">
+            <button class="btn small ghost" data-edit-site="${escapeHtml(site.site_id)}">Editar</button>
+            <button class="btn small ${site.activo ? "danger" : "blue"}" data-toggle-site="${escapeHtml(site.site_id)}">${site.activo ? "Desactivar" : "Activar"}</button>
+          </div>
+        </article>
+      `).join("") || `<div class="empty">No hay locales con ese criterio.</div>`;
+    }
+
+    async function saveSiteFromForm() {
+      const editId = $("siteEditId").value;
+      const siteName = $("siteName").value.trim();
+      const provincia = $("siteProvince").value.trim();
+      const canton = $("siteCanton").value.trim();
+      const direccion = $("siteAddress").value.trim();
+      const latitud = Number($("siteLat").value);
+      const longitud = Number($("siteLng").value);
+      const radio = Number($("siteRadius").value);
+
+      if (!siteName || !provincia || !canton || !direccion || !Number.isFinite(latitud) || !Number.isFinite(longitud) || !radio) {
+        toast("Complete nombre, provincia, cantón, dirección, coordenadas y radio.");
+        return;
+      }
+
+      if (!adminProjectId) {
+        toast("Seleccione un proyecto en Admin antes de guardar locales.");
+        return;
+      }
+
+      const payload = {
+        site_id: editId || uid("SITE").toUpperCase(),
+        site_code: editId ? (sites.find(site => site.site_id === editId)?.site_code || editId) : uid("SITE").toUpperCase(),
+        site_name: siteName,
+        provincia,
+        canton,
+        direccion,
+        latitud,
+        longitud,
+        radio_metros: Math.max(10, Math.round(radio)),
+        activo: $("siteActive").value === "true"
+      };
+
+      const savedSite = await upsertSiteToSupabase(payload);
+      if (savedSite) {
+        sites = sites.some(site => site.site_id === savedSite.site_id)
+          ? sites.map(site => site.site_id === savedSite.site_id ? savedSite : site)
+          : [...sites, savedSite];
+        saveSites();
+      }
+      resetSiteForm();
+      renderAll();
+      toast("Local guardado.");
+    }
+
+    function editSite(siteId) {
+      const site = sites.find(item => item.site_id === siteId);
+      if (!site) return;
+      $("siteEditId").value = site.site_id;
+      $("siteName").value = site.site_name;
+      $("siteProvince").value = site.provincia;
+      $("siteCanton").value = site.canton;
+      $("siteAddress").value = site.direccion;
+      $("siteLat").value = site.latitud;
+      $("siteLng").value = site.longitud;
+      $("siteRadius").value = site.radio_metros;
+      $("siteActive").value = String(site.activo);
+      $("siteFormTitle").textContent = "Editar local";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    async function toggleSite(siteId) {
+      const updated = sites.find(site => site.site_id === siteId);
+      sites = sites.map(site => site.site_id === siteId ? { ...site, activo: !site.activo } : site);
+      saveSites();
+      const toggled = sites.find(site => site.site_id === siteId);
+      if (updated && toggled) {
+        try {
+          const savedSite = await upsertSiteToSupabase(toggled);
+          if (savedSite) sites = sites.map(site => site.site_id === savedSite.site_id ? savedSite : site);
+        } catch (error) {
+          toast(error?.message || "No se pudo actualizar el local.");
+        }
+      }
+      renderAll();
+      toast("Estado del local actualizado.");
+    }
+
+    async function captureSiteLocation() {
+      $("captureSiteLocationBtn").disabled = true;
+      $("captureSiteLocationBtn").textContent = "Capturando...";
+      try {
+        const position = await getCurrentPosition();
+        $("siteLat").value = position.coords.latitude.toFixed(6);
+        $("siteLng").value = position.coords.longitude.toFixed(6);
+        toast(`Ubicación capturada. Precisión aproximada: ${Math.round(position.coords.accuracy)} m.`);
+      } catch (error) {
+        toast(error?.code === 1 ? "No se concedió permiso de ubicación." : "No se pudo capturar la ubicación.");
+      } finally {
+        $("captureSiteLocationBtn").disabled = false;
+        $("captureSiteLocationBtn").textContent = "Capturar ubicación actual";
+      }
+    }
+
+    async function detectCurrentSite() {
+      const valid = validateAttendanceForm();
+      if (!valid) return;
+      const employee = currentEmployee?.cedula === valid.cedula ? currentEmployee : await loadEmployeeByCedula();
+      if (!employee) return;
+      $("detectSiteBtn").disabled = true;
+      $("detectSiteBtn").textContent = "Detectando...";
+      try {
+        const position = await getCurrentPosition();
+        const { latitude, longitude, accuracy } = position.coords;
+        const detected = nearestActiveSite(latitude, longitude);
+        if (!detected) {
+          toast("No hay sites activos con coordenadas para detectar.");
+          return;
+        }
+        selectedSiteId = detected.site.site_id;
+        $("siteSearch").value = `${detected.site.site_name} | ${detected.site.provincia}, ${detected.site.canton} | ${detected.site.site_id}`;
+        renderSelectedSiteInfo();
+        const status = detected.distance <= Number(detected.site.radio_metros) ? "dentro del radio" : "fuera del radio";
+        const accuracyText = Number.isFinite(accuracy) ? ` Precisión: ${Math.round(accuracy)} m.` : "";
+        toast(`Local detectado: ${detected.site.site_name}, a ${Math.round(detected.distance)} m (${status}).${accuracyText}`);
+      } catch (error) {
+        toast(error?.code === 1 ? "No se concedió permiso de ubicación." : "No se pudo detectar el local.");
+      } finally {
+        $("detectSiteBtn").disabled = false;
+        $("detectSiteBtn").textContent = "Probar detección GPS";
+      }
+    }
+
+    function exportCsv() {
+      const rows = filteredLogs();
+      const headers = [
+        "id", "employee_name", "employee_code", "site_id", "site_name", "provincia", "canton",
+        "check_type", "timestamp", "latitude", "longitude", "accuracy_meters",
+        "distance_to_site_meters", "gps_status", "device_info", "notes"
+      ];
+      const csv = [
+        headers.join(","),
+        ...rows.map(log => headers.map(key => csvValue(key === "device_info" ? JSON.stringify(log[key]) : log[key])).join(","))
+      ].join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `asistencia_${todayISO()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function csvValue(value) {
+      const text = String(value ?? "");
+      return /[",\n]/.test(text) ? `"${text.replace(/"/g, "\"\"")}"` : text;
+    }
+
+    function renderAll() {
+      renderSiteOptions();
+      renderSelectedSiteInfo();
+      renderLogs();
+      renderSummary();
+      renderMetrics();
+      renderSites();
+    }
+
+    function bindEvents() {
+      document.querySelectorAll(".tab-btn").forEach(button => {
+        button.addEventListener("click", () => {
+          setActiveView(button.dataset.view);
+        });
+      });
+
+      $("employeeCode").addEventListener("change", () => {
+        saveEmployee();
+        loadEmployeeByCedula();
+      });
+      $("employeeCode").addEventListener("blur", () => {
+        saveEmployee();
+        loadEmployeeByCedula();
+      });
+      $("employeeCode").addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          saveEmployee();
+          loadEmployeeByCedula();
+        }
+      });
+      $("clearEmployeeBtn").addEventListener("click", clearLocalEmployee);
+      $("siteSearch").addEventListener("change", parseSiteSearch);
+      $("siteSearch").addEventListener("input", parseSiteSearch);
+      $("checkInBtn").addEventListener("click", () => registerAttendance("entrada"));
+      $("checkOutBtn").addEventListener("click", () => registerAttendance("salida"));
+      $("detectSiteBtn").addEventListener("click", detectCurrentSite);
+      $("exportCsvBtn").addEventListener("click", exportCsv);
+      $("adminLoginBtn").addEventListener("click", adminLogin);
+      $("adminLogoutBtn").addEventListener("click", adminLogout);
+      $("topLogoutBtn").addEventListener("click", adminLogout);
+      $("saveProjectBtn").addEventListener("click", saveProjectAdmin);
+      $("saveEmployeeAdminBtn").addEventListener("click", saveEmployeeAdmin);
+      $("saveScheduleBtn").addEventListener("click", saveSchedule);
+      $("scheduleEmployeeSelect").addEventListener("change", loadEmployeeSchedules);
+      $("scheduleTable").addEventListener("input", onScheduleTableInput);
+      $("scheduleTable").addEventListener("change", onScheduleTableInput);
+      $("scheduleImportFile").addEventListener("change", handleScheduleImportFile);
+      $("runScheduleImportBtn").addEventListener("click", runScheduleImport);
+      $("runAttendanceCalcBtn").addEventListener("click", runAttendanceCalc);
+      $("copyCalcCommentsBtn").addEventListener("click", copyCalcComments);
+      $("saveRequestBtn").addEventListener("click", saveRequest);
+      $("requestType").addEventListener("change", () => {
+        $("requestCoverWrap").style.display = $("requestType").value === "cobertura" ? "" : "none";
+      });
+      $("requestsTable").addEventListener("click", (event) => {
+        const approveId = event.target.dataset.approveRequest;
+        const rejectId = event.target.dataset.rejectRequest;
+        if (approveId) approveRequest(approveId);
+        if (rejectId) rejectRequest(rejectId);
+      });
+      $("adminProjectSelect").addEventListener("change", (event) => selectAdminProject(event.target.value));
+      $("siteProjectSelect").addEventListener("change", (event) => selectAdminProject(event.target.value));
+      $("refreshIncidentsBtn").addEventListener("click", loadIncidents);
+      $("employeesTable").addEventListener("click", (event) => {
+        const editId = event.target.dataset.editEmployee;
+        const toggleId = event.target.dataset.toggleEmployee;
+        if (editId) editEmployee(editId);
+        if (toggleId) toggleEmployee(toggleId);
+      });
+      $("incidentsTable").addEventListener("click", (event) => {
+        const id = event.target.dataset.incidentId;
+        const action = event.target.dataset.incidentAction;
+        if (id && action) resolveIncident(id, action);
+      });
+      ["filterDate", "filterEmployee", "filterSite", "filterProvince", "filterCanton", "filterType", "filterGps", "filterOrder"]
+        .forEach(id => $(id).addEventListener("input", () => { renderLogs(); renderSummary(); }));
+
+      $("resetSiteFormBtn").addEventListener("click", resetSiteForm);
+      $("saveSiteBtn").addEventListener("click", saveSiteFromForm);
+      $("captureSiteLocationBtn").addEventListener("click", captureSiteLocation);
+      $("siteCatalogSearch").addEventListener("input", renderSites);
+      $("siteList").addEventListener("click", (event) => {
+        const editId = event.target.dataset.editSite;
+        const toggleId = event.target.dataset.toggleSite;
+        if (editId) editSite(editId);
+        if (toggleId) toggleSite(toggleId);
+      });
+    }
+
+    function startClock() {
+      const tick = () => $("clockNow").textContent = fmtDateTime.format(new Date());
+      tick();
+      window.setInterval(tick, 1000);
+    }
+
+    hydrateEmployee();
+    bindEvents();
+    startClock();
+    renderAll();
+    renderScheduleEditor();
+    if ($("calcDateFrom")) $("calcDateFrom").value = todayISO();
+    if ($("calcDateTo")) $("calcDateTo").value = todayISO();
+    loadSupabaseData();
+    refreshAdminSession();
+  </script>
+</body>
+</html>

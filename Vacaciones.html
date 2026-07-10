@@ -1,0 +1,3704 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control de Vacaciones — SBM Corp</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg: #0d0f1a;
+  --surface: #1c2038;
+  --surface-2: #232740;
+  --border: #2a2f4a;
+  --text: #dde3f0;
+  --text-muted: #7a84a0;
+  --header-bg: #090c18;
+  --header-accent: #4f9cf9;
+  --c-advant: #4f9cf9;
+  --c-bayer: #fb923c;
+  --c-dxc: #a78bfa;
+  --c-lseg: #4ade80;
+  --c-mck: #f87171;
+  --c-multipark: #2dd4bf;
+  --c-uberbambu: #fbbf24;
+  --c-ubercedral: #f97316;
+  --c-ubercoe: #a8a29e;
+  --c-wplaces: #f472b6;
+  --c-ops: #94a3b8;
+  --radius: 6px;
+  --shadow: 0 1px 6px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--text); font-size: 13px; }
+
+/* ── HEADER ── */
+.header {
+  background: var(--header-bg);
+  color: white;
+  padding: 0 24px;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  border-bottom: 3px solid var(--header-accent);
+  min-height: 64px;
+}
+.header-brand {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 12px 24px 12px 0;
+  border-right: 1px solid rgba(255,255,255,0.12);
+  min-width: 220px;
+}
+.header-brand .logo { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+.header-brand .sub { font-size: 11px; opacity: 0.5; margin-top: 2px; font-family: 'IBM Plex Mono', monospace; }
+.stat-group {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin-left: auto;
+}
+.stat-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 22px;
+  border-left: 1px solid rgba(255,255,255,0.1);
+  text-align: center;
+  min-width: 90px;
+}
+.stat-box .n { font-size: 26px; font-weight: 700; font-family: 'IBM Plex Mono', monospace; line-height: 1; }
+.stat-box .l { font-size: 10px; opacity: 0.55; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-box .n.warn { color: #ffcc02; }
+.stat-box .n.ok { color: #66bb6a; }
+.last-update { display: flex; align-items: center; padding: 0 20px; border-left: 1px solid rgba(255,255,255,0.1); font-size: 11px; opacity: 0.45; font-family: 'IBM Plex Mono', monospace; white-space: nowrap; }
+
+/* ── TOOLBAR ── */
+.toolbar {
+  background: #0f1220;
+  border-bottom: 1px solid var(--border);
+  padding: 8px 20px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.toolbar label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+select, input[type="text"] {
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 12px;
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+  color-scheme: dark;
+}
+select:focus, input:focus { border-color: var(--header-accent); }
+.sep { width: 1px; background: var(--border); height: 24px; margin: 0 4px; }
+.btn {
+  padding: 6px 13px;
+  border: none;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: filter 0.15s, transform 0.1s;
+}
+.btn:hover { filter: brightness(1.1); }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--header-bg); color: white; }
+.btn-secondary { background: #1e2235; color: var(--text); border: 1px solid var(--border); }
+.btn-success { background: #2E7D32; color: white; }
+.btn-danger  { background: #B71C1C; color: white; }
+.btn-info    { background: #0277BD; color: white; }
+
+/* ── LEGEND ── */
+.legend {
+  background: #0f1220;
+  padding: 6px 20px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+}
+.legend span { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-right: 4px; }
+.leg-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 10px;
+  transition: background 0.15s;
+}
+.leg-item:hover { background: var(--bg); }
+.leg-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+/* ── TABLE WRAPPER ── */
+.table-wrapper {
+  overflow-x: auto;
+  padding: 16px 20px 60px;
+  border-radius: var(--radius);
+}
+.table-wrapper > table {
+  box-shadow: var(--shadow);
+  border-radius: var(--radius);
+}
+
+table {
+  border-collapse: collapse;
+  background: var(--surface);
+  color: #e8edf8;
+  min-width: 900px;
+  width: 100%;
+}
+
+thead th {
+  background: var(--header-bg);
+  color: rgba(255,255,255,0.85);
+  padding: 8px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  letter-spacing: 0.2px;
+}
+thead th.sticky-col  { position: sticky; left: 0;     z-index: 20; text-align: left; }
+thead th.th-proy     { position: sticky; left: 182px; z-index: 19; min-width: 100px; }
+thead th.th-saldo    { position: sticky; left: 284px; z-index: 18; min-width: 60px; }
+thead th.th-nombre { min-width: 180px; padding-left: 14px; }
+thead th.th-proy { min-width: 100px; }
+thead th.th-saldo { min-width: 52px; }
+thead th.th-month { min-width: 68px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; }
+thead th.current-mo { background: #1d4ed8 !important; }
+
+tbody td {
+  padding: 5px 7px;
+  border-bottom: 1px solid #2a2f50;
+  vertical-align: middle;
+}
+tbody td.sticky-col {
+  position: sticky;
+  left: 0;
+  background: #1c2038;
+  z-index: 5;
+  border-right: 2px solid var(--border);
+}
+tbody td.td-proyecto {
+  position: sticky;
+  left: 182px;
+  background: #1c2038;
+  z-index: 4;
+}
+tbody td.td-saldo {
+  position: sticky;
+  left: 284px;
+  background: #1c2038;
+  z-index: 3;
+  border-right: 2px solid var(--border);
+  text-align: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 600;
+  font-size: 13px;
+}
+tr:nth-child(even) td.sticky-col,
+tr:nth-child(even) td.td-proyecto,
+tr:nth-child(even) td.td-saldo { background: #222540; }
+tr:nth-child(even) td { background: #222540; }
+tr:hover td { background: #1a2744 !important; }
+tr:hover td.sticky-col,
+tr:hover td.td-proyecto,
+tr:hover td.td-saldo { background: #1a2744 !important; }
+
+.td-nombre {
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px 5px 14px;
+}
+.td-nombre .proj-strip {
+  width: 3px;
+  height: 16px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  display: inline-block;
+}
+.td-nombre:hover .name-text { text-decoration: underline; }
+.name-text { color: #e8edf8; font-weight:500; }
+
+.td-proyecto { text-align: center; }
+.badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 9px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: white;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.saldo-0 { color: #4b5563; }
+.saldo-low { color: #4ade80; }
+.saldo-med { color: #fb923c; }
+.saldo-high { color: #f87171; background: #1f0808; padding: 1px 6px; border-radius: 4px; }
+
+.month-cell {
+  text-align: center;
+  cursor: pointer;
+  vertical-align: middle;
+  padding: 3px 4px;
+  min-height: 28px;
+  position: relative;
+}
+.month-cell:hover { background: #1a2744 !important; }
+.month-cell.current-mo-cell { background: #1f1a08 !important; }
+.month-cell.current-mo-cell:hover { background: #1a2744 !important; }
+
+.vac-pill {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  color: white;
+  font-family: 'IBM Plex Mono', monospace;
+  cursor: pointer;
+  margin: 1px;
+  white-space: nowrap;
+  transition: filter 0.1s;
+  line-height: 1.4;
+}
+.vac-pill:hover { filter: brightness(1.15); }
+
+/* group row */
+.group-row td {
+  background: #0d0f1a !important;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  color: #a8b4d0;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── MODAL ── */
+.overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(10,20,40,0.6);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+.overlay.open { display: flex; }
+.modal {
+  background: #222540;
+  border-radius: 10px;
+  width: 480px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-md);
+  border-top: 4px solid var(--header-accent);
+}
+.modal-head {
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-head h3 { font-size: 15px; font-weight: 700; color: var(--header-bg); }
+.modal-head .sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+.modal-body { padding: 18px 22px; }
+.modal-foot {
+  padding: 12px 22px 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+  background: #222540;
+  border-radius: 0 0 10px 10px;
+}
+.form-group { margin-bottom: 13px; }
+.form-group label { display: block; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px; }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text);
+  background: #1e2235;
+}
+.form-group input:focus, .form-group select:focus { border-color: var(--header-accent); outline: none; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.divider { border: none; border-top: 1px solid var(--border); margin: 14px 0 16px; }
+
+/* vac list inside modal */
+.vac-list { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 16px; }
+.vac-list-empty { padding: 14px; text-align: center; font-size: 12px; color: #7a8aaa; }
+.vac-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid #2a2f50;
+  font-size: 12px;
+}
+.vac-item:last-child { border-bottom: none; }
+.vac-item:nth-child(even) { background: #222540; }
+.vac-item .info { flex: 1; }
+.vac-item .dates { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 11px; }
+.vac-item .days { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.vac-item .del-btn { background: none; border: none; cursor: pointer; color: #B71C1C; font-size: 16px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+.vac-item .del-btn:hover { background: #fce4e4; }
+.section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 10px; }
+
+/* days auto-pill */
+.auto-days { font-size: 11px; color: #2E7D32; font-weight: 600; margin-top: 3px; display: none; }
+
+/* ── TABS ── */
+.tabs {
+  background: #0f1220;
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  display: flex;
+  gap: 0;
+}
+.tab-btn {
+  padding: 10px 20px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--header-accent); border-bottom-color: var(--header-accent); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── COVERAGE PANEL ── */
+.cov-wrapper { padding: 16px 20px 60px; background: var(--bg); }
+.cov-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.cov-controls label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+.days-pill {
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.15s;
+}
+.days-pill.active { border-color: var(--header-accent); background: var(--header-accent); color: white; }
+
+.cov-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+
+.cov-card {
+  background: var(--surface);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.cov-card-head {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cov-card-head .person { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.cov-card-head .person .icon { font-size: 20px; }
+.cov-card-head .count { font-size: 11px; font-weight: 600; background: rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 10px; }
+.cov-entry {
+  padding: 10px 16px;
+  border-top: 1px solid rgba(0,0,0,0.07);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.cov-entry:nth-child(even) { background: rgba(0,0,0,0.03); }
+.cov-entry .date-block { text-align: center; min-width: 46px; }
+.cov-entry .date-block .day { font-size: 22px; font-weight: 700; font-family: 'IBM Plex Mono', monospace; line-height: 1; }
+.cov-entry .date-block .mon { font-size: 10px; font-weight: 600; text-transform: uppercase; opacity: 0.7; }
+.cov-entry .info { flex: 1; }
+.cov-entry .emp-name { font-weight: 600; font-size: 12px; }
+.cov-entry .meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.cov-entry .days-badge { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; color: white; }
+.today-line { border-left: 3px solid #E65100; }
+.future-line { border-left: 3px solid #1565C0; }
+.cov-empty { text-align: center; padding: 40px; color: var(--text-muted); font-size: 13px; grid-column: 1/-1; }
+.cov-empty .big { font-size: 36px; margin-bottom: 8px; }
+
+/* upcoming tag */
+.tag-today { background: #E65100; color: white; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px; text-transform: uppercase; }
+.tag-soon  { background: #F57F17; color: white; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px; text-transform: uppercase; }
+.tag-upcoming { background: #1565C0; color: white; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px; text-transform: uppercase; }
+
+.cov-card-head .print-btn {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.4);
+  color: white;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: background 0.15s;
+}
+.cov-card-head .print-btn:hover { background: rgba(255,255,255,0.35); }
+
+/* Print coverage sheet */
+#printSheet {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--surface);
+  z-index: 9999;
+  padding: 32px 40px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 13px;
+  overflow-y: auto;
+}
+#printSheet .ps-header { border-bottom: 3px solid #0f1f3d; padding-bottom: 14px; margin-bottom: 20px; }
+#printSheet .ps-header h1 { font-size: 20px; color: #0f1f3d; }
+#printSheet .ps-header .ps-meta { font-size: 12px; color: #6b7280; margin-top: 4px; }
+#printSheet .ps-header .ps-person { font-size: 15px; font-weight: 700; margin-top: 8px; color: #1e88e5; display:flex; align-items:center; gap:6px; }
+#printSheet table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+#printSheet thead th { background: #0f1f3d; color: white; padding: 9px 12px; text-align: left; font-size: 12px; }
+#printSheet tbody td { padding: 9px 12px; border: 1px solid #d8dee8; font-size: 13px; vertical-align: middle; color:#111827; background:#fff; }
+#printSheet tbody tr:nth-child(even) td { background: #eef3f8; color:#111827; }
+#printSheet .ps-badge { display:inline-block; padding:2px 8px; border-radius:8px; font-size:10px; font-weight:700; color:#111827 !important; background:#fff !important; border:1px solid #9ca3af; }
+#printSheet .ps-status { display:inline-block; padding:2px 7px; border-radius:4px; font-size:10px; font-weight:700; color:#111827 !important; background:#fff !important; border:1px solid #9ca3af; white-space:nowrap; }
+#printSheet .ps-section { margin: 18px 0 8px; padding: 8px 10px; background:#e8eef7; border-left:4px solid #0f1f3d; color:#0f1f3d; font-weight:700; }
+#printSheet .ps-footer { margin-top: 28px; padding-top: 14px; border-top: 1px solid #e2e5ea; font-size: 11px; color: #9ca3af; display:flex; justify-content:space-between; }
+#printSheet .no-print-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #0f1f3d; padding: 10px 20px; display: flex; gap: 10px; align-items: center; }
+#printSheet .no-print-bar span { color: rgba(255,255,255,0.7); font-size: 12px; flex:1; }
+
+@media print {
+  body > *:not(#printSheet) { display: none !important; }
+  #printSheet { display: block !important; position: static !important; padding: 0 !important; background:#fff !important; color:#111827 !important; }
+  #printSheet .no-print-bar { display: none !important; }
+  #printSheet tbody td,
+  #printSheet tbody tr:nth-child(even) td { background:#fff !important; color:#111827 !important; border:1px solid #9ca3af !important; }
+  #printSheet thead th { background:#0f1f3d !important; color:#fff !important; }
+  #printSheet .ps-badge,
+  #printSheet .ps-status { background:#fff !important; color:#111827 !important; border:1px solid #6b7280 !important; }
+  * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+}
+
+/* ── DOCUMENTOS / UNIFORMES ── */
+.status-pill { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:999px; font-size:10px; font-weight:700; white-space:nowrap; }
+.status-ok     { background:#052e16; color:#4ade80; }
+.status-warn   { background:#1c0a00; color:#fb923c; }
+.status-danger { background:#1f0808; color:#f87171; }
+.status-muted  { background:#252a45; color:#9aa3c0; }
+.info-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(290px,1fr)); gap:14px; }
+.info-card { background:var(--surface); border-radius:8px; box-shadow:var(--shadow); border:1px solid var(--border); overflow:hidden; }
+.info-card-head { padding:12px 14px; display:flex; justify-content:space-between; gap:10px; align-items:flex-start; border-bottom:1px solid var(--border); }
+.info-card-title { font-size:13px; font-weight:700; color:var(--header-bg); }
+.info-card-sub { font-size:11px; color:var(--text-muted); margin-top:2px; }
+.info-card-body { padding:12px 14px; font-size:12px; }
+.info-row { display:flex; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:1px dashed #edf0f3; }
+.info-row:last-child { border-bottom:none; }
+.info-row .k { color:var(--text-muted); font-weight:600; }
+.info-row .v { text-align:right; font-weight:600; }
+.uniform-list { margin-top:8px; border-top:1px solid var(--border); }
+.uniform-entry { padding:8px 0; border-bottom:1px solid #f0f2f5; display:flex; justify-content:space-between; gap:10px; }
+.uniform-entry:last-child { border-bottom:none; }
+.uniform-entry .meta { color:var(--text-muted); font-size:11px; margin-top:2px; }
+.saldo-mode { font-size:10px; color:var(--text-muted); }
+.small-note { font-size:11px; color:var(--text-muted); margin-top:4px; }
+
+/* ── CUMPLEAÑOS ── */
+.cumple-month-title {
+  font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;
+  color:var(--header-bg); padding:10px 4px 6px; border-bottom:2px solid var(--header-accent);
+  margin:18px 0 10px; display:flex; align-items:center; gap:8px;
+}
+.cumple-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:10px; margin-bottom:6px; }
+.cumple-card {
+  background:var(--surface); border-radius:8px; padding:12px 14px;
+  box-shadow:var(--shadow); border:1px solid var(--border);
+  display:flex; align-items:center; gap:12px;
+  border-left:4px solid #8e44ad;
+  transition:transform 0.1s;
+}
+.cumple-card:hover { transform:translateY(-1px); }
+.cumple-card.today { background:#2e1065; border-left-color:#8e44ad; box-shadow:0 0 0 2px #ce93d8; }
+.cumple-card.this-week { border-left-color:#c0392b; }
+.cumple-day {
+  font-size:28px; font-weight:800; font-family:'IBM Plex Mono',monospace;
+  color:#8e44ad; line-height:1; min-width:36px; text-align:center;
+}
+.cumple-card.today .cumple-day { color:#6a0dad; }
+.cumple-info { flex:1; }
+.cumple-name { font-size:13px; font-weight:600; }
+.cumple-sub { font-size:11px; color:var(--text-muted); margin-top:2px; }
+.cumple-tag { font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; display:inline-block; margin-top:4px; }
+.tag-hoy    { background:#8e44ad; color:white; }
+.tag-semana { background:#c0392b; color:white; }
+.tag-mes    { background:#1565C0; color:white; }
+.cumple-empty { text-align:center; padding:50px; color:var(--text-muted); font-size:14px; }
+.cumple-empty .big { font-size:48px; margin-bottom:10px; }
+
+.emp-actions { display:flex; justify-content:center; gap:6px; min-width:100px; }
+.icon-btn {
+  border:1px solid var(--border); background:#1e2235; color:var(--text);
+  border-radius:8px; padding:5px 7px; font-size:12px; cursor:pointer;
+  box-shadow:0 1px 3px rgba(15,31,61,0.06);
+}
+.icon-btn:hover { background:#1a2744; border-color:var(--header-accent); }
+.icon-btn.danger { color:#B71C1C; }
+.icon-btn.danger:hover { background:#1f0808; border-color:#7f1d1d; }
+.th-actions  { min-width:108px; }
+.th-ingreso  { min-width:100px; }
+.th-doc      { min-width:115px; }
+.th-uniform  { min-width:115px; }
+.td-ingreso, .td-doc, .td-uniform { text-align:center; font-size:11px; white-space:nowrap; color:#dde6f5; }
+.td-ingreso  { font-family:'IBM Plex Mono',monospace; color:#dde6f5; }
+.ingreso-empty { color:#5a6a8a; font-family:'IBM Plex Sans',sans-serif; }
+.anniv-badge { display:inline-block; margin-top:3px; padding:1px 6px; border-radius:999px; background:#1e3a8a; color:#bfdbfe; font-size:9px; font-weight:700; }
+.anniv-due   { background:#1c0a00; color:#fb923c; }
+.anniv-today { background:#2e1065; color:#c084fc; }
+.saldo-mode  { display:block; margin-top:2px; font-size:9px; color:#8899c0; font-weight:600; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 700px) {
+  .stat-group { display: none; }
+  .table-wrapper { padding: 10px; }
+}
+
+/* Context menu */
+.ctx-menu {
+  position: fixed;
+  background: #222540;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  z-index: 2000;
+  min-width: 160px;
+  overflow: hidden;
+  display: none;
+}
+.ctx-item {
+  padding: 9px 14px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ctx-item:hover { background: #222640; }
+.ctx-item.danger { color: #B71C1C; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-brand">
+    <div class="logo">🗓 Control de Vacaciones</div>
+    <div class="sub">SBM Corp · LRETANA</div>
+  </div>
+  <div class="stat-group">
+    <div class="stat-box"><div class="n" id="sTotal">-</div><div class="l">Funcionarios</div></div>
+    <div class="stat-box"><div class="n warn" id="sPending">-</div><div class="l">Días pendientes</div></div>
+    <div class="stat-box"><div class="n ok" id="sScheduled">-</div><div class="l">Períodos prog.</div></div>
+    <div class="stat-box"><div class="n" id="sAlerts">-</div><div class="l">Con días vencidos</div></div>
+    <div class="stat-box" id="nextBirthdayBox" style="display:none">
+      <div class="n" style="font-size:13px;color:#ce93d8" id="nextBirthday"></div>
+      <div class="l">Próximo cumple</div>
+    </div>
+  </div>
+  <div class="last-update" id="lastUpdate" style="transition:color 0.3s">—</div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <label>Proyecto</label>
+  <select id="filterProy" onchange="renderTable()"><option value="">Todos</option></select>
+
+  <input type="text" id="searchBox" placeholder="🔍 Buscar funcionario..." 
+    style="min-width:200px" oninput="renderTable()">
+
+  <div class="sep"></div>
+  <label>Período</label>
+  <select id="periodMode" onchange="renderTable()">
+    <option value="next12" selected>Próximo año</option>
+    <option value="history2024">Histórico 2024-hoy</option>
+    <option value="custom">Personalizado</option>
+  </select>
+  <label>Desde</label>
+  <select id="yearFrom" onchange="setCustomPeriod(); renderTable()">
+    <option value="2024">2024</option>
+    <option value="2025" selected>2025</option>
+    <option value="2026">2026</option>
+    <option value="2027">2027</option>
+  </select>
+  <label>Hasta</label>
+  <select id="yearTo" onchange="setCustomPeriod(); renderTable()">
+    <option value="2024">2024</option>
+    <option value="2025">2025</option>
+    <option value="2026" selected>2026</option>
+    <option value="2027">2027</option>
+    <option value="2028">2028</option>
+  </select>
+
+  <div class="sep"></div>
+  <button class="btn btn-success" onclick="openVacModal(null,null)">🗓 Nueva Vacación</button>
+  <button class="btn btn-primary" onclick="openAddEmp()">＋ Funcionario</button>
+  <button class="btn btn-info" onclick="syncFromCloud()">☁ Actualizar</button>
+  <button class="btn btn-secondary" onclick="testConnection()" title="Probar y forzar conexión a Supabase">🔌 Reconectar</button>
+  <button class="btn btn-secondary" onclick="exportJSON()">💾 Exportar</button>
+  <button class="btn btn-secondary" onclick="exportConflictExcel()" title="Exportar choques de cobertura a Excel">⚠ Choques Excel</button>
+  <button class="btn btn-secondary" onclick="exportProjectVacationsExcel()" title="Exportar vacaciones del proyecto filtrado a Excel">📊 Excel Proyecto</button>
+  <button class="btn btn-secondary" onclick="printProjectVacations()" title="Imprimir o guardar PDF del proyecto filtrado">🧾 PDF Proyecto</button>
+  <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📂 Importar</button>
+  <button class="btn btn-secondary" onclick="window.print()">🖨 Imprimir</button>
+  <button class="btn btn-danger" onclick="resetData()" title="Volver a datos originales">↺ Reset</button>
+  <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+</div>
+
+<!-- LEGEND -->
+<div class="legend" id="legend">
+  <span>Proyectos:</span>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active" id="tab-gantt" onclick="switchTab('gantt')">📅 Programación General</button>
+  <button class="tab-btn" id="tab-cov" onclick="switchTab('cov')">👥 Próximas Coberturas</button>
+  <button class="tab-btn" id="tab-docs" onclick="switchTab('docs')">🪪 Documentos</button>
+  <button class="tab-btn" id="tab-uniforms" onclick="switchTab('uniforms')">👕 Uniformes</button>
+  <button class="tab-btn" id="tab-cumple" onclick="switchTab('cumple')">🎂 Cumpleaños</button>
+</div>
+
+<div class="tab-panel active" id="panel-gantt">
+<!-- TABLE -->
+<div class="table-wrapper">
+  <table>
+    <thead id="tHead"></thead>
+    <tbody id="tBody"></tbody>
+  </table>
+</div>
+</div>
+
+<!-- COVERAGE PANEL -->
+<div class="tab-panel" id="panel-cov">
+<div class="cov-wrapper">
+  <div class="cov-controls">
+    <label>Ver próximos:</label>
+    <button class="days-pill active" data-days="7"  onclick="setCovDays(7)">7 días</button>
+    <button class="days-pill"        data-days="14" onclick="setCovDays(14)">14 días</button>
+    <button class="days-pill"        data-days="30" onclick="setCovDays(30)">30 días</button>
+    <button class="days-pill"        data-days="60" onclick="setCovDays(60)">60 días</button>
+    <button class="days-pill"        data-days="90" onclick="setCovDays(90)">90 días</button>
+    <div class="sep"></div>
+    <label>Filtrar backup:</label>
+    <select id="covFilter" onchange="renderCoverage()"><option value="">Todas</option></select>
+  </div>
+  <div class="cov-grid" id="covGrid"></div>
+</div>
+</div>
+
+<!-- DOCS PANEL -->
+<div class="tab-panel" id="panel-docs">
+  <div class="cov-wrapper">
+    <div class="cov-controls">
+      <label>Control de identificación:</label>
+      <span style="font-size:12px;color:var(--text-muted)">Ordenado por urgencia de vencimiento. Edite cada funcionario para agregar fechas.</span>
+    </div>
+    <div class="info-grid" id="docsGrid"></div>
+  </div>
+</div>
+
+<!-- UNIFORMS PANEL -->
+<div class="tab-panel" id="panel-uniforms">
+  <div class="cov-wrapper">
+    <div class="cov-controls">
+      <label>Entregas de uniformes:</label>
+      <button class="btn btn-success" onclick="openUniformModal(null)">＋ Registrar entrega</button>
+    </div>
+    <div class="info-grid" id="uniformsGrid"></div>
+  </div>
+</div>
+
+<!-- BIRTHDAY PANEL -->
+<div class="tab-panel" id="panel-cumple">
+  <div class="cov-wrapper">
+    <div class="cov-controls">
+      <label>Mes:</label>
+      <select id="cumpleMes" onchange="renderCumpleanos()">
+        <option value="0">Todos los meses</option>
+        <option value="1">Enero</option><option value="2">Febrero</option>
+        <option value="3">Marzo</option><option value="4">Abril</option>
+        <option value="5">Mayo</option><option value="6">Junio</option>
+        <option value="7">Julio</option><option value="8">Agosto</option>
+        <option value="9">Septiembre</option><option value="10">Octubre</option>
+        <option value="11">Noviembre</option><option value="12">Diciembre</option>
+      </select>
+      <div class="sep"></div>
+      <label>Proyecto:</label>
+      <select id="cumpleProy" onchange="renderCumpleanos()">
+        <option value="">Todos</option>
+      </select>
+    </div>
+    <div id="cumpleGrid"></div>
+  </div>
+</div>
+
+<!-- UNIFORM MODAL -->
+<div class="overlay" id="uniformOverlay">
+  <div class="modal" style="width:500px">
+    <div class="modal-head">
+      <h3>Registrar entrega de uniforme</h3>
+      <div class="sub">Historial operativo por funcionario</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Proyecto</label>
+          <select id="uProy" onchange="populateUniformEmpList()"></select>
+        </div>
+        <div class="form-group">
+          <label>Funcionario</label>
+          <select id="uEmp"></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fecha entrega</label>
+          <input type="date" id="uFecha">
+        </div>
+        <div class="form-group">
+          <label>Tipo</label>
+          <input type="text" id="uTipo" list="uniformTypeList" placeholder="Camisa, pantalón...">
+          <datalist id="uniformTypeList">
+            <option value="Camisa"><option value="Pantalón"><option value="Zapatos">
+            <option value="Gabacha"><option value="Jacket"><option value="Gafete">
+            <option value="EPP"><option value="Uniforme completo">
+          </datalist>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Cantidad</label>
+          <input type="number" id="uCantidad" min="1" value="1">
+        </div>
+        <div class="form-group">
+          <label>Observación / Talla</label>
+          <input type="text" id="uObs" placeholder="Talla, condición, detalle...">
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="closeUniform()">Cancelar</button>
+      <button class="btn btn-success" id="saveUniformBtn" onclick="saveUniform()">✔ Guardar entrega</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="vacOverlay">
+  <div class="modal" style="width:520px">
+    <div class="modal-head">
+      <h3>Programar Vacaciones</h3>
+      <div class="sub" id="vacSub"></div>
+    </div>
+    <div class="modal-body">
+
+      <!-- Step 1: Select employee -->
+      <div style="background:#f0f4f8;border-radius:8px;padding:14px;margin-bottom:16px">
+        <div class="section-title" style="margin-bottom:10px">Funcionario</div>
+        <div class="form-row">
+          <div class="form-group" style="margin-bottom:0">
+            <label>Proyecto</label>
+            <select id="vProy" onchange="onVacProyChange()">
+              <option value="">— Seleccione —</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label>Empleado</label>
+            <select id="vEmp" onchange="onVacEmpChange()">
+              <option value="">— Seleccione —</option>
+            </select>
+          </div>
+        </div>
+        <!-- Employee info strip -->
+        <div id="vEmpInfo" style="display:none;margin-top:10px;padding:8px 10px;background:var(--surface);border-radius:6px;border:1px solid var(--border);display:flex;gap:16px;align-items:center;font-size:12px">
+          <div><span style="color:var(--text-muted);font-size:10px;font-weight:600;text-transform:uppercase">Código</span><br><strong id="vInfoCodigo" style="font-family:'IBM Plex Mono',monospace">—</strong></div>
+          <div><span style="color:var(--text-muted);font-size:10px;font-weight:600;text-transform:uppercase">Cédula</span><br><strong id="vInfoCedula" style="font-family:'IBM Plex Mono',monospace">—</strong></div>
+          <div><span style="color:var(--text-muted);font-size:10px;font-weight:600;text-transform:uppercase">Días disponibles</span><br><strong id="vInfoSaldo" style="font-size:16px">—</strong></div>
+        </div>
+      </div>
+
+      <!-- Vacaciones ya programadas -->
+      <div class="section-title">Vacaciones programadas</div>
+      <div class="vac-list" id="vacListBox"></div>
+
+      <hr class="divider">
+      <div class="section-title" id="vacFormTitle">Agregar período</div>
+      <div id="vacEditNotice" style="display:none;margin:-4px 0 12px;padding:8px 10px;background:#fff8e1;border:1px solid #f6c453;border-radius:6px;color:#7a4d00;font-size:12px">
+        Editando período existente. Guarde para aplicar el ajuste o cancele la edición.
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fecha inicio</label>
+          <input type="date" id="vStart" oninput="autoCalc()">
+        </div>
+        <div class="form-group">
+          <label>Fecha fin</label>
+          <input type="date" id="vEnd" oninput="autoCalc()">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Días de vacaciones <span style="font-size:10px;color:var(--text-muted);font-weight:400">(feriados no cuentan)</span></label>
+          <input type="number" id="vDias" min="1" max="90" placeholder="Auto">
+          <div class="auto-days" id="autoDaysHint"></div>
+        </div>
+        <div class="form-group">
+          <label>Cobertura <span style="font-weight:400;color:#2E7D32;font-size:10px">(pre-llenado con backup principal)</span></label>
+          <input type="text" id="vCobertura" list="coberturaList" placeholder="Quién cubre" autocomplete="off">
+          <datalist id="coberturaList">
+            <option value="Juana Díaz">
+            <option value="Rocio Romero">
+          </datalist>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notas / Observaciones</label>
+        <input type="text" id="vNotas" placeholder="Observaciones opcionales">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" id="cancelVacEditBtn" style="display:none" onclick="cancelVacEdit()">Cancelar edición</button>
+      <button class="btn btn-secondary" onclick="closeVac()">Cancelar</button>
+      <button class="btn btn-success" id="saveVacBtn" onclick="saveVac()">✔ Guardar vacaciones</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── EMPLOYEE MODAL ── -->
+<div class="overlay" id="empOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="empTitle">Funcionario</h3>
+      <div class="sub" id="empSub"></div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nombre completo (Apellidos Nombre)</label>
+        <input type="text" id="eName" placeholder="Ej: Solano Castro Olga María">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Proyecto</label>
+          <select id="eProy">
+            <option>ADVANT</option>
+            <option>BAYER</option>
+            <option>DXC</option>
+            <option>LSEG</option>
+            <option>MCK</option>
+            <option>MULTIPARK</option>
+            <option>UBER BAMBU</option>
+            <option>UBER CEDRAL</option>
+            <option>UBER COE</option>
+            <option>WPLACES AV</option>
+            <option>Operaciones</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Días de saldo</label>
+          <input type="number" id="eSaldo" min="0" max="90" value="0">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Cédula</label>
+          <input type="text" id="eCedula" placeholder="Número de cédula">
+        </div>
+        <div class="form-group">
+          <label>Código</label>
+          <input type="text" id="eCodigo" placeholder="Ej: CR1-0305">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>🎂 Cumpleaños <span style="font-weight:400;color:var(--text-muted);font-size:10px">(día y mes — el año no se guarda)</span></label>
+        <input type="text" id="eCumple" placeholder="DD/MM · ej: 14/03" maxlength="5">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tipo de identificación</label>
+          <select id="eTipoId">
+            <option value="Cédula nacional">Cédula nacional</option>
+            <option value="DIMEX">DIMEX</option>
+            <option value="Pasaporte">Pasaporte</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Vence identificación</label>
+          <input type="date" id="eVenceId">
+          <div class="small-note">Opcional. Genera alertas de vencimiento.</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Fecha de ingreso a la empresa</label>
+        <input type="date" id="eIngreso">
+      </div>
+      <div class="form-group">
+        <label>Días tomados antes del sistema <span style="font-weight:400;color:var(--text-muted);font-size:10px">(vacaciones no registradas aquí)</span></label>
+        <input type="number" id="eAjuste" min="0" value="0" placeholder="0">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="closeEmp()">Cancelar</button>
+      <button class="btn btn-danger" id="deleteEmpBtn" onclick="deleteEmp()" style="display:none; margin-right:auto">🗑 Eliminar</button>
+      <button class="btn btn-success" onclick="saveEmp()">✔ Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Context menu -->
+<div class="ctx-menu" id="ctxMenu">
+  <div class="ctx-item" onclick="ctxVac()">🗓 Programar vacaciones</div>
+  <div class="ctx-item" onclick="ctxEdit()">✏️ Editar funcionario</div>
+  <div class="ctx-item danger" onclick="ctxDelete()">🗑 Eliminar funcionario</div>
+</div>
+
+<!-- PRINT SHEET -->
+<div id="printSheet" style="background:white;color:#1a1d23">
+  <div class="ps-header">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start">
+      <div>
+        <h1>SBM Corp — Programación de Coberturas</h1>
+        <div class="ps-meta" id="ps-meta"></div>
+        <div class="ps-person" id="ps-person"></div>
+      </div>
+      <img src="" style="height:0" id="ps-logo">
+    </div>
+  </div>
+  <div id="ps-body"></div>
+  <div class="ps-footer">
+    <span id="ps-footer-left"></span>
+    <span>Control de Vacaciones · SBM Corp · LRETANA</span>
+  </div>
+  <div class="no-print-bar">
+    <span>Vista previa de impresión para <strong id="ps-name-bar"></strong></span>
+    <button class="btn btn-success" onclick="window.print()">🖨 Imprimir / Guardar PDF</button>
+    <button class="btn btn-secondary" onclick="closePrint()">✕ Cerrar</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// PROJECT COLORS
+// ═══════════════════════════════════════════
+const PC = {
+  'ADVANT':       '#1565C0',
+  'BAYER':        '#E65100',
+  'DXC':          '#6A1B9A',
+  'LSEG':         '#2E7D32',
+  'MCK':          '#B71C1C',
+  'MULTIPARK':    '#00695C',
+  'UBER BAMBU':   '#F57F17',
+  'UBER CEDRAL':  '#BF360C',
+  'UBER COE':     '#4E342E',
+  'WPLACES AV':   '#880E4F',
+  'Operaciones':  '#37474F'
+};
+
+const MONTHS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+// ═══════════════════════════════════════════
+// INITIAL DATA (loaded from company files)
+// ═══════════════════════════════════════════
+const SEED = [
+  {
+    "id": 1,
+    "saldo": 6,
+    "cedula": "603390072",
+    "codigo": "CR1-5038",
+    "nombre": "Quesada Tenorio Evelyn Priscilla",
+    "proyecto": "ADVANT",
+    "vacaciones": [
+      {
+        "fin": "2025-02-11",
+        "dias": 56,
+        "notas": "",
+        "inicio": "2024-12-16",
+        "cobertura": ""
+      },
+      {
+        "fin": "2026-05-29",
+        "dias": 1,
+        "notas": "",
+        "inicio": "2026-05-29",
+        "cobertura": "Juana Díaz"
+      }
+    ],
+    "fechaIngreso": "2021-03-19",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2032-05-03",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 2,
+    "saldo": 0,
+    "cedula": "155837245019",
+    "codigo": "CR1-7253",
+    "nombre": "Romero Maylling Del Carmen",
+    "proyecto": "BAYER",
+    "vacaciones": [],
+    "fechaIngreso": "2025-09-17",
+    "tipoIdentificacion": "DIMEX",
+    "venceIdentificacion": "2026-10-10",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 5,
+    "saldo": 0,
+    "cedula": "602770412",
+    "codigo": "CR1-6382",
+    "nombre": "Mendoza Fajardo Matilde",
+    "proyecto": "BAYER",
+    "vacaciones": [
+      {
+        "fin": "2025-09-21",
+        "dias": 13,
+        "notas": "",
+        "inicio": "2025-09-08",
+        "cobertura": "Juana Díaz"
+      }
+    ],
+    "fechaIngreso": "2024-08-22",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2028-08-05",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 7,
+    "saldo": 0,
+    "cedula": "603690027",
+    "codigo": "CR1-6365",
+    "nombre": "Rodríguez Quesada Marilyn",
+    "proyecto": "BAYER",
+    "vacaciones": [
+      {
+        "fin": "2026-02-25",
+        "dias": 5,
+        "notas": "",
+        "inicio": "2026-02-19",
+        "cobertura": "Juana Díaz"
+      }
+    ],
+    "fechaIngreso": "2024-08-16",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2027-01-25",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 8,
+    "saldo": 0,
+    "cedula": "401740300",
+    "codigo": "CR1-6179",
+    "nombre": "Sánchez Salas Andrea Marcela",
+    "proyecto": "BAYER",
+    "vacaciones": [
+      {
+        "fin": "2025-06-01",
+        "dias": 14,
+        "notas": "",
+        "inicio": "2025-05-19",
+        "cobertura": "Juana Díaz"
+      },
+      {
+        "fin": "2026-05-31",
+        "dias": 14,
+        "notas": "",
+        "inicio": "2026-05-18",
+        "cobertura": "Juana Díaz"
+      }
+    ],
+    "fechaIngreso": "2024-05-24",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2026-11-01",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 9,
+    "saldo": 9,
+    "cedula": "155809915904",
+    "codigo": "CR2-1447",
+    "nombre": "Córdoba Martínez Gioconda del Socorro",
+    "proyecto": "DXC",
+    "vacaciones": [
+      {
+        "fin": "2025-10-06",
+        "dias": 6,
+        "notas": "",
+        "inicio": "2025-10-01",
+        "cobertura": "Juana Díaz"
+      },
+      {
+        "fin": "2025-05-23",
+        "dias": 1,
+        "notas": "",
+        "inicio": "2025-05-23",
+        "cobertura": ""
+      }
+    ],
+    "fechaIngreso": "2024-01-10",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2028-01-09",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 11,
+    "saldo": 11,
+    "cedula": "155836412304",
+    "codigo": "CR2-1469",
+    "nombre": "Castillo Henriquez Catalina",
+    "proyecto": "LSEG",
+    "vacaciones": [
+      {
+        "fin": "2026-06-07",
+        "dias": 7,
+        "notas": "",
+        "inicio": "2026-06-01",
+        "cobertura": "Juana Díaz"
+      }
+    ],
+    "fechaIngreso": "2025-01-20",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2028-11-10",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 12,
+    "saldo": 9,
+    "cedula": "401870281",
+    "codigo": "CR1-0305",
+    "nombre": "Solano Castro Olga María",
+    "proyecto": "LSEG",
+    "vacaciones": [
+      {
+        "fin": "2025-04-12",
+        "dias": 70,
+        "notas": "",
+        "inicio": "2025-02-01",
+        "cobertura": "Juana Díaz"
+      },
+      {
+        "fin": "2025-09-28",
+        "dias": 2,
+        "notas": "",
+        "inicio": "2025-09-27",
+        "cobertura": "Juana Díaz"
+      },
+      {
+        "fin": "2026-07-19",
+        "dias": 14,
+        "notas": "",
+        "inicio": "2026-07-06",
+        "cobertura": "Juana Díaz"
+      }
+    ],
+    "fechaIngreso": "2019-05-22",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2032-02-04",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 13,
+    "saldo": 8,
+    "cedula": "155819584722",
+    "codigo": "CR1-4642",
+    "nombre": "Alemán Mendoza Griselda del Carmen",
+    "proyecto": "MCK",
+    "vacaciones": [
+      {
+        "fin": "2026-01-28",
+        "dias": 28,
+        "notas": "",
+        "inicio": "2025-12-31",
+        "cobertura": "Rocio Romero"
+      },
+      {
+        "fin": "2025-09-10",
+        "dias": 6,
+        "notas": "",
+        "inicio": "2025-09-05",
+        "cobertura": ""
+      },
+      {
+        "fin": "2025-12-28",
+        "dias": 6,
+        "notas": "",
+        "inicio": "2025-12-22",
+        "cobertura": ""
+      }
+    ],
+    "fechaIngreso": "2022-06-30",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2029-08-06",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 14,
+    "saldo": 10,
+    "cedula": "115230399",
+    "codigo": "CR1-6872",
+    "nombre": "Calderón Salas William Gerardo",
+    "proyecto": "MCK",
+    "vacaciones": [],
+    "fechaIngreso": "2025-04-14",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2033-02-02",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 15,
+    "saldo": 11,
+    "cedula": "155816599620",
+    "codigo": "CR1-4475",
+    "nombre": "Duarte Fonseca Elizabeth",
+    "proyecto": "MCK",
+    "vacaciones": [
+      {
+        "fin": "2025-12-24",
+        "dias": 28,
+        "notas": "",
+        "inicio": "2025-11-27",
+        "cobertura": "Juana Díaz"
+      },
+      {
+        "fin": "2025-11-23",
+        "dias": 13,
+        "notas": "",
+        "inicio": "2025-11-11",
+        "cobertura": ""
+      }
+    ],
+    "fechaIngreso": "2022-03-15",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2026-12-27",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 16,
+    "saldo": 2,
+    "cedula": "402750525",
+    "codigo": "CR1-7325",
+    "nombre": "Fernández Acevedo Jason Daniel",
+    "proyecto": "MCK",
+    "vacaciones": [
+      {
+        "fin": "2025-12-27",
+        "dias": 2,
+        "notas": "",
+        "inicio": "2025-12-26",
+        "cobertura": "Juana Díaz"
+      }
+    ],
+    "fechaIngreso": "2025-10-13",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2036-02-04",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 21,
+    "saldo": 2,
+    "cedula": "155806587505",
+    "codigo": "CR1-2876",
+    "nombre": "Ruiz Treminio Arlen Melisa",
+    "proyecto": "MCK",
+    "vacaciones": [
+      {
+        "fin": "2024-12-27",
+        "dias": 56,
+        "notas": "",
+        "inicio": "2024-11-01",
+        "cobertura": "Juana Díaz"
+      },
+      {
+        "fin": "2025-12-28",
+        "dias": 4,
+        "notas": "",
+        "inicio": "2025-12-24",
+        "cobertura": ""
+      }
+    ],
+    "fechaIngreso": "2020-12-02",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2030-11-13",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 22,
+    "saldo": 4,
+    "cedula": "106840521",
+    "codigo": "CR1-6065",
+    "nombre": "Sáenz Cruz Iris",
+    "proyecto": "MCK",
+    "vacaciones": [
+      {
+        "fin": "2026-05-25",
+        "dias": 8,
+        "notas": "",
+        "inicio": "2026-05-18",
+        "cobertura": "Juana Díaz"
+      },
+      {
+        "fin": "2025-12-14",
+        "dias": 14,
+        "notas": "",
+        "inicio": "2025-12-01",
+        "cobertura": "Juana Díaz"
+      },
+      {
+        "fin": "2026-01-04",
+        "dias": 6,
+        "notas": "",
+        "inicio": "2025-12-29",
+        "cobertura": ""
+      }
+    ],
+    "fechaIngreso": "2024-04-02",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2034-05-15",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 23,
+    "saldo": 4,
+    "cedula": "118330702",
+    "codigo": "CR1-6513",
+    "nombre": "Tenorio Solano Ashly Francela",
+    "proyecto": "MCK",
+    "vacaciones": [
+      {
+        "fin": "2025-12-19",
+        "dias": 9,
+        "notas": "",
+        "inicio": "2025-12-11",
+        "cobertura": "Juana Díaz"
+      }
+    ],
+    "fechaIngreso": "2024-10-23",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2034-03-06",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 24,
+    "saldo": 9,
+    "cedula": "155820756118",
+    "codigo": "CR1-4591",
+    "nombre": "Zúñiga González Johana Verónica",
+    "proyecto": "MCK",
+    "vacaciones": [
+      {
+        "fin": "2025-12-29",
+        "dias": 36,
+        "notas": "",
+        "inicio": "2025-11-23",
+        "cobertura": "Juana Díaz"
+      },
+      {
+        "fin": "2026-05-29",
+        "dias": 1,
+        "notas": "",
+        "inicio": "2026-05-29",
+        "cobertura": "Melissa Ruiz"
+      }
+    ],
+    "fechaIngreso": "2022-05-31",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2029-04-25",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 27,
+    "saldo": 2,
+    "cedula": "303350906",
+    "codigo": "CR2-1651",
+    "nombre": "Fernandez Hernández Lilliana",
+    "proyecto": "UBER BAMBU",
+    "vacaciones": [],
+    "fechaIngreso": "2025-12-12",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2028-02-07",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 29,
+    "saldo": 14,
+    "cedula": "155810401823",
+    "codigo": "CR2-1159",
+    "nombre": "Domínguez Narvaéz Rosa Idalia",
+    "proyecto": "UBER CEDRAL",
+    "vacaciones": [
+      {
+        "fin": "2021-03-22",
+        "dias": 4,
+        "notas": "",
+        "inicio": "2021-03-19",
+        "cobertura": "Juana Díaz"
+      },
+      {
+        "fin": "2021-03-31",
+        "dias": 8,
+        "notas": "",
+        "inicio": "2021-03-24",
+        "cobertura": ""
+      },
+      {
+        "fin": "2021-04-05",
+        "dias": 2,
+        "notas": "",
+        "inicio": "2021-04-04",
+        "cobertura": ""
+      },
+      {
+        "fin": "2022-02-27",
+        "dias": 14,
+        "notas": "",
+        "inicio": "2022-02-14",
+        "cobertura": ""
+      },
+      {
+        "fin": "2022-12-31",
+        "dias": 1,
+        "notas": "",
+        "inicio": "2022-12-31",
+        "cobertura": ""
+      },
+      {
+        "fin": "2023-07-16",
+        "dias": 13,
+        "notas": "",
+        "inicio": "2023-07-04",
+        "cobertura": ""
+      },
+      {
+        "fin": "2025-10-26",
+        "dias": 14,
+        "notas": "",
+        "inicio": "2025-10-13",
+        "cobertura": "Juana Díaz"
+      }
+    ],
+    "fechaIngreso": "2020-02-29",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2026-01-04",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 30,
+    "saldo": 7,
+    "cedula": "109460223",
+    "codigo": "CR2-1581",
+    "nombre": "Mena Fonseca Yesenia",
+    "proyecto": "UBER CEDRAL",
+    "vacaciones": [],
+    "fechaIngreso": "2025-07-07",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2036-02-04",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 31,
+    "saldo": 5,
+    "cedula": "603660875",
+    "codigo": "CR2-1226",
+    "nombre": "Acevedo Ramos Kriseidy",
+    "proyecto": "UBER COE",
+    "vacaciones": [
+      {
+        "fin": "2025-02-28",
+        "dias": 6,
+        "notas": "",
+        "inicio": "2025-02-23",
+        "cobertura": ""
+      },
+      {
+        "fin": "2022-08-22",
+        "dias": 7,
+        "notas": "",
+        "inicio": "2022-08-16",
+        "cobertura": "Juana Díaz"
+      },
+      {
+        "fin": "2022-12-31",
+        "dias": 1,
+        "notas": "",
+        "inicio": "2022-12-31",
+        "cobertura": ""
+      },
+      {
+        "fin": "2023-11-05",
+        "dias": 8,
+        "notas": "",
+        "inicio": "2023-10-29",
+        "cobertura": ""
+      },
+      {
+        "fin": "2024-01-07",
+        "dias": 6,
+        "notas": "",
+        "inicio": "2024-01-02",
+        "cobertura": ""
+      },
+      {
+        "fin": "2024-08-03",
+        "dias": 1,
+        "notas": "",
+        "inicio": "2024-08-03",
+        "cobertura": ""
+      },
+      {
+        "fin": "2024-09-07",
+        "dias": 2,
+        "notas": "",
+        "inicio": "2024-09-06",
+        "cobertura": ""
+      },
+      {
+        "fin": "2025-01-30",
+        "dias": 4,
+        "notas": "",
+        "inicio": "2025-01-27",
+        "cobertura": ""
+      },
+      {
+        "fin": "2025-07-20",
+        "dias": 6,
+        "notas": "",
+        "inicio": "2025-07-15",
+        "cobertura": ""
+      },
+      {
+        "fin": "2025-07-21",
+        "dias": 1,
+        "notas": "",
+        "inicio": "2025-07-21",
+        "cobertura": ""
+      },
+      {
+        "fin": "2026-01-11",
+        "dias": 7,
+        "notas": "",
+        "inicio": "2026-01-05",
+        "cobertura": ""
+      }
+    ],
+    "fechaIngreso": "2021-09-06",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2028-02-07",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 32,
+    "saldo": 3,
+    "cedula": "155844923805",
+    "codigo": "CR2-1454",
+    "nombre": "Contreras Blandón Orquidia Vanessa",
+    "proyecto": "UBER COE",
+    "vacaciones": [
+      {
+        "fin": "2025-12-21",
+        "dias": 7,
+        "notas": "",
+        "inicio": "2025-12-15",
+        "cobertura": "Juana Díaz"
+      },
+      {
+        "fin": "2026-01-11",
+        "dias": 7,
+        "notas": "",
+        "inicio": "2026-01-05",
+        "cobertura": ""
+      }
+    ],
+    "fechaIngreso": "2024-11-04",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2026-10-01",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 33,
+    "saldo": 7,
+    "cedula": "155836161334",
+    "codigo": "CR2-1439",
+    "nombre": "Díaz Guadamuz Griselda María",
+    "proyecto": "UBER COE",
+    "vacaciones": [
+      {
+        "fin": "2024-08-01",
+        "dias": 4,
+        "notas": "",
+        "inicio": "2024-07-29",
+        "cobertura": "Juana Díaz"
+      },
+      {
+        "fin": "2024-08-04",
+        "dias": 2,
+        "notas": "",
+        "inicio": "2024-08-03",
+        "cobertura": ""
+      },
+      {
+        "fin": "2024-08-09",
+        "dias": 1,
+        "notas": "",
+        "inicio": "2024-08-09",
+        "cobertura": ""
+      },
+      {
+        "fin": "2024-09-06",
+        "dias": 1,
+        "notas": "",
+        "inicio": "2024-09-06",
+        "cobertura": ""
+      },
+      {
+        "fin": "2024-09-08",
+        "dias": 1,
+        "notas": "",
+        "inicio": "2024-09-08",
+        "cobertura": ""
+      },
+      {
+        "fin": "2025-03-24",
+        "dias": 1,
+        "notas": "",
+        "inicio": "2025-03-24",
+        "cobertura": ""
+      },
+      {
+        "fin": "2025-04-26",
+        "dias": 4,
+        "notas": "",
+        "inicio": "2025-04-23",
+        "cobertura": ""
+      },
+      {
+        "fin": "2026-02-02",
+        "dias": 8,
+        "notas": "",
+        "inicio": "2026-01-26",
+        "cobertura": "Juana Díaz"
+      },
+      {
+        "fin": "2026-05-07",
+        "dias": 2,
+        "notas": "",
+        "inicio": "2026-05-06",
+        "cobertura": "Juana Díaz"
+      }
+    ],
+    "fechaIngreso": "2023-07-20",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2026-12-06",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 34,
+    "saldo": 8,
+    "cedula": "112440122",
+    "codigo": "CR2-1569",
+    "nombre": "Espinoza Villegas María Luisa",
+    "proyecto": "UBER COE",
+    "vacaciones": [],
+    "fechaIngreso": "2025-06-09",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2034-02-06",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 35,
+    "saldo": 9,
+    "cedula": "209260008",
+    "codigo": "CR2-1566",
+    "nombre": "Regalado Malespin David",
+    "proyecto": "UBER COE",
+    "vacaciones": [],
+    "fechaIngreso": "2025-05-26",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2035-01-16",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 36,
+    "saldo": 3,
+    "cedula": "113880143",
+    "codigo": "CR2-1455",
+    "nombre": "Torrentes Cordero Eufemia Tatiana",
+    "proyecto": "UBER COE",
+    "vacaciones": [
+      {
+        "fin": "2025-11-23",
+        "dias": 14,
+        "notas": "",
+        "inicio": "2025-11-10",
+        "cobertura": "Juana Díaz"
+      }
+    ],
+    "fechaIngreso": "2024-11-04",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2034-02-06",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 37,
+    "saldo": 10,
+    "cedula": "115760561",
+    "codigo": "CR2-1142",
+    "nombre": "Torres Marín Bryan Josué",
+    "proyecto": "UBER COE",
+    "vacaciones": [
+      {
+        "fin": "2026-01-06",
+        "dias": 5,
+        "notas": "",
+        "inicio": "2026-01-02",
+        "cobertura": "Juana Díaz"
+      },
+      {
+        "fin": "2025-05-27",
+        "dias": 84,
+        "notas": "",
+        "inicio": "2025-03-01",
+        "cobertura": "Juana Díaz"
+      }
+    ],
+    "fechaIngreso": "2019-04-06",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2034-02-06",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 38,
+    "saldo": 0,
+    "cedula": "155808383703",
+    "codigo": "CR2-1192",
+    "nombre": "Reyes Sánchez Melba María",
+    "proyecto": "WPLACES AV",
+    "vacaciones": [
+      {
+        "fin": "2025-08-04",
+        "dias": 42,
+        "notas": "14 días calendario; se excluyen feriados 25 de julio y 2 de agosto",
+        "inicio": "2025-06-22",
+        "cobertura": "Juana Díaz"
+      },
+      {
+        "fin": "2025-04-30",
+        "dias": 3,
+        "notas": "",
+        "inicio": "2025-04-28",
+        "cobertura": "Juana Díaz"
+      },
+      {
+        "fin": "2025-04-04",
+        "dias": 3,
+        "notas": "",
+        "inicio": "2025-04-02",
+        "cobertura": ""
+      },
+      {
+        "fin": "2025-05-11",
+        "dias": 7,
+        "notas": "",
+        "inicio": "2025-05-05",
+        "cobertura": ""
+      },
+      {
+        "fin": "2026-08-05",
+        "dias": 15,
+        "notas": "",
+        "inicio": "2026-07-20",
+        "cobertura": "Juana Díaz"
+      }
+    ],
+    "fechaIngreso": "2020-08-11",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2026-02-02",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 39,
+    "saldo": 0,
+    "cedula": "108730854",
+    "codigo": "",
+    "nombre": "Retana Villalobos Lilliana",
+    "proyecto": "Operaciones",
+    "vacaciones": [
+      {
+        "fin": "2024-12-30",
+        "dias": 6,
+        "notas": "",
+        "inicio": "2024-12-23",
+        "cobertura": ""
+      },
+      {
+        "fin": "2025-01-13",
+        "dias": 1,
+        "notas": "",
+        "inicio": "2025-01-13",
+        "cobertura": ""
+      }
+    ],
+    "fechaIngreso": "2018-04-09",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2032-09-28",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 40,
+    "saldo": 7,
+    "cedula": "134000433200",
+    "codigo": "CR1-3556",
+    "nombre": "Guevara Cruz Celia",
+    "proyecto": "BAYER",
+    "uniformes": [],
+    "vacaciones": [
+      {
+        "fin": "2024-10-06",
+        "dias": 6,
+        "notas": "",
+        "inicio": "2024-10-01",
+        "cobertura": "Juana Díaz"
+      },
+      {
+        "fin": "2025-11-02",
+        "dias": 7,
+        "notas": "",
+        "inicio": "2025-10-27",
+        "cobertura": ""
+      }
+    ],
+    "fechaIngreso": "2019-07-27",
+    "tipoIdentificacion": "DIMEX",
+    "venceIdentificacion": "2028-01-12",
+    "cumpleanos": ""
+  },
+  {
+    "id": 41,
+    "saldo": 0,
+    "cedula": "",
+    "codigo": "",
+    "nombre": "Cruz María",
+    "proyecto": "MCK",
+    "uniformes": [],
+    "vacaciones": [],
+    "fechaIngreso": "",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "",
+    "cumpleanos": ""
+  },
+  {
+    "id": 42,
+    "saldo": 0,
+    "cedula": "155856737021",
+    "codigo": "",
+    "nombre": "Rodríguez Sánchez Julia",
+    "proyecto": "MCK",
+    "uniformes": [],
+    "vacaciones": [],
+    "fechaIngreso": "2025-11-16",
+    "tipoIdentificacion": "DIMEX",
+    "venceIdentificacion": "2027-09-17",
+    "cumpleanos": ""
+  },
+  {
+    "id": 43,
+    "saldo": 0,
+    "cedula": "11830498",
+    "codigo": "",
+    "nombre": "Diaz Carrero Juana Francisca",
+    "proyecto": "Operaciones",
+    "uniformes": [],
+    "vacaciones": [],
+    "fechaIngreso": "2025-06-23",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2034-03-06",
+    "cumpleanos": ""
+  },
+  {
+    "id": 44,
+    "saldo": 0,
+    "cedula": "702250818",
+    "codigo": "CR1-6935",
+    "nombre": "Ramírez Jiménez Manuel José",
+    "proyecto": "BAYER",
+    "uniformes": [],
+    "vacaciones": [],
+    "fechaIngreso": "2025-05-19",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2034-02-06",
+    "cumpleanos": ""
+  },
+  {
+    "id": 45,
+    "saldo": 0,
+    "cedula": "155820694405",
+    "codigo": "",
+    "nombre": "Romero Dania",
+    "proyecto": "BAYER",
+    "uniformes": [],
+    "vacaciones": [],
+    "fechaIngreso": "2026-09-17",
+    "tipoIdentificacion": "DIMEX",
+    "venceIdentificacion": "2026-09-17",
+    "cumpleanos": ""
+  },
+  {
+    "id": 46,
+    "saldo": 0,
+    "cedula": "155853401908",
+    "codigo": "",
+    "nombre": "Leiva Muñoz Lisbeth",
+    "proyecto": "BAYER",
+    "uniformes": [],
+    "vacaciones": [],
+    "fechaIngreso": "2025-07-21",
+    "tipoIdentificacion": "DIMEX",
+    "venceIdentificacion": "2026-08-13",
+    "cumpleanos": ""
+  },
+  {
+    "id": 47,
+    "saldo": 0,
+    "cedula": "113390424",
+    "codigo": "",
+    "nombre": "Vargas Castillo Yahaira",
+    "proyecto": "MCK",
+    "uniformes": [],
+    "vacaciones": [],
+    "fechaIngreso": "2026-04-16",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2032-02-02",
+    "cumpleanos": ""
+  }
+];
+
+// ═══════════════════════════════════════════
+// SUPABASE CONFIG
+// ═══════════════════════════════════════════
+const SB_URL = 'https://lipkgzneyweiyjoanrcm.supabase.co';
+const SB_KEY = 'sb_publishable_z5RxIO2RbVPaBvvh0GYpOQ_obEe_F8I';
+const SB_TABLE = 'sbm_control_state';
+const SB_ROW_ID = 'vacaciones_lretana';
+
+const SB_HEADERS = {
+  'apikey': SB_KEY,
+  'Authorization': `Bearer ${SB_KEY}`,
+  'Content-Type': 'application/json'
+};
+
+async function sbGet() {
+  const r = await fetch(
+    `${SB_URL}/rest/v1/${SB_TABLE}?id=eq.${SB_ROW_ID}&select=data`,
+    { headers: SB_HEADERS }
+  );
+  if (!r.ok) {
+    const txt = await r.text();
+    throw new Error(`HTTP ${r.status}: ${txt}`);
+  }
+  const rows = await r.json();
+  return (rows && rows[0] && rows[0].data) ? rows[0].data : null;
+}
+
+async function sbSave(data) {
+  const r = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}`, {
+    method: 'POST',
+    headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates' },
+    body: JSON.stringify({
+      id: SB_ROW_ID,
+      app_key: SB_ROW_ID,
+      data: data,
+      updated_at: new Date().toISOString()
+    })
+  });
+  if (!r.ok) {
+    const txt = await r.text();
+    throw new Error(`HTTP ${r.status}: ${txt}`);
+  }
+}
+
+async function testConnection() {
+  showSyncStatus('⏳ Probando conexión...', '#F57F17');
+  try {
+    const r = await fetch(
+      `${SB_URL}/rest/v1/${SB_TABLE}?select=id&limit=1`,
+      { headers: SB_HEADERS }
+    );
+    const txt = await r.text();
+    if (r.ok) {
+      showSyncStatus(`✅ Conexión OK (${r.status}) — subiendo datos...`);
+      await sbSave(emps);
+      showSyncStatus('☁ Datos guardados en Supabase · ' + new Date().toLocaleTimeString('es-CR',{hour:'2-digit',minute:'2-digit'}));
+    } else {
+      showSyncStatus(`❌ Error ${r.status}: ${txt.slice(0,120)}`, '#B71C1C');
+      alert(`Error de Supabase (${r.status}):\n${txt}\n\nPosible causa: RLS activo sin políticas. Vaya a Supabase → Authentication → Policies y desactive RLS en la tabla sbm_control_state.`);
+    }
+  } catch(e) {
+    showSyncStatus(`❌ Sin conexión: ${e.message}`, '#B71C1C');
+    alert(`Error de conexión:\n${e.message}`);
+  }
+}
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let emps = [];
+let curEmpId = null;
+let editEmpId = null;
+let editVacIndex = null;
+let ctxId = null;
+
+const STORAGE_KEY = 'sbm_vac_v3';
+
+function showSyncStatus(msg, color='#2E7D32') {
+  const el = document.getElementById('lastUpdate');
+  el.textContent = msg;
+  el.style.color = color;
+}
+
+async function init() {
+  showSyncStatus('⏳ Cargando desde Supabase...', '#F57F17');
+  try {
+    const cloudData = await sbGet();
+    if (cloudData && Array.isArray(cloudData) && cloudData.length > 0) {
+      emps = cloudData;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(emps));
+      showSyncStatus(`☁ Sincronizado — ${emps.length} funcionarios · ` + new Date().toLocaleTimeString('es-CR',{hour:'2-digit',minute:'2-digit'}));
+    } else {
+      // Supabase vacío — cargar local o SEED y subir automáticamente
+      const raw = localStorage.getItem(STORAGE_KEY);
+      emps = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(SEED));
+      showSyncStatus('⏳ Supabase vacío — subiendo datos...', '#F57F17');
+      try {
+        await sbSave(emps);
+        showSyncStatus('☁ Datos subidos a Supabase · ' + new Date().toLocaleTimeString('es-CR',{hour:'2-digit',minute:'2-digit'}));
+      } catch(e) {
+        showSyncStatus('⚠ Datos cargados localmente (sin conexión)', '#B71C1C');
+      }
+    }
+  } catch(e) {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    emps = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(SEED));
+    showSyncStatus('⚠ Sin conexión — usando respaldo local', '#B71C1C');
+  }
+  normalizeAllCoberturas();
+  populateFilter();
+  buildLegend();
+  // Populate cumpleaños project filter
+  const cumpleProy = document.getElementById('cumpleProy');
+  if (cumpleProy) {
+    cumpleProy.innerHTML = '<option value="">Todos</option>';
+    [...new Set(emps.map(e=>e.proyecto))].sort().forEach(p => {
+      const o=document.createElement('option'); o.value=p; o.textContent=p; cumpleProy.appendChild(o);
+    });
+  }
+  populateCovFilter();
+  refreshCoberturaList();
+  renderTable();
+  updateStats();
+  renderConflictBar();
+}
+
+async function persist() {
+  // Save to localStorage immediately (instant)
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(emps));
+  showSyncStatus('⏳ Guardando en Supabase...', '#F57F17');
+  try {
+    await sbSave(emps);
+    showSyncStatus('☁ Guardado en Supabase · ' + new Date().toLocaleTimeString('es-CR',{hour:'2-digit',minute:'2-digit'}));
+  } catch(e) {
+    showSyncStatus('⚠ Guardado solo local (sin conexión)', '#B71C1C');
+  }
+}
+
+async function syncFromCloud() {
+  showSyncStatus('⏳ Descargando desde Supabase...', '#F57F17');
+  try {
+    const cloudData = await sbGet();
+    if (cloudData && Array.isArray(cloudData)) {
+      emps = cloudData;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(emps));
+      normalizeAllCoberturas();
+      renderTable();
+      updateStats();
+      populateCovFilter();
+      refreshCoberturaList();
+      showSyncStatus('☁ Actualizado desde Supabase · ' + new Date().toLocaleTimeString('es-CR',{hour:'2-digit',minute:'2-digit'}));
+    } else {
+      showSyncStatus('⚠ No se encontraron datos en Supabase', '#E65100');
+    }
+  } catch(e) {
+    showSyncStatus('⚠ Error de conexión: ' + e.message, '#B71C1C');
+  }
+}
+
+// ═══════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════
+function fmtDate(d) {
+  const dt = new Date(d + 'T12:00:00');
+  return dt.toLocaleDateString('es-CR', {day:'2-digit', month:'short'});
+}
+
+function calcEaster(year) {
+  const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4;
+  const f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30;
+  const i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7;
+  const m=Math.floor((a+11*h+22*l)/451);
+  const month=Math.floor((h+l-7*m+114)/31), day=((h+l-7*m+114)%31)+1;
+  return new Date(year,month-1,day);
+}
+
+function crHolidays(year) {
+  const fixed = [
+    `${year}-01-01`, `${year}-04-11`, `${year}-05-01`,
+    `${year}-07-25`, `${year}-08-02`, `${year}-08-15`,
+    `${year}-09-15`, `${year}-10-12`, `${year}-12-25`
+  ];
+  const easter = calcEaster(year);
+  const thu = new Date(easter); thu.setDate(thu.getDate()-3);
+  const fri = new Date(easter); fri.setDate(fri.getDate()-2);
+  fixed.push(thu.toISOString().slice(0,10));
+  fixed.push(fri.toISOString().slice(0,10));
+  return new Set(fixed);
+}
+
+// Cache holidays per year
+const _holidays = {};
+function isHoliday(dateStr) {
+  const y = +dateStr.slice(0,4);
+  if (!_holidays[y]) _holidays[y] = crHolidays(y);
+  return _holidays[y].has(dateStr);
+}
+
+function calendarDays(s, e) {
+  // Días calendario: cuenta todos los días incluyendo fines de semana
+  // Solo se excluyen feriados nacionales de CR
+  let n = 0;
+  let cur = new Date(s + 'T12:00:00');
+  const end = new Date(e + 'T12:00:00');
+  while (cur <= end) {
+    if (!isHoliday(localISODate(cur))) n++;
+    cur.setDate(cur.getDate() + 1);
+  }
+  return n;
+}
+
+function vacationDays(v) {
+  return (v && v.inicio && v.fin) ? calendarDays(v.inicio, v.fin) : (v?.dias || 0);
+}
+
+function vacsInMonth(emp, y, m) {
+  return (emp.vacaciones||[]).filter(v => {
+    const s = new Date(v.inicio+'T12:00:00'), e = new Date(v.fin+'T12:00:00');
+    const mStart = new Date(y, m-1, 1), mEnd = new Date(y, m, 0);
+    return s <= mEnd && e >= mStart;
+  });
+}
+
+function getMonths() {
+  const mode = document.getElementById('periodMode')?.value || 'next12';
+  if (mode === 'next12') {
+    const start = new Date();
+    start.setDate(1);
+    start.setHours(0,0,0,0);
+    const out = [];
+    for (let i = 0; i <= 12; i++) {
+      const d = new Date(start.getFullYear(), start.getMonth() + i, 1);
+      out.push({y: d.getFullYear(), mo: d.getMonth() + 1});
+    }
+    return out;
+  }
+  if (mode === 'history2024') {
+    const now = new Date();
+    const out = [];
+    for (let y = 2024; y <= now.getFullYear(); y++) {
+      const lastMo = y === now.getFullYear() ? now.getMonth() + 1 : 12;
+      for (let mo = 1; mo <= lastMo; mo++) out.push({y, mo});
+    }
+    return out;
+  }
+  const ys = +document.getElementById('yearFrom').value;
+  const ye = +document.getElementById('yearTo').value;
+  const out = [];
+  for (let y = ys; y <= ye; y++)
+    for (let mo = 1; mo <= 12; mo++) out.push({y, mo});
+  return out;
+}
+
+function setCustomPeriod() {
+  const mode = document.getElementById('periodMode');
+  if (mode) mode.value = 'custom';
+}
+
+function localISODate(date = new Date()) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function selectedPeriodRange() {
+  const months = getMonths();
+  const first = months[0];
+  const last = months[months.length - 1];
+  const mode = document.getElementById('periodMode')?.value || 'next12';
+  const end = mode === 'history2024'
+    ? localISODate()
+    : localISODate(new Date(last.y, last.mo, 0));
+  return {
+    start: `${first.y}-${String(first.mo).padStart(2,'0')}-01`,
+    end,
+    label: mode === 'next12' ? 'Próximo año' : (mode === 'history2024' ? 'Histórico 2024-hoy' : `${first.y} a ${last.y}`)
+  };
+}
+
+function vacInSelectedPeriod(v) {
+  const range = selectedPeriodRange();
+  return v.inicio <= range.end && v.fin >= range.start;
+}
+
+// ═══════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════
+function renderTable() {
+  try {
+  const filter = document.getElementById('filterProy').value;
+  const search = (document.getElementById('searchBox').value||'').toLowerCase().trim();
+  const months = getMonths();
+  const now = new Date();
+  const curY = now.getFullYear(), curM = now.getMonth()+1;
+
+  const rows = emps.filter(e => (!filter || e.proyecto === filter) &&
+      (!search || e.nombre.toLowerCase().includes(search)))
+    .sort((a,b) => a.proyecto.localeCompare(b.proyecto) || a.nombre.localeCompare(b.nombre));
+
+  // ── HEAD
+  let hHtml = '<tr>';
+  hHtml += '<th class="sticky-col th-nombre">Funcionario</th>';
+  hHtml += '<th class="th-proy">Proyecto</th>';
+  hHtml += '<th class="th-saldo">Días</th>';
+  hHtml += '<th class="th-ingreso">Ingreso</th>';
+  hHtml += '<th class="th-doc">Identificación</th>';
+  hHtml += '<th class="th-uniform">Uniforme</th>';
+  hHtml += '<th class="th-actions">Acciones</th>';
+  months.forEach(({y,mo}) => {
+    const cur = y===curY && mo===curM;
+    hHtml += `<th class="th-month${cur?' current-mo':''}">${MONTHS[mo-1]}<br>${y}</th>`;
+  });
+  hHtml += '</tr>';
+  document.getElementById('tHead').innerHTML = hHtml;
+
+  // ── BODY
+  let bHtml = '';
+  let lastProy = null;
+
+  rows.forEach(emp => {
+    if (emp.proyecto !== lastProy) {
+      lastProy = emp.proyecto;
+      const c = PC[emp.proyecto]||'#666';
+      bHtml += `<tr class="group-row"><td colspan="${months.length+7}" style="border-left:4px solid ${c}; padding-left:14px">${emp.proyecto}</td></tr>`;
+    }
+
+    const c = PC[emp.proyecto]||'#666';
+    const s = emp.saldo||0;
+    const sCls = s < 0 ? 'saldo-high' : s===0 ? 'saldo-0' : s<=5 ? 'saldo-low' : s<=10 ? 'saldo-med' : 'saldo-high';
+    const sLbl = s < 0 ? `⚠${s}` : `${s}`;
+
+    bHtml += `<tr oncontextmenu="showCtx(event,${emp.id})">`;
+    bHtml += `<td class="sticky-col" style="padding:0">
+      <div class="td-nombre" onclick="openVacModal(${emp.id}, null)" title="Programar vacaciones">
+        <span class="proj-strip" style="background:${c}"></span>
+        <span class="name-text">${emp.nombre}</span>
+      </div>
+    </td>`;
+    bHtml += `<td class="td-proyecto"><span class="badge" style="background:${c}">${emp.proyecto}</span></td>`;
+    bHtml += `<td class="td-saldo">${saldoHtml(emp)}</td>`;
+    bHtml += `<td class="td-ingreso">${ingresoDisplay(emp)}</td>`;
+    bHtml += `<td class="td-doc">${docStatusHtml(emp)}</td>`;
+    bHtml += `<td class="td-uniform">${lastUniformHtml(emp)}</td>`;
+    bHtml += `<td class="td-actions"><div class="emp-actions">
+      <button class="icon-btn" onclick="event.stopPropagation();openEditEmp(${emp.id})" title="Editar">✏️</button>
+      <button class="icon-btn" onclick="event.stopPropagation();openUniformModal(${emp.id})" title="Uniforme">👕</button>
+      <button class="icon-btn danger" onclick="event.stopPropagation();deleteEmpById(${emp.id})" title="Eliminar">🗑</button>
+    </div></td>`;
+
+    months.forEach(({y,mo}) => {
+      const vacs = vacsInMonth(emp, y, mo);
+      const cur = y===curY && mo===curM;
+      let inner = '';
+      vacs.forEach(v => {
+        // Clip displayed days to THIS month's boundaries
+        const mStart = new Date(y, mo-1, 1);
+        const mEnd   = new Date(y, mo, 0);
+        const vS = new Date(v.inicio+'T12:00:00');
+        const vE = new Date(v.fin+'T12:00:00');
+        const dispS = vS < mStart ? mStart : vS;
+        const dispE = vE > mEnd   ? mEnd   : vE;
+        const sd = dispS.getDate(), ed = dispE.getDate();
+        const lbl = sd===ed ? `${sd}` : `${sd}›${ed}`;
+        const continuesPrev = vS < mStart;
+        const continuesNext = vE > mEnd;
+        const prefix = continuesPrev ? '◀' : '';
+        const suffix = continuesNext ? '▶' : '';
+        const tip = `${fmtDate(v.inicio)} al ${fmtDate(v.fin)} · ${vacationDays(v)}d${v.cobertura?' · '+v.cobertura:''}${v.notas?' · '+v.notas:''}`;
+        inner += `<span class="vac-pill" style="background:${c};opacity:${continuesPrev||continuesNext?0.85:1}" onclick="openVacModal(${emp.id},'${y}-${String(mo).padStart(2,'0')}')" title="${tip}">${prefix}${lbl}${suffix}</span>`;
+      });
+      // Birthday cake 🎂 in the employee's birthday month
+      const cumple = emp.cumpleanos||'';
+      if (cumple) {
+        const [dd, mm] = cumple.split('/').map(Number);
+        if (mm === mo) {
+          inner += `<span class="vac-pill" style="background:#8e44ad;cursor:default;font-size:11px" title="🎂 Cumpleaños ${emp.nombre.split(' ')[0]} — ${dd}/${String(mo).padStart(2,'0')}">🎂 ${dd}</span>`;
+        }
+      }
+      const ymStr = `'${y}-${String(mo).padStart(2,'0')}'`;
+      bHtml += `<td class="month-cell${cur?' current-mo-cell':''}" onclick="openVacModal(${emp.id},${ymStr})">${inner}</td>`;
+    });
+
+    bHtml += '</tr>';
+  });
+
+  if (!rows.length) {
+    bHtml = `<tr><td colspan="${months.length+7}" style="text-align:center;padding:40px;color:#9ca3af">Sin funcionarios para mostrar.</td></tr>`;
+  }
+
+  document.getElementById('tBody').innerHTML = bHtml;
+  updateStats();
+  } catch(err) {
+    console.error('renderTable error:', err);
+    showSyncStatus('⚠ Error al renderizar: ' + err.message, '#B71C1C');
+    document.getElementById('tBody').innerHTML = `<tr><td colspan="20" style="text-align:center;padding:30px;color:#B71C1C">
+      Error: ${err.message}<br><small>Abra la consola del navegador (F12) para más detalles.</small>
+    </td></tr>`;
+  }
+}
+
+function updateStats() {
+  const total = emps.length;
+  const pending = emps.reduce((s,e)=>s+calcSaldo(e).total, 0);
+  const sched = emps.reduce((s,e)=>s+(e.vacaciones||[]).length,0);
+  const alerts = emps.filter(e=>calcSaldo(e).vencidas>0).length;
+  document.getElementById('sTotal').textContent = total;
+  document.getElementById('sPending').textContent = pending;
+  document.getElementById('sScheduled').textContent = sched;
+  document.getElementById('sAlerts').textContent = alerts;
+
+  // Next birthday
+  const now = new Date();
+  const curDay = now.getDate(), curMo = now.getMonth()+1;
+  let closest = null, closestDays = 999;
+  emps.forEach(emp => {
+    if (!emp.cumpleanos) return;
+    const [dd, mm] = emp.cumpleanos.split('/').map(Number);
+    if (!dd || !mm) return;
+    // Days until next birthday
+    let d = new Date(now.getFullYear(), mm-1, dd);
+    if (d < now) d = new Date(now.getFullYear()+1, mm-1, dd);
+    const diff = Math.round((d - now) / 86400000);
+    if (diff < closestDays) { closestDays = diff; closest = {emp, dd, mm, diff}; }
+  });
+  const el = document.getElementById('nextBirthday');
+  if (closest) {
+    const label = closest.diff === 0 ? '¡HOY! 🎉' : closest.diff === 1 ? 'mañana' : `en ${closest.diff}d`;
+    el.textContent = `🎂 ${closest.emp.nombre.split(' ')[0]} ${label}`;
+    el.style.display = 'block';
+    document.getElementById('nextBirthdayBox').style.display = 'flex';
+  } else {
+    el.style.display = 'none';
+    document.getElementById('nextBirthdayBox').style.display = 'none';
+  }
+}
+
+function populateFilter() {
+  const proyects = [...new Set(emps.map(e=>e.proyecto))].sort();
+  const sel = document.getElementById('filterProy');
+  proyects.forEach(p => { const o = document.createElement('option'); o.value=p; o.textContent=p; sel.appendChild(o); });
+}
+
+function buildLegend() {
+  const proyects = [...new Set(emps.map(e=>e.proyecto))].sort();
+  const leg = document.getElementById('legend');
+  proyects.forEach(p => {
+    const c = PC[p]||'#666';
+    const div = document.createElement('div');
+    div.className = 'leg-item';
+    div.innerHTML = `<div class="leg-dot" style="background:${c}"></div>${p}`;
+    div.onclick = () => { document.getElementById('filterProy').value = p; renderTable(); };
+    leg.appendChild(div);
+  });
+}
+
+// ═══════════════════════════════════════════
+// VACATION MODAL
+// ═══════════════════════════════════════════
+function openVacModal(empId, ym) {
+  curEmpId = empId;
+  setVacEditMode(null);
+
+  // Populate project dropdown
+  const proyList = [...new Set(emps.map(e=>e.proyecto))].sort();
+  const vProy = document.getElementById('vProy');
+  vProy.innerHTML = '<option value="">— Seleccione —</option>';
+  proyList.forEach(p => { const o=document.createElement('option'); o.value=p; o.textContent=p; vProy.appendChild(o); });
+
+  if (empId) {
+    const emp = emps.find(e=>e.id===empId);
+    if (emp) {
+      vProy.value = emp.proyecto;
+      populateVacEmpList(emp.proyecto);
+      document.getElementById('vEmp').value = empId;
+      showVacEmpInfo(emp);
+    }
+  } else {
+    document.getElementById('vEmp').innerHTML = '<option value="">— Seleccione proyecto primero —</option>';
+    hideVacEmpInfo();
+    document.getElementById('vacListBox').innerHTML = '<div class="vac-list-empty">Seleccione un empleado</div>';
+  }
+
+  // default dates
+  const n = new Date();
+  if (ym) {
+    const [y,m] = ym.split('-');
+    document.getElementById('vStart').value = `${y}-${m}-01`;
+    document.getElementById('vEnd').value   = `${y}-${m}-05`;
+  } else {
+    const yy=n.getFullYear(), mm=String(n.getMonth()+1).padStart(2,'0');
+    document.getElementById('vStart').value = `${yy}-${mm}-01`;
+    document.getElementById('vEnd').value   = `${yy}-${mm}-05`;
+  }
+  document.getElementById('vDias').value='';
+  document.getElementById('vCobertura').value='Juana Díaz';
+  document.getElementById('vNotas').value='';
+  document.getElementById('autoDaysHint').style.display='none';
+  document.getElementById('vacSub').textContent = '';
+  autoCalc();
+
+  if (empId) {
+    const emp = emps.find(e=>e.id===empId);
+    if (emp) renderVacList(emp);
+  }
+
+  document.getElementById('vacOverlay').classList.add('open');
+}
+
+function populateVacEmpList(proyecto) {
+  const sel = document.getElementById('vEmp');
+  const list = emps.filter(e=>e.proyecto===proyecto).sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  sel.innerHTML = '<option value="">— Seleccione empleado —</option>';
+  list.forEach(e => {
+    const o = document.createElement('option');
+    o.value = e.id;
+    o.textContent = `${e.nombre}${e.codigo ? '  ['+e.codigo+']' : ''}`;
+    sel.appendChild(o);
+  });
+}
+
+function onVacProyChange() {
+  const p = document.getElementById('vProy').value;
+  if (!p) { document.getElementById('vEmp').innerHTML='<option value="">— Seleccione proyecto primero —</option>'; hideVacEmpInfo(); return; }
+  populateVacEmpList(p);
+  hideVacEmpInfo();
+  curEmpId = null;
+  setVacEditMode(null);
+  document.getElementById('vacListBox').innerHTML='<div class="vac-list-empty">Seleccione un empleado</div>';
+}
+
+function onVacEmpChange() {
+  const id = +document.getElementById('vEmp').value;
+  if (!id) { hideVacEmpInfo(); curEmpId=null; setVacEditMode(null); return; }
+  curEmpId = id;
+  setVacEditMode(null);
+  const emp = emps.find(e=>e.id===id);
+  if (emp) { showVacEmpInfo(emp); renderVacList(emp); }
+}
+
+function showVacEmpInfo(emp) {
+  document.getElementById('vInfoCodigo').textContent = emp.codigo || '—';
+  document.getElementById('vInfoCedula').textContent = emp.cedula || '—';
+  const calc = calcSaldo(emp);
+  const sEl = document.getElementById('vInfoSaldo');
+  if (calc.autoCalc) {
+    sEl.innerHTML = `${calc.total} <span style="font-size:11px;color:#B71C1C">(${calc.vencidas}v)</span> <span style="font-size:11px;color:#2E7D32">(${calc.vigentes}g)</span>`;
+  } else {
+    sEl.textContent = calc.total;
+  }
+  sEl.style.color = calc.vencidas>0 ? '#B71C1C' : calc.total===0 ? '#9e9e9e' : '#2E7D32';
+  document.getElementById('vEmpInfo').style.display = 'flex';
+}
+
+function hideVacEmpInfo() {
+  document.getElementById('vEmpInfo').style.display = 'none';
+}
+
+function renderVacList(emp) {
+  const box = document.getElementById('vacListBox');
+  if (!emp.vacaciones||!emp.vacaciones.length) {
+    box.innerHTML = '<div class="vac-list-empty">Sin vacaciones programadas</div>';
+    return;
+  }
+  const sorted = [...emp.vacaciones].map((v,i)=>({...v,_i:i})).sort((a,b)=>a.inicio.localeCompare(b.inicio));
+  box.innerHTML = sorted.map(v =>
+    `<div class="vac-item">
+      <div class="info">
+        <div class="dates">📅 ${fmtDate(v.inicio)} al ${fmtDate(v.fin)}</div>
+        <div class="days">${vacationDays(v)} día(s)${v.cobertura ? ' · Cubre: '+v.cobertura : ''}${v.notas ? ' · '+v.notas : ''}</div>
+      </div>
+      <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px" onclick="editVac(${emp.id},${v._i})" title="Editar">Editar</button>
+      <button class="del-btn" onclick="delVac(${emp.id},${v._i})" title="Eliminar">×</button>
+    </div>`
+  ).join('');
+}
+
+function setVacEditMode(idx) {
+  editVacIndex = idx;
+  const editing = idx !== null && idx !== undefined;
+  document.getElementById('vacFormTitle').textContent = editing ? 'Editar período' : 'Agregar período';
+  document.getElementById('vacEditNotice').style.display = editing ? 'block' : 'none';
+  document.getElementById('cancelVacEditBtn').style.display = editing ? 'inline-flex' : 'none';
+  document.getElementById('saveVacBtn').textContent = editing ? '✔ Guardar ajuste' : '✔ Guardar vacaciones';
+}
+
+function editVac(empId, idx) {
+  const emp = emps.find(e=>e.id===empId);
+  if (!emp || !emp.vacaciones || !emp.vacaciones[idx]) return;
+  curEmpId = empId;
+  document.getElementById('vProy').value = emp.proyecto;
+  populateVacEmpList(emp.proyecto);
+  document.getElementById('vEmp').value = empId;
+  showVacEmpInfo(emp);
+  const v = emp.vacaciones[idx];
+  document.getElementById('vStart').value = v.inicio || '';
+  document.getElementById('vEnd').value = v.fin || '';
+  document.getElementById('vDias').value = vacationDays(v) || '';
+  document.getElementById('vCobertura').value = v.cobertura || '';
+  document.getElementById('vNotas').value = v.notas || '';
+  setVacEditMode(idx);
+  autoCalc();
+}
+
+function clearVacForm() {
+  document.getElementById('vDias').value='';
+  document.getElementById('vCobertura').value='Juana DÃ­az';
+  document.getElementById('vNotas').value='';
+  document.getElementById('autoDaysHint').style.display='none';
+  setVacEditMode(null);
+  autoCalc();
+}
+
+function cancelVacEdit() {
+  const start = document.getElementById('vStart').value;
+  if (start) {
+    const [y,m] = start.split('-');
+    document.getElementById('vStart').value = `${y}-${m}-01`;
+    document.getElementById('vEnd').value   = `${y}-${m}-05`;
+  }
+  clearVacForm();
+}
+
+function autoCalc() {
+  const s = document.getElementById('vStart').value;
+  const e = document.getElementById('vEnd').value;
+  const hint = document.getElementById('autoDaysHint');
+  if (s && e && e >= s) {
+    const cd = calendarDays(s, e);
+    document.getElementById('vDias').value = cd;
+    hint.textContent = `= ${cd} días de vacaciones (feriados no cuentan)`;
+    hint.style.display = 'block';
+    hint.style.color = '#2E7D32';
+  } else {
+    hint.style.display = 'none';
+  }
+}
+
+// ═══════════════════════════════════════════
+// DETECTOR DE CHOQUES DE COBERTURA
+// ═══════════════════════════════════════════
+function datesOverlap(s1, e1, s2, e2) {
+  return new Date(s1+'T12:00:00') <= new Date(e2+'T12:00:00') &&
+         new Date(e1+'T12:00:00') >= new Date(s2+'T12:00:00');
+}
+
+function detectConflicts(cobertura, inicio, fin, excludeEmpId, excludeVacIndex = null) {
+  if (!cobertura || !cobertura.trim()) return [];
+  const cob = cobertura.trim();
+  const conflicts = [];
+  emps.forEach(emp => {
+    (emp.vacaciones||[]).forEach((v, idx) => {
+      if (emp.id === excludeEmpId && (excludeVacIndex === null || idx === excludeVacIndex)) return;
+      if (!v.cobertura || v.cobertura.trim() !== cob) return;
+      if (datesOverlap(inicio, fin, v.inicio, v.fin)) {
+        conflicts.push({ emp, v });
+      }
+    });
+  });
+  return conflicts;
+}
+
+function scanAllConflicts() {
+  // Devuelve choques activos o futuros; omite choques completamente pasados.
+  const all = [];
+  const today = new Date(); today.setHours(0,0,0,0);
+  emps.forEach(emp => {
+    (emp.vacaciones||[]).forEach(v => {
+      if (!v.cobertura) return;
+      const conflicts = detectConflicts(v.cobertura, v.inicio, v.fin, emp.id);
+      conflicts.forEach(c => {
+        const overlapEnd = new Date((v.fin < c.v.fin ? v.fin : c.v.fin) + 'T12:00:00');
+        overlapEnd.setHours(0,0,0,0);
+        if (overlapEnd < today) return;
+        // Evitar duplicados (A vs B y B vs A)
+        const key = [emp.id+':'+v.inicio, c.emp.id+':'+c.v.inicio].sort().join('|');
+        if (!all.find(x=>x.key===key)) {
+          all.push({ key, emp1:emp, v1:v, emp2:c.emp, v2:c.v, cobertura:v.cobertura });
+        }
+      });
+    });
+  });
+  return all;
+}
+
+function renderConflictBar() {
+  const conflicts = scanAllConflicts();
+  let bar = document.getElementById('conflictBar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'conflictBar';
+    bar.style.cssText = 'background:#fff3cd;border-bottom:2px solid #ffc107;padding:8px 20px;font-size:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;';
+    document.querySelector('.tabs').before(bar);
+  }
+  if (!conflicts.length) { bar.style.display='none'; return; }
+  bar.style.display = 'flex';
+  const details = conflicts.map(c =>
+    `<strong>${c.cobertura}</strong> cubre a <em>${c.emp1.nombre.split(' ')[0]} ${c.emp1.nombre.split(' ')[1]||''}</em> (${fmtDate(c.v1.inicio)}–${fmtDate(c.v1.fin)}) y a <em>${c.emp2.nombre.split(' ')[0]} ${c.emp2.nombre.split(' ')[1]||''}</em> (${fmtDate(c.v2.inicio)}–${fmtDate(c.v2.fin)}) al mismo tiempo`
+  ).join(' &nbsp;·&nbsp; ');
+  bar.innerHTML = `<span style="font-size:16px">⚠️</span>
+    <strong>${conflicts.length} choque${conflicts.length>1?'s':''} de cobertura detectado${conflicts.length>1?'s':''}:</strong>
+    <span style="color:#856404">${details}</span>
+    <button onclick="exportConflictExcel()"
+      style="margin-left:auto;background:#0f1f3d;color:white;border:1px solid #0f1f3d;border-radius:4px;padding:3px 9px;cursor:pointer;font-size:11px">Excel</button>
+    <button onclick="document.getElementById('conflictBar').style.display='none'"
+      style="margin-left:auto;background:none;border:1px solid #ffc107;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:11px">✕ Cerrar</button>`;
+}
+
+function saveVac() {
+  if (!curEmpId) { alert('Seleccione un empleado primero.'); return; }
+  const emp = emps.find(e=>e.id===curEmpId);
+  if (!emp) return;
+  const inicio = document.getElementById('vStart').value;
+  const fin    = document.getElementById('vEnd').value;
+  let dias = parseInt(document.getElementById('vDias').value);
+  const cob  = document.getElementById('vCobertura').value.trim();
+  const nota = document.getElementById('vNotas').value.trim();
+  if (!inicio||!fin) { alert('Ingrese las fechas.'); return; }
+  if (fin<inicio)    { alert('La fecha fin debe ser mayor o igual a la fecha inicio.'); return; }
+  if (!dias||isNaN(dias)) dias = calendarDays(inicio, fin);
+
+  // ── Detector de choques ──
+  if (cob) {
+    const conflicts = detectConflicts(cob, inicio, fin, emp.id, editVacIndex);
+    if (conflicts.length > 0) {
+      const lines = conflicts.map(c =>
+        `  • ${c.emp.nombre} (${c.emp.proyecto})\n    ${fmtDate(c.v.inicio)} al ${fmtDate(c.v.fin)}`
+      ).join('\n');
+      const msg = `⚠️ CHOQUE DE COBERTURA\n\n${cob} ya tiene asignada cobertura para:\n\n${lines}\n\n¿Desea guardar de todas formas?`;
+      if (!confirm(msg)) return;
+    }
+  }
+
+  if (!emp.vacaciones) emp.vacaciones=[];
+  if (editVacIndex !== null && editVacIndex !== undefined && emp.vacaciones[editVacIndex]) {
+    const prev = emp.vacaciones[editVacIndex];
+    emp.vacaciones[editVacIndex] = {inicio, fin, dias, cobertura:cob, notas:nota};
+    emp.saldo = (emp.saldo||0) + vacationDays(prev) - dias;
+  } else {
+    emp.vacaciones.push({inicio, fin, dias, cobertura:cob, notas:nota});
+    emp.saldo = (emp.saldo||0) - dias;   // Allow negative — shows as warning
+  }
+  persist();
+  populateCovFilter();
+  refreshCoberturaList();
+  showVacEmpInfo(emp);
+  renderVacList(emp);
+  clearVacForm();
+  renderTable();
+  renderConflictBar();
+}
+
+function delVac(empId, idx) {
+  const emp = emps.find(e=>e.id===empId);
+  const v = emp.vacaciones[idx];
+  if (!confirm(`¿Eliminar vacaciones del ${fmtDate(v.inicio)} al ${fmtDate(v.fin)}?`)) return;
+  emp.saldo = (emp.saldo||0) + vacationDays(v);
+  emp.vacaciones.splice(idx, 1);
+  if (curEmpId === empId && editVacIndex === idx) setVacEditMode(null);
+  persist();
+  renderVacList(emp);
+  showVacEmpInfo(emp);
+  renderTable();
+  renderConflictBar();
+}
+
+function closeVac() {
+  document.getElementById('vacOverlay').classList.remove('open');
+  curEmpId = null;
+  setVacEditMode(null);
+}
+
+// ═══════════════════════════════════════════
+// EMPLOYEE MODAL
+// ═══════════════════════════════════════════
+function openAddEmp() {
+  editEmpId = null;
+  document.getElementById('empTitle').textContent = 'Agregar Funcionario';
+  document.getElementById('empSub').textContent = 'Nuevo funcionario';
+  document.getElementById('eName').value='';
+  document.getElementById('eProy').value='MCK';
+  document.getElementById('eSaldo').value='0';
+  document.getElementById('eCedula').value='';
+  document.getElementById('eCodigo').value='';
+  document.getElementById('eCumple').value='';
+  document.getElementById('eTipoId').value='Cédula nacional';
+  document.getElementById('eVenceId').value='';
+  document.getElementById('eIngreso').value='';
+  document.getElementById('eAjuste').value='0';
+  document.getElementById('deleteEmpBtn').style.display='none';
+  document.getElementById('empOverlay').classList.add('open');
+}
+
+function openEditEmp(empId) {
+  editEmpId = empId;
+  const emp = emps.find(e=>e.id===empId);
+  if (!emp) return;
+  document.getElementById('empTitle').textContent = 'Editar Funcionario';
+  document.getElementById('empSub').textContent = emp.nombre;
+  document.getElementById('eName').value = emp.nombre;
+  document.getElementById('eProy').value = emp.proyecto;
+  document.getElementById('eSaldo').value = emp.saldo||0;
+  document.getElementById('eCedula').value = emp.cedula||'';
+  document.getElementById('eCodigo').value = emp.codigo||'';
+  document.getElementById('eCumple').value = emp.cumpleanos||'';
+  document.getElementById('eTipoId').value = emp.tipoIdentificacion||'Cédula nacional';
+  document.getElementById('eVenceId').value = emp.venceIdentificacion||'';
+  document.getElementById('eIngreso').value = emp.fechaIngreso||'';
+  document.getElementById('eAjuste').value  = emp.diasAjuste||0;
+  document.getElementById('deleteEmpBtn').style.display='inline-flex';
+  document.getElementById('empOverlay').classList.add('open');
+}
+
+function saveEmp() {
+  const nombre = document.getElementById('eName').value.trim();
+  if (!nombre) { alert('Ingrese el nombre.'); return; }
+  const proy   = document.getElementById('eProy').value;
+  const saldo  = parseInt(document.getElementById('eSaldo').value)||0;
+  const cedula = document.getElementById('eCedula').value.trim();
+  const codigo = document.getElementById('eCodigo').value.trim();
+  const cumple  = document.getElementById('eCumple').value.trim();
+  const tipoId  = document.getElementById('eTipoId').value;
+  const venceId = document.getElementById('eVenceId').value;
+  const ingreso = document.getElementById('eIngreso').value;
+  const ajuste  = parseInt(document.getElementById('eAjuste').value)||0;
+  if (editEmpId) {
+    const emp = emps.find(e=>e.id===editEmpId);
+    if (emp) Object.assign(emp, {nombre, proyecto:proy, cedula, codigo, cumpleanos:cumple, tipoIdentificacion:tipoId, venceIdentificacion:venceId, fechaIngreso:ingreso, diasAjuste:ajuste});
+  } else {
+    const maxId = Math.max(0,...emps.map(e=>e.id));
+    emps.push({id:maxId+1, nombre, proyecto:proy, saldo:0, cedula, codigo, cumpleanos:cumple, tipoIdentificacion:tipoId, venceIdentificacion:venceId, fechaIngreso:ingreso, diasAjuste:ajuste, vacaciones:[], uniformes:[]});
+  }
+  persist();
+  closeEmp();
+  renderTable();
+}
+
+function deleteEmp() {
+  const emp = emps.find(e=>e.id===editEmpId);
+  if (!emp) return;
+  if (!confirm(`¿Eliminar a "${emp.nombre}" y todas sus vacaciones programadas?`)) return;
+  emps = emps.filter(e=>e.id!==editEmpId);
+  persist();
+  closeEmp();
+  renderTable();
+}
+
+function closeEmp() {
+  document.getElementById('empOverlay').classList.remove('open');
+  editEmpId = null;
+}
+
+// ═══════════════════════════════════════════
+// CONTEXT MENU
+// ═══════════════════════════════════════════
+function showCtx(e, empId) {
+  e.preventDefault();
+  ctxId = empId;
+  const menu = document.getElementById('ctxMenu');
+  menu.style.left = e.clientX + 'px';
+  menu.style.top  = e.clientY + 'px';
+  menu.style.display = 'block';
+}
+function ctxVac()    { hideCtx(); openVacModal(ctxId, null); }
+function ctxEdit()   { hideCtx(); openEditEmp(ctxId); }
+function ctxDelete() { hideCtx(); editEmpId = ctxId; deleteEmp(); }
+function hideCtx()   { document.getElementById('ctxMenu').style.display='none'; ctxId=null; }
+
+// ═══════════════════════════════════════════
+// EXPORT / IMPORT / RESET
+// ═══════════════════════════════════════════
+function exportJSON() {
+  const data = JSON.stringify(emps, null, 2);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([data],{type:'application/json'}));
+  a.download = `vacaciones_sbm_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+
+function escHTML(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  }[ch]));
+}
+
+function cleanFileName(value) {
+  return String(value || 'todos')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/gi, '_')
+    .replace(/^_+|_+$/g, '')
+    .toLowerCase();
+}
+
+function excelCell(value) {
+  const text = String(value ?? '');
+  const safe = /^[=+\-@]/.test(text) ? "'" + text : text;
+  return escHTML(safe);
+}
+
+function downloadReportExcel(filename, title, subtitle, headers, rows) {
+  const today = new Date().toLocaleDateString('es-CR', {day:'2-digit', month:'long', year:'numeric'});
+  const bodyRows = rows.length
+    ? rows.map(r => `<tr>${headers.map((_, i) => `<td>${excelCell(r[i])}</td>`).join('')}</tr>`).join('')
+    : `<tr><td colspan="${headers.length}" class="empty">Sin datos para este reporte.</td></tr>`;
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: Arial, sans-serif; color:#111827; }
+  h1 { font-size:18px; margin:0 0 4px; color:#0f1f3d; }
+  .meta { color:#4b5563; margin-bottom:14px; font-size:12px; }
+  table { border-collapse:collapse; width:100%; }
+  th { background:#0f1f3d; color:white; font-weight:bold; border:1px solid #0f1f3d; padding:8px; text-align:left; }
+  td { border:1px solid #cbd5e1; padding:7px; vertical-align:top; }
+  tr:nth-child(even) td { background:#f8fafc; }
+  .empty { text-align:center; color:#64748b; padding:22px; }
+</style>
+</head>
+<body>
+  <h1>${escHTML(title)}</h1>
+  <div class="meta">${escHTML(subtitle)} · Generado ${escHTML(today)}</div>
+  <table>
+    <thead><tr>${headers.map(h => `<th>${escHTML(h)}</th>`).join('')}</tr></thead>
+    <tbody>${bodyRows}</tbody>
+  </table>
+</body>
+</html>`;
+
+  const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function conflictReportRows() {
+  return scanAllConflicts()
+    .sort((a,b) => a.cobertura.localeCompare(b.cobertura) || a.v1.inicio.localeCompare(b.v1.inicio))
+    .map(c => {
+      const overlapStart = c.v1.inicio > c.v2.inicio ? c.v1.inicio : c.v2.inicio;
+      const overlapEnd = c.v1.fin < c.v2.fin ? c.v1.fin : c.v2.fin;
+      return [
+        c.cobertura,
+        c.emp1.nombre,
+        c.emp1.proyecto,
+        c.v1.inicio,
+        c.v1.fin,
+        vacationDays(c.v1),
+        c.emp2.nombre,
+        c.emp2.proyecto,
+        c.v2.inicio,
+        c.v2.fin,
+        vacationDays(c.v2),
+        overlapStart,
+        overlapEnd,
+        calendarDays(overlapStart, overlapEnd)
+      ];
+    });
+}
+
+function exportConflictExcel() {
+  const rows = conflictReportRows();
+  downloadReportExcel(
+    `choques_cobertura_sbm_${new Date().toISOString().slice(0,10)}.xls`,
+    'SBM Corp - Choques de Cobertura',
+    `${rows.length} choque(s) detectado(s)`,
+    ['Cobertura', 'Funcionario 1', 'Proyecto 1', 'Inicio 1', 'Fin 1', 'Dias 1', 'Funcionario 2', 'Proyecto 2', 'Inicio 2', 'Fin 2', 'Dias 2', 'Traslape desde', 'Traslape hasta', 'Dias traslapados'],
+    rows
+  );
+}
+
+function projectVacationRows(projectFilter) {
+  const now = new Date(); now.setHours(0,0,0,0);
+  const rows = [];
+  emps
+    .filter(emp => !projectFilter || emp.proyecto === projectFilter)
+    .forEach(emp => {
+      (emp.vacaciones||[]).forEach(v => {
+        if (!vacInSelectedPeriod(v)) return;
+        const start = new Date(v.inicio + 'T12:00:00'); start.setHours(0,0,0,0);
+        const end = new Date(v.fin + 'T12:00:00'); end.setHours(0,0,0,0);
+        const status = end < now ? 'Finalizada' : (start <= now && end >= now ? 'En curso' : 'Programada');
+        rows.push({
+          proyecto: emp.proyecto,
+          funcionario: emp.nombre,
+          codigo: emp.codigo || '',
+          cedula: emp.cedula || '',
+          inicio: v.inicio,
+          fin: v.fin,
+          dias: vacationDays(v),
+          cobertura: v.cobertura || '',
+          notas: v.notas || '',
+          estado: status
+        });
+      });
+    });
+  return rows.sort((a,b) => a.proyecto.localeCompare(b.proyecto) || a.funcionario.localeCompare(b.funcionario) || a.inicio.localeCompare(b.inicio));
+}
+
+function exportProjectVacationsExcel() {
+  const range = selectedPeriodRange();
+  const projectFilter = document.getElementById('filterProy').value;
+  const rows = projectVacationRows(projectFilter).map(r => [
+    r.proyecto, r.funcionario, r.codigo, r.cedula, r.inicio, r.fin, r.dias, r.cobertura, r.notas, r.estado
+  ]);
+  const label = projectFilter || 'Todos los proyectos';
+  downloadReportExcel(
+    `vacaciones_${cleanFileName(label)}_${new Date().toISOString().slice(0,10)}.xls`,
+    'SBM Corp - Vacaciones por Proyecto',
+    `Proyecto: ${label} · Período: ${range.start} a ${range.end}`,
+    ['Proyecto', 'Funcionario', 'Codigo', 'Cedula', 'Inicio', 'Fin', 'Dias', 'Cobertura', 'Notas', 'Estado'],
+    rows
+  );
+}
+
+function printProjectVacations() {
+  const range = selectedPeriodRange();
+  const projectFilter = document.getElementById('filterProy').value;
+  const label = projectFilter || 'Todos los proyectos';
+  const rows = projectVacationRows(projectFilter);
+  const today = new Date().toLocaleDateString('es-CR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  const grouped = rows.reduce((acc, row) => {
+    (acc[row.proyecto] ||= []).push(row);
+    return acc;
+  }, {});
+
+  const body = rows.length ? Object.keys(grouped).sort().map(project => {
+    const projectRows = grouped[project].map(r => `
+      <tr>
+        <td style="font-weight:600">${escHTML(r.funcionario)}</td>
+        <td>${escHTML(r.codigo || '—')}</td>
+        <td>${escHTML(r.inicio)}</td>
+        <td>${escHTML(r.fin)}</td>
+        <td style="text-align:center;font-weight:700;font-family:'IBM Plex Mono',monospace">${escHTML(r.dias)}</td>
+        <td>${escHTML(r.cobertura || '—')}</td>
+        <td><span class="ps-status">${escHTML(r.estado)}</span></td>
+        <td>${escHTML(r.notas || '—')}</td>
+      </tr>`).join('');
+    return `
+      <div class="ps-section">${escHTML(project)} · ${grouped[project].length} registro(s)</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Funcionario</th><th>Codigo</th><th>Inicio</th><th>Fin</th>
+            <th style="text-align:center">Dias</th><th>Cobertura</th><th>Estado</th><th>Notas</th>
+          </tr>
+        </thead>
+        <tbody>${projectRows}</tbody>
+      </table>`;
+  }).join('') : `<div style="text-align:center;padding:40px;color:#6b7280">No hay vacaciones programadas para ${escHTML(label)}.</div>`;
+
+  document.getElementById('ps-meta').textContent = `Generado el ${today} · Período: ${range.start} a ${range.end} · Reporte para supervisor`;
+  document.getElementById('ps-person').innerHTML = `📌 ${escHTML(label)}`;
+  document.getElementById('ps-name-bar').textContent = label;
+  document.getElementById('ps-footer-left').textContent = `${rows.length} vacaciones programadas · Generado ${today}`;
+  document.getElementById('ps-body').innerHTML = body;
+  document.getElementById('printSheet').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+
+function importJSON(ev) {
+  const f = ev.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      if (confirm(`¿Importar ${d.length} funcionarios? Esto reemplaza los datos actuales.`)) {
+        emps = d; persist(); location.reload();
+      }
+    } catch { alert('Archivo JSON inválido.'); }
+  };
+  r.readAsText(f);
+  ev.target.value='';
+}
+
+function resetData() {
+  if (!confirm('¿Restaurar los datos originales? Se perderán todos los cambios guardados.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+}
+
+// ═══════════════════════════════════════════
+// EVENTS
+// ═══════════════════════════════════════════
+document.getElementById('vacOverlay').addEventListener('click', e => { if(e.target===e.currentTarget) closeVac(); });
+document.getElementById('empOverlay').addEventListener('click', e => { if(e.target===e.currentTarget) closeEmp(); });
+document.addEventListener('click', e => { if(!e.target.closest('.ctx-menu')) hideCtx(); });
+document.getElementById('uniformOverlay').addEventListener('click', e => { if(e.target===e.currentTarget) closeUniform(); });
+document.addEventListener('keydown', e => {
+  if(e.key==='Escape') { closeVac(); closeEmp(); hideCtx(); closeUniform(); }
+});
+
+let curUniformEmpId = null;
+
+// ═══════════════════════════════════════════
+// CÁLCULO AUTOMÁTICO DE VACACIONES
+// 14 días/año proporcional a fecha de ingreso
+// ═══════════════════════════════════════════
+function calcSaldo(emp) {
+  if (!emp.fechaIngreso) {
+    // Sin fecha de ingreso → usar saldo manual
+    const m = emp.saldo||0;
+    return { total:m, vencidas:0, vigentes:m, earned:m, used:0, autoCalc:false };
+  }
+
+  const entry = new Date(emp.fechaIngreso+'T12:00:00');
+  const now   = new Date(); now.setHours(12,0,0,0);
+  const diffDays = (now - entry) / 86400000;
+  const years    = diffDays / 365.25;
+  const completeYears = Math.floor(years);
+
+  // Días ganados: proporcional al tiempo trabajado
+  const totalEarned   = Math.round(years * 14);
+  const fromPastYears = completeYears * 14;              // vencen si no se toman
+  const fromThisYear  = Math.max(0, totalEarned - fromPastYears); // año en curso
+
+  // Días consumidos: registrados en el sistema + ajuste manual (vacaciones antes del sistema)
+  const systemUsed  = (emp.vacaciones||[]).reduce((s,v)=>s+vacationDays(v), 0);
+  const manualUsed  = emp.diasAjuste||0;
+  const totalUsed   = systemUsed + manualUsed;
+
+  // Distribuir lo consumido: primero contra vencidas, luego vigentes
+  const vencidas = Math.max(0, fromPastYears - Math.min(totalUsed, fromPastYears));
+  const usedFromThisYear = Math.max(0, totalUsed - fromPastYears);
+  const vigentes = Math.max(0, fromThisYear - usedFromThisYear);
+
+  return { total: vencidas+vigentes, vencidas, vigentes, earned: totalEarned, used: totalUsed, autoCalc: true };
+}
+
+function saldoHtml(emp) {
+  const c = calcSaldo(emp);
+  if (!c.autoCalc) {
+    const cls = c.total<0?'saldo-high':c.total===0?'saldo-0':c.total<=5?'saldo-low':c.total<=14?'saldo-med':'saldo-high';
+    return `<span class="${cls}" title="Saldo manual — agregue fecha de ingreso para cálculo automático">${c.total}</span>`;
+  }
+  const totalCls = c.vencidas>0 ? 'saldo-high' : c.vigentes===0 ? 'saldo-0' : 'saldo-low';
+  const vStr = c.vencidas>0
+    ? `<span style="color:#B71C1C;font-weight:700;font-size:10px" title="Días vencidos de años anteriores">⚠${c.vencidas}v</span>`
+    : '';
+  const gStr = c.vigentes>0
+    ? `<span style="color:#2E7D32;font-size:10px" title="Días vigentes del año en curso">✔${c.vigentes}g</span>`
+    : '';
+  const sep = c.vencidas>0 && c.vigentes>0 ? ' ' : '';
+  return `<span class="${totalCls}" style="font-size:15px;font-weight:800" title="${c.earned} ganados · ${c.used} tomados · ${c.vencidas} vencidos · ${c.vigentes} vigentes">${c.total}</span><br><span>${vStr}${sep}${gStr}</span>`;
+}
+
+function nextAnniversary(dateStr) {
+  if (!dateStr) return null;
+  const orig = new Date(dateStr+'T12:00:00');
+  const now = new Date(); now.setHours(0,0,0,0);
+  let next = new Date(now.getFullYear(), orig.getMonth(), orig.getDate());
+  if (next < now) next = new Date(now.getFullYear()+1, orig.getMonth(), orig.getDate());
+  return next.toISOString().slice(0,10);
+}
+
+function ingresoDisplay(emp) {
+  if (!emp.fechaIngreso) return '<span class="ingreso-empty">Sin fecha</span>';
+  const next = nextAnniversary(emp.fechaIngreso);
+  const left = daysUntil(next);
+  const badgeCls = left === 0 ? 'anniv-badge anniv-today' : left <= 45 ? 'anniv-badge anniv-due' : 'anniv-badge';
+  const badge = left === 0 ? '🎂 Cumple hoy' : left > 0 ? `Cumple en ${left}d` : '';
+  return `${fmtFullDate(emp.fechaIngreso)}<br><span class="${badgeCls}">${badge}</span>`;
+}
+
+function deleteEmpById(empId) {
+  editEmpId = empId;
+  deleteEmp();
+}
+
+function fmtFullDate(d) {
+  if (!d) return '—';
+  return new Date(d+'T12:00:00').toLocaleDateString('es-CR',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+function daysUntil(dateStr) {
+  if (!dateStr) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const dt = new Date(dateStr+'T12:00:00'); dt.setHours(0,0,0,0);
+  return Math.ceil((dt - today) / 86400000);
+}
+
+function docStatus(emp) {
+  const due = daysUntil(emp.venceIdentificacion);
+  if (due === null) return {cls:'status-muted', label:'Sin fecha', detail:'No registrada'};
+  if (due < 0)      return {cls:'status-danger', label:'Vencida',    detail:`Hace ${Math.abs(due)}d`};
+  if (due <= 30)    return {cls:'status-danger', label:'Por vencer', detail:`${due} día(s)`};
+  if (due <= 60)    return {cls:'status-warn',   label:'Próxima',    detail:`${due} día(s)`};
+  return {cls:'status-ok', label:'Vigente', detail:`${due} día(s)`};
+}
+
+function docStatusHtml(emp) {
+  const st = docStatus(emp);
+  const fecha = emp.venceIdentificacion ? fmtFullDate(emp.venceIdentificacion) : 'Sin vencimiento';
+  return `<span class="status-pill ${st.cls}">${st.label}</span><br><span style="color:#9ab0d0" class="saldo-mode">${fecha}</span>`;
+}
+
+function lastUniformHtml(emp) {
+  const list = [...(emp.uniformes||[])].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+  const u = list[0];
+  if (!u) return '<span class="status-pill status-muted">Sin registro</span>';
+  return `<strong>${fmtFullDate(u.fecha)}</strong><br><span style="color:#9ab0d0" class="saldo-mode">${u.tipo||'Entrega'} x${u.cantidad||1}</span>`;
+}
+
+function renderCumpleanos() {
+  const grid = document.getElementById('cumpleGrid');
+  if (!grid) return;
+  const filterMes  = +document.getElementById('cumpleMes').value;
+  const filterProy = document.getElementById('cumpleProy').value;
+  const now = new Date(); now.setHours(0,0,0,0);
+
+  // Build list with next occurrence date
+  const list = emps
+    .filter(e => e.cumpleanos && (!filterProy || e.proyecto===filterProy))
+    .map(e => {
+      const [dd, mm] = e.cumpleanos.split('/').map(Number);
+      if (!dd || !mm || mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
+      let next = new Date(now.getFullYear(), mm-1, dd);
+      if (next < now) next = new Date(now.getFullYear()+1, mm-1, dd);
+      const daysLeft = Math.round((next - now) / 86400000);
+      return { emp:e, dd, mm, next, daysLeft };
+    })
+    .filter(Boolean)
+    .filter(e => !filterMes || e.mm === filterMes);
+
+  if (!list.length) {
+    grid.innerHTML = `<div class="cumple-empty"><div class="big">🎂</div>
+      ${filterMes || filterProy ? 'No hay cumpleaños para este filtro.' : 'Ningún funcionario tiene cumpleaños registrado aún.<br><br>Edite cada funcionario y agregue la fecha en formato DD/MM.'}</div>`;
+    return;
+  }
+
+  // Sort by next occurrence
+  list.sort((a,b) => a.next - b.next);
+
+  if (filterMes) {
+    // Flat grid for single month
+    grid.innerHTML = `<div class="cumple-grid">${list.map(item => cumpleCard(item)).join('')}</div>`;
+  } else {
+    // Group by month
+    const byMonth = {};
+    list.forEach(item => {
+      if (!byMonth[item.mm]) byMonth[item.mm] = [];
+      byMonth[item.mm].push(item);
+    });
+    // Sort months starting from current
+    const curMo = now.getMonth()+1;
+    const monthOrder = [...Array(12)].map((_,i)=>((curMo-1+i)%12)+1);
+    let html = '';
+    monthOrder.forEach(mo => {
+      if (!byMonth[mo]) return;
+      html += `<div class="cumple-month-title">🎂 ${MONTHS[mo-1]} <span style="font-weight:400;font-size:11px;color:var(--text-muted)">${byMonth[mo].length} cumpleaños</span></div>`;
+      html += `<div class="cumple-grid">${byMonth[mo].map(item => cumpleCard(item)).join('')}</div>`;
+    });
+    grid.innerHTML = html;
+  }
+}
+
+function cumpleCard(item) {
+  const {emp, dd, mm, daysLeft} = item;
+  const c = PC[emp.proyecto]||'#666';
+  const isToday   = daysLeft === 0;
+  const isWeek    = daysLeft > 0 && daysLeft <= 7;
+  const cardCls   = isToday ? 'today' : isWeek ? 'this-week' : '';
+  const tag = isToday ? '<span class="cumple-tag tag-hoy">🎉 ¡HOY!</span>'
+            : isWeek  ? `<span class="cumple-tag tag-semana">En ${daysLeft}d</span>`
+            : daysLeft <= 30 ? `<span class="cumple-tag tag-mes">Este mes</span>` : '';
+  const nombre = emp.nombre.split(' ');
+  const display = nombre.length >= 2 ? `${nombre[0]} ${nombre[1]}` : emp.nombre;
+  return `<div class="cumple-card ${cardCls}">
+    <div class="cumple-day">${String(dd).padStart(2,'0')}</div>
+    <div class="cumple-info">
+      <div class="cumple-name">${emp.nombre}</div>
+      <div class="cumple-sub"><span class="badge" style="background:${c}">${emp.proyecto}</span></div>
+      ${tag}
+    </div>
+  </div>`;
+}
+
+function renderDocs() {
+  const grid = document.getElementById('docsGrid');
+  if (!grid) return;
+  const filter = document.getElementById('filterProy')?.value||'';
+  const search = (document.getElementById('searchBox')?.value||'').trim().toLowerCase();
+  const rows = emps.filter(e => {
+    const matchP = !filter || e.proyecto===filter;
+    const hay = `${e.nombre||''} ${e.codigo||''} ${e.cedula||''}`.toLowerCase();
+    return matchP && (!search || hay.includes(search));
+  }).sort((a,b) => (daysUntil(a.venceIdentificacion)??99999) - (daysUntil(b.venceIdentificacion)??99999));
+  if (!rows.length) { grid.innerHTML='<div class="cov-empty"><div class="big">🪪</div>No hay funcionarios para mostrar.</div>'; return; }
+  grid.innerHTML = rows.map(emp => {
+    const st = docStatus(emp);
+    const c = PC[emp.proyecto]||'#666';
+    return `<div class="info-card">
+      <div class="info-card-head" style="border-left:4px solid ${c}">
+        <div><div class="info-card-title">${emp.nombre}</div><div class="info-card-sub">${emp.proyecto} · ${emp.codigo||'Sin código'}</div></div>
+        <span class="status-pill ${st.cls}">${st.label}</span>
+      </div>
+      <div class="info-card-body">
+        <div class="info-row"><span class="k">Tipo</span><span class="v">${emp.tipoIdentificacion||'Cédula nacional'}</span></div>
+        <div class="info-row"><span class="k">Número</span><span class="v">${emp.cedula||'—'}</span></div>
+        <div class="info-row"><span class="k">Vence</span><span class="v">${emp.venceIdentificacion ? fmtFullDate(emp.venceIdentificacion) : '—'}</span></div>
+        <div class="info-row"><span class="k">Estado</span><span class="v">${st.detail}</span></div>
+        <div style="text-align:right;margin-top:10px"><button class="btn btn-secondary" onclick="openEditEmp(${emp.id})">✏️ Actualizar</button></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderUniforms() {
+  const grid = document.getElementById('uniformsGrid');
+  if (!grid) return;
+  const filter = document.getElementById('filterProy')?.value||'';
+  const search = (document.getElementById('searchBox')?.value||'').trim().toLowerCase();
+  const rows = emps.filter(e => {
+    const matchP = !filter || e.proyecto===filter;
+    const hay = `${e.nombre||''} ${e.codigo||''}`.toLowerCase();
+    return matchP && (!search || hay.includes(search));
+  }).sort((a,b) => a.proyecto.localeCompare(b.proyecto)||a.nombre.localeCompare(b.nombre));
+  if (!rows.length) { grid.innerHTML='<div class="cov-empty"><div class="big">👕</div>No hay funcionarios para mostrar.</div>'; return; }
+  grid.innerHTML = rows.map(emp => {
+    const c = PC[emp.proyecto]||'#666';
+    const list = [...(emp.uniformes||[])].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+    const entries = list.length ? list.map((u,idx) =>
+      `<div class="uniform-entry">
+        <div><strong>${fmtFullDate(u.fecha)}</strong> · ${u.tipo||'Entrega'} x${u.cantidad||1}
+          <div class="meta">${u.observacion||''}</div></div>
+        <button class="del-btn" onclick="deleteUniform(${emp.id},${idx})" title="Eliminar">×</button>
+      </div>`).join('')
+      : '<div class="vac-list-empty">Sin entregas registradas</div>';
+    return `<div class="info-card">
+      <div class="info-card-head" style="border-left:4px solid ${c}">
+        <div><div class="info-card-title">${emp.nombre}</div><div class="info-card-sub">${emp.proyecto} · ${emp.codigo||'Sin código'}</div></div>
+        <button class="btn btn-success" onclick="openUniformModal(${emp.id})">＋ Entrega</button>
+      </div>
+      <div class="info-card-body"><div class="uniform-list">${entries}</div></div>
+    </div>`;
+  }).join('');
+}
+
+function openUniformModal(empId) {
+  curUniformEmpId = empId;
+  const psel = document.getElementById('uProy');
+  psel.innerHTML='';
+  [...new Set(emps.map(e=>e.proyecto))].sort().forEach(p=>{ const o=document.createElement('option'); o.value=p; o.textContent=p; psel.appendChild(o); });
+  const emp = emps.find(e=>e.id===empId);
+  psel.value = emp ? emp.proyecto : (psel.options[0]?.value||'');
+  populateUniformEmpList();
+  if (emp) document.getElementById('uEmp').value = emp.id;
+  document.getElementById('uFecha').value = new Date().toISOString().slice(0,10);
+  document.getElementById('uTipo').value='';
+  document.getElementById('uCantidad').value='1';
+  document.getElementById('uObs').value='';
+  document.getElementById('uniformOverlay').classList.add('open');
+}
+
+function populateUniformEmpList() {
+  const p = document.getElementById('uProy').value;
+  const sel = document.getElementById('uEmp');
+  sel.innerHTML='';
+  emps.filter(e=>e.proyecto===p).sort((a,b)=>a.nombre.localeCompare(b.nombre)).forEach(e=>{
+    const o=document.createElement('option'); o.value=e.id; o.textContent=e.nombre; sel.appendChild(o);
+  });
+}
+
+async function saveUniform() {
+  const btn = document.getElementById('saveUniformBtn');
+  const empId = +document.getElementById('uEmp').value;
+  const emp = emps.find(e=>e.id===empId);
+  if (!emp) { alert('Seleccione un funcionario.'); return; }
+  const fecha = document.getElementById('uFecha').value;
+  const tipo  = document.getElementById('uTipo').value.trim();
+  const cantidad = parseInt(document.getElementById('uCantidad').value)||1;
+  const observacion = document.getElementById('uObs').value.trim();
+  if (!fecha) { alert('Ingrese la fecha de entrega.'); return; }
+  if (!tipo)  { alert('Ingrese el tipo de artículo entregado.'); return; }
+  if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
+  if (!emp.uniformes) emp.uniformes=[];
+  emp.uniformes.push({fecha, tipo, cantidad, observacion});
+  await persist();
+  closeUniform();
+  renderUniforms();
+  renderTable();
+  showSyncStatus(`👕 Entrega registrada: ${tipo} x${cantidad} · ${emp.nombre}`, '#2E7D32');
+  if (btn) { btn.disabled = false; btn.textContent = '✔ Guardar entrega'; }
+}
+
+async function deleteUniform(empId, sortedIdx) {
+  const emp = emps.find(e=>e.id===empId);
+  if (!emp||!emp.uniformes) return;
+  const sorted = [...emp.uniformes].map((u,i)=>({...u,_i:i})).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+  const u = sorted[sortedIdx];
+  if (!u) return;
+  if (!confirm(`¿Eliminar entrega de ${u.tipo||'uniforme'} del ${fmtFullDate(u.fecha)}?`)) return;
+  emp.uniformes.splice(u._i,1);
+  await persist();
+  renderUniforms();
+  renderTable();
+}
+
+function closeUniform() {
+  document.getElementById('uniformOverlay')?.classList.remove('open');
+  curUniformEmpId = null;
+}
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+  if (name === 'cov') renderCoverage();
+  if (name === 'docs') renderDocs();
+  if (name === 'uniforms') renderUniforms();
+  if (name === 'cumple') renderCumpleanos();
+}
+
+// ═══════════════════════════════════════════
+// COVERAGE VIEW
+// ═══════════════════════════════════════════
+let covDays = 7;
+
+function setCovDays(d) {
+  covDays = d;
+  document.querySelectorAll('.days-pill').forEach(b => {
+    b.classList.toggle('active', +b.dataset.days === d);
+  });
+  renderCoverage();
+}
+
+function normalizeName(n) {
+  if (!n) return n;
+  // Normalize common variants without accents → with accents
+  return n.trim()
+    .replace(/\bJuana Diaz\b/gi, 'Juana Díaz')
+    .replace(/\bRocio Romero\b/gi, 'Rocio Romero');
+}
+
+function normalizeAllCoberturas() {
+  let changed = false;
+  emps.forEach(emp => {
+    (emp.vacaciones||[]).forEach(v => {
+      const fixed = normalizeName(v.cobertura);
+      if (fixed !== v.cobertura) { v.cobertura = fixed; changed = true; }
+    });
+  });
+  if (changed) persist();
+}
+
+function refreshCoberturaList() {
+  // Build unique sorted list from existing data + defaults
+  const names = new Set(['Juana Díaz', 'Rocio Romero']);
+  emps.forEach(emp => (emp.vacaciones||[]).forEach(v => { if(v.cobertura && v.cobertura.trim()) names.add(v.cobertura.trim()); }));
+  const dl = document.getElementById('coberturaList');
+  dl.innerHTML = [...names].sort().map(n=>`<option value="${n}">`).join('');
+}
+
+function populateCovFilter() {
+  const backups = new Set();
+  emps.forEach(e => (e.vacaciones||[]).forEach(v => { if(v.cobertura && v.cobertura.trim()) backups.add(v.cobertura.trim()); }));
+  const sel = document.getElementById('covFilter');
+  // keep existing first option, rebuild rest
+  while (sel.options.length > 1) sel.remove(1);
+  [...backups].sort().forEach(b => { const o = document.createElement('option'); o.value=b; o.textContent=b; sel.appendChild(o); });
+}
+
+function renderCoverage() {
+  const now = new Date(); now.setHours(0,0,0,0);
+  const cutoff = new Date(now); cutoff.setDate(cutoff.getDate() + covDays);
+  const filterBackup = document.getElementById('covFilter').value;
+
+  // Collect all relevant vacation periods
+  const entries = [];
+  emps.forEach(emp => {
+    (emp.vacaciones||[]).forEach(v => {
+      if (!v.cobertura || !v.cobertura.trim()) return;
+      if (filterBackup && v.cobertura.trim() !== filterBackup) return;
+      const start = new Date(v.inicio+'T12:00:00'); start.setHours(0,0,0,0);
+      const end   = new Date(v.fin+'T12:00:00');   end.setHours(0,0,0,0);
+      // Include if period overlaps the [now, cutoff] window
+      if (end >= now && start <= cutoff) {
+        entries.push({ emp, v, start, end });
+      }
+    });
+  });
+
+  // Group by backup person
+  const groups = {};
+  entries.forEach(e => {
+    const key = e.v.cobertura.trim();
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(e);
+  });
+
+  const grid = document.getElementById('covGrid');
+
+  if (!Object.keys(groups).length) {
+    grid.innerHTML = `<div class="cov-empty"><div class="big">🎉</div><div>No hay coberturas programadas en los próximos ${covDays} días.</div></div>`;
+    return;
+  }
+
+  // Sort groups alphabetically, sort entries within by start date
+  grid.innerHTML = Object.keys(groups).sort().map(backup => {
+    const sorted = groups[backup].sort((a,b) => a.start - b.start);
+    const c = PC[sorted[0].emp.proyecto] || '#1a3a5c';
+
+    const rows = sorted.map(({emp, v, start, end}) => {
+      const startDay  = start.getDate();
+      const startMon  = MONTHS[start.getMonth()];
+      const isToday   = start <= now && end >= now;
+      const daysUntil = Math.ceil((start - now) / 86400000);
+      let tag = '';
+      if (isToday) tag = '<span class="tag-today">HOY</span>';
+      else if (daysUntil <= 3) tag = '<span class="tag-soon">Pronto</span>';
+      else tag = '<span class="tag-upcoming">Próximo</span>';
+
+      const borderClass = isToday ? 'today-line' : 'future-line';
+      const projColor = PC[emp.proyecto] || '#666';
+      const endStr = start.toDateString() === end.toDateString() ? '' : ` al ${end.getDate()} ${MONTHS[end.getMonth()]}`;
+
+      return `<div class="cov-entry ${borderClass}">
+        <div class="date-block">
+          <div class="day">${startDay}</div>
+          <div class="mon">${startMon}</div>
+        </div>
+        <div class="info">
+          <div class="emp-name">${emp.nombre} ${tag}</div>
+          <div class="meta">
+            <span class="badge" style="background:${projColor}">${emp.proyecto}</span>
+            &nbsp;${fmtDate(v.inicio)}${endStr}
+            ${v.notas ? '· '+v.notas : ''}
+          </div>
+        </div>
+        <span class="days-badge" style="background:${projColor}">${vacationDays(v)}d</span>
+      </div>`;
+    }).join('');
+
+    // Color card header based on backup
+    const hue = hashColor(backup);
+
+    return `<div class="cov-card">
+      <div class="cov-card-head" style="background:${hue}; color:white">
+        <div class="person"><span class="icon">👤</span>${backup}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="count">${sorted.length} cobertura${sorted.length>1?'s':''}</span>
+          <button class="print-btn" onclick="printCoverage('${backup.replace(/'/g,"\\'")}')">🖨 Imprimir</button>
+        </div>
+      </div>
+      ${rows}
+    </div>`;
+  }).join('');
+}
+
+function hashColor(str) {
+  // Generate a consistent dark color from a string
+  const colors = ['#0f3460','#1a3a5c','#2d4a22','#4a1942','#3d2b00','#1a3d4f','#3d1a00','#0d3b2e'];
+  let h = 0; for (let i=0;i<str.length;i++) h = str.charCodeAt(i) + ((h<<5)-h);
+  return colors[Math.abs(h) % colors.length];
+}
+
+// ═══════════════════════════════════════════
+// PRINT COVERAGE SHEET
+// ═══════════════════════════════════════════
+function printCoverage(backup) {
+  const now = new Date(); now.setHours(0,0,0,0);
+  const filterDays = covDays;
+  const cutoff = new Date(now); cutoff.setDate(cutoff.getDate() + filterDays);
+
+  // Gather ALL future entries for this backup (not limited by covDays filter)
+  const entries = [];
+  emps.forEach(emp => {
+    (emp.vacaciones||[]).forEach(v => {
+      if (!v.cobertura || v.cobertura.trim() !== backup) return;
+      const start = new Date(v.inicio+'T12:00:00'); start.setHours(0,0,0,0);
+      const end   = new Date(v.fin+'T12:00:00');   end.setHours(0,0,0,0);
+      if (end >= now) entries.push({emp, v, start, end});
+    });
+  });
+  entries.sort((a,b) => a.start - b.start);
+
+  // Build table rows
+  const rows = entries.map(({emp, v, start, end}) => {
+    const projColor = PC[emp.proyecto]||'#666';
+    const isToday = start <= now && end >= now;
+    const daysLeft = Math.ceil((start - now) / 86400000);
+    let status = isToday
+      ? '<span class="ps-status">EN CURSO</span>'
+      : daysLeft <= 3
+        ? `<span class="ps-status">En ${daysLeft}d</span>`
+        : `<span class="ps-status">En ${daysLeft}d</span>`;
+
+    const dateRange = start.toDateString() === end.toDateString()
+      ? new Date(v.inicio+'T12:00:00').toLocaleDateString('es-CR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})
+      : `${new Date(v.inicio+'T12:00:00').toLocaleDateString('es-CR',{weekday:'short',day:'2-digit',month:'short'})} al ${new Date(v.fin+'T12:00:00').toLocaleDateString('es-CR',{weekday:'short',day:'2-digit',month:'short',year:'numeric'})}`;
+
+    return `<tr>
+      <td>${status}</td>
+      <td style="font-weight:600">${emp.nombre}</td>
+      <td><span class="ps-badge" style="background:${projColor}">${emp.proyecto}</span></td>
+      <td>${dateRange}</td>
+      <td style="text-align:center;font-weight:700;font-family:'IBM Plex Mono',monospace">${vacationDays(v)}d</td>
+      <td style="color:#6b7280;font-size:12px">${v.notas||'—'}</td>
+    </tr>`;
+  }).join('');
+
+  const today = new Date().toLocaleDateString('es-CR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+
+  document.getElementById('ps-meta').textContent = `Generado el ${today} · Período: próximos ${filterDays} días`;
+  document.getElementById('ps-person').innerHTML = `👤 ${backup}`;
+  document.getElementById('ps-name-bar').textContent = backup;
+  document.getElementById('ps-footer-left').textContent = `${entries.length} cobertura(s) programada(s) · Generado ${today}`;
+
+  document.getElementById('ps-body').innerHTML = entries.length ? `
+    <table>
+      <thead>
+        <tr>
+          <th style="width:80px">Estado</th>
+          <th>Funcionario</th>
+          <th>Proyecto</th>
+          <th>Fechas</th>
+          <th style="width:50px;text-align:center">Días</th>
+          <th>Notas</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="margin-top:24px; padding:14px; background:#f8f9fa; border-radius:6px; border-left:4px solid #1e88e5; font-size:12px; color:#374151">
+      <strong>Nota:</strong> Este documento lista todas las vacaciones que requieren su cobertura con fecha igual o posterior a hoy.
+      Por favor confirme su disponibilidad con la jefatura.
+    </div>
+  ` : `<div style="text-align:center;padding:40px;color:#9ca3af">Sin coberturas programadas pendientes para ${backup}.</div>`;
+
+  document.getElementById('printSheet').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+
+function closePrint() {
+  document.getElementById('printSheet').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+// ── START ──
+init();
+</script>
+</body>
+</html>

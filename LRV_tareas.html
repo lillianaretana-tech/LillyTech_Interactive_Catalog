@@ -1,0 +1,1667 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Control diario de Facilities · LillyTech</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <style>
+    :root {
+      /* Tinta & Latón — tokens LillyTech */
+      --ink: #0E1220;
+      --ink-2: #161B2E;
+      --ink-3: #222A42;
+      --bg: #F6F3EC;
+      --surface: #FFFFFF;
+      --paper-3: #EFEBE0;
+      --brass: #C39A45;
+      --brass-deep: #A07E2E;
+      --brass-soft: #E6CE8C;
+      --sage: #5E9A7C;
+      --sage-soft: #DDEBE2;
+      --rust: #B65C45;
+      --rust-soft: #F2DED7;
+      --tx: #1B2233;
+      --tx-soft: #5A6275;
+      --muted: #5A6275;
+      --line: #E0DACB;
+      --brand: #A07E2E;
+      --brand-dark: #7E611F;
+      --amber: #875100;
+      --red: #B65C45;
+      --green: #3C7A5A;
+      --blue: #2b5f9e;
+      --soft-green: #DDEBE2;
+      --soft-amber: #fff3dc;
+      --soft-red: #F2DED7;
+      --soft-blue: #e8f0fb;
+      --shadow: 0 1px 2px rgba(14,18,32,.06), 0 8px 28px -12px rgba(14,18,32,.18);
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'IBM Plex Sans', Arial, Helvetica, sans-serif;
+      color: var(--tx);
+      background: var(--bg);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3 { font-family: 'Fraunces', Georgia, serif; letter-spacing: -.01em; }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      border-radius: 7px;
+      background: var(--brand);
+      color: #fff;
+      padding: 11px 14px;
+      min-height: 44px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    button.secondary {
+      background: var(--paper-3);
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+
+    button.ghost {
+      background: transparent;
+      color: var(--brand-dark);
+      border: 1px solid var(--line);
+    }
+
+    button.danger {
+      background: var(--rust);
+    }
+
+    button.icon {
+      width: 44px;
+      padding: 0;
+      display: inline-grid;
+      place-items: center;
+      flex: 0 0 44px;
+    }
+
+    header {
+      padding: 18px 16px 14px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface);
+    }
+
+    .shell {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      flex: 0 0 42px;
+      border-radius: 11px;
+      background: linear-gradient(150deg, var(--brass), var(--brass-deep));
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-family: 'Fraunces', serif;
+      font-weight: 700;
+      font-size: 1.02rem;
+      letter-spacing: .02em;
+      box-shadow: 0 6px 16px -6px rgba(163, 126, 46, .55);
+    }
+
+    .user-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: .82rem;
+      color: var(--tx-soft);
+      background: var(--paper-3);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 12px;
+    }
+
+    .user-badge b { color: var(--ink); font-weight: 700; }
+
+    .user-badge button {
+      min-height: auto;
+      padding: 2px 8px;
+      font-size: .74rem;
+      background: transparent;
+      color: var(--brand-dark);
+      text-decoration: underline;
+      font-weight: 600;
+    }
+
+    .sync-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 12px;
+      margin-top: 12px;
+      font-size: .82rem;
+      color: var(--tx-soft);
+    }
+
+    .sync-note {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: .76rem;
+    }
+
+    .sync-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      background: var(--brass-soft);
+      border: 1px solid var(--brass);
+      color: #4a3812;
+      font-size: .86rem;
+    }
+
+    .sync-banner.show { display: flex; }
+
+    .sync-banner button {
+      min-height: 34px;
+      padding: 6px 12px;
+      font-size: .82rem;
+    }
+
+    .login-gate {
+      position: fixed;
+      inset: 0;
+      background: rgba(14, 18, 32, .55);
+      display: grid;
+      place-items: center;
+      z-index: 200;
+      padding: 16px;
+    }
+
+    .login-gate.hidden { display: none; }
+
+    .login-card {
+      width: min(380px, 100%);
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: 0 24px 60px -20px rgba(14, 18, 32, .45);
+      padding: 24px 22px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .login-card .brand-mark { margin: 0 auto 4px; }
+
+    .login-card h2 { margin: 0; font-size: 1.2rem; text-align: center; }
+
+    .login-card p { margin: 0; color: var(--tx-soft); font-size: .88rem; text-align: center; line-height: 1.4; }
+
+    footer.app-footer {
+      text-align: center;
+      padding: 22px 16px 30px;
+      color: var(--tx-soft);
+      font-size: .78rem;
+    }
+
+    footer.app-footer b { color: var(--brand-dark); }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.45rem, 4.5vw, 2.25rem);
+      letter-spacing: 0;
+      line-height: 1.08;
+    }
+
+    .subtitle {
+      margin: 7px 0 0;
+      color: var(--muted);
+      max-width: 780px;
+      line-height: 1.4;
+    }
+
+    .main-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    main {
+      padding: 16px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 390px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    section.panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .panel-head {
+      padding: 14px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .panel-body {
+      padding: 14px;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 11px;
+    }
+
+    label {
+      display: grid;
+      gap: 5px;
+      font-size: .82rem;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 10px;
+      min-height: 42px;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    textarea {
+      min-height: 92px;
+      resize: vertical;
+      line-height: 1.35;
+    }
+
+    .two {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .project-picker {
+      display: grid;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 10px;
+      background: #fbfcfb;
+    }
+
+    .checkrow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--ink);
+      font-size: .9rem;
+      font-weight: 600;
+    }
+
+    .checkrow span {
+      flex: 1;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .checkrow input {
+      width: 18px;
+      min-height: 18px;
+    }
+
+    .checkrow .project-delete {
+      width: 32px;
+      min-height: 32px;
+      flex: 0 0 32px;
+      padding: 0;
+      font-size: .9rem;
+    }
+
+    .small-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .small-actions input {
+      flex: 1 1 190px;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 9px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: var(--paper-3);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px;
+      background: #fbfcfb;
+      min-height: 86px;
+    }
+
+    .stat b {
+      display: block;
+      font-size: 1.65rem;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: .82rem;
+      font-weight: 700;
+    }
+
+    .progressbar {
+      height: 10px;
+      background: #e6ebe8;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progressbar i {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: var(--brand);
+      transition: width .2s ease;
+    }
+
+    .tasks {
+      display: grid;
+      gap: 10px;
+    }
+
+    .task {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 12px;
+      display: grid;
+      gap: 9px;
+    }
+
+    .task.overdue { border-left: 5px solid var(--red); }
+    .task.today { border-left: 5px solid var(--amber); }
+    .task.done { border-left: 5px solid var(--green); opacity: .82; }
+
+    .task-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .task-title {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .task-desc {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.38;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip {
+      border-radius: 999px;
+      padding: 5px 8px;
+      font-size: .76rem;
+      font-weight: 700;
+      background: #eef2f0;
+      color: #3b454d;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .chip.green { background: var(--soft-green); color: var(--green); }
+    .chip.amber { background: var(--soft-amber); color: #875100; }
+    .chip.red { background: var(--soft-red); color: var(--red); }
+    .chip.blue { background: var(--soft-blue); color: var(--blue); }
+
+    .task-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr 44px;
+      gap: 7px;
+    }
+
+    .empty {
+      border: 1px dashed #bfc8bf;
+      border-radius: var(--radius);
+      padding: 22px;
+      text-align: center;
+      color: var(--muted);
+      background: #fbfcfb;
+    }
+
+    dialog {
+      border: 0;
+      border-radius: var(--radius);
+      width: min(780px, calc(100vw - 24px));
+      padding: 0;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, .26);
+    }
+
+    dialog::backdrop {
+      background: rgba(19, 28, 35, .42);
+    }
+
+    .report {
+      white-space: pre-wrap;
+      background: #fbfcfb;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px;
+      max-height: 55vh;
+      overflow: auto;
+      line-height: 1.42;
+    }
+
+    .codebox {
+      white-space: pre-wrap;
+      background: #162027;
+      color: #f4f7f4;
+      border-radius: var(--radius);
+      padding: 12px;
+      overflow: auto;
+      line-height: 1.4;
+      font-size: .82rem;
+    }
+
+    .sync-status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      color: var(--muted);
+      font-size: .84rem;
+      font-weight: 700;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      background: #1f2933;
+      color: #fff;
+      padding: 11px 14px;
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease, bottom .18s ease;
+      z-index: 10;
+      max-width: calc(100vw - 24px);
+      text-align: center;
+      font-weight: 700;
+      font-size: .9rem;
+    }
+
+    .toast.show {
+      opacity: 1;
+      bottom: 28px;
+    }
+
+    @media (max-width: 920px) {
+      .grid { grid-template-columns: 1fr; }
+      .filters { grid-template-columns: repeat(2, 1fr); }
+      .stats { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      header, main { padding-left: 12px; padding-right: 12px; }
+      .topbar { display: block; }
+      .two, .filters, .stats { grid-template-columns: 1fr; }
+      .main-actions button { flex: 1 1 calc(50% - 8px); }
+      .task-actions { grid-template-columns: 1fr; }
+      .task-actions .icon { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div id="loginGate" class="login-gate hidden">
+    <div class="login-card">
+      <div class="brand-mark">LT</div>
+      <h2>¿Quién entra?</h2>
+      <p>Escribí tu nombre para identificar tus cambios y saber quién subió o bajó datos de Supabase.</p>
+      <label>Nombre o usuario
+        <input id="loginName" placeholder="Ej. Lilly, Juana, Rocío">
+      </label>
+      <button id="loginBtn" type="button">Entrar</button>
+    </div>
+  </div>
+
+  <header>
+    <div class="shell">
+      <div class="topbar">
+        <div class="brand-row">
+          <div class="brand-mark">LT</div>
+          <div>
+            <h1>Control diario de Facilities</h1>
+            <p class="subtitle">Captura cada correo nuevo como una obligación, asigna proyectos, fecha/hora, responsable y avance.</p>
+          </div>
+        </div>
+        <div class="user-badge">
+          <span>Sesión: <b id="userLabel">—</b></span>
+          <button id="changeUserBtn" type="button">cambiar</button>
+        </div>
+      </div>
+      <div class="main-actions">
+        <button id="dashboardBtn" type="button">Ver dashboard</button>
+        <button id="reportBtn" class="secondary" type="button">Generar reporte</button>
+        <button id="excelBtn" class="secondary" type="button">📊 Exportar Excel</button>
+        <button id="importBtn" class="secondary" type="button">📥 Importar CSV</button>
+        <input id="importFile" type="file" accept=".csv" hidden>
+        <button id="pushBtn" class="secondary" type="button">⬆ Subir a Supabase</button>
+        <button id="pullBtn" class="secondary" type="button">⬇ Descargar de Supabase</button>
+      </div>
+      <div class="sync-bar">
+        <span class="sync-note" id="syncStatus">Sin sincronizar aún</span>
+        <span class="sync-note">· Registro: <b id="recordIdLabel">facilities-principal</b></span>
+      </div>
+      <div class="sync-banner" id="syncBanner">
+        <span>Hay una versión más reciente en Supabase que no tenés acá.</span>
+        <button type="button" id="bannerPullBtn">Descargar ahora</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="grid">
+      <section class="panel" aria-labelledby="formTitle">
+        <div class="panel-head">
+          <h2 id="formTitle">Agregar obligación</h2>
+          <button id="clearBtn" class="icon ghost" type="button" title="Limpiar formulario">+</button>
+        </div>
+        <div class="panel-body">
+          <form id="taskForm" class="form-grid">
+            <input type="hidden" id="taskId">
+            <label>Título corto
+              <input id="title" required placeholder="Ej. Capacitación de seguridad">
+            </label>
+            <label>Descripción / detalle del correo
+              <textarea id="description" placeholder="Pega aquí lo importante del correo: enlace, requisito, pasos, evidencia esperada..."></textarea>
+            </label>
+            <div class="two">
+              <label>Tipo
+                <select id="category">
+                  <option>Capacitación</option>
+                  <option>Encuesta</option>
+                  <option>Gestión documental</option>
+                  <option>Cliente</option>
+                  <option>Administrativo</option>
+                  <option>Otro</option>
+                </select>
+              </label>
+              <label>¿Para quién?
+                <select id="audience">
+                  <option>Para mí</option>
+                  <option>Todo el personal</option>
+                  <option>Supervisores</option>
+                  <option>Cliente</option>
+                  <option>Proyecto específico</option>
+                </select>
+              </label>
+            </div>
+            <div class="two">
+              <label>Fecha límite
+                <input id="dueDate" type="date" required>
+              </label>
+              <label>Hora
+                <input id="dueTime" type="time">
+              </label>
+            </div>
+            <div class="two">
+              <label>Prioridad
+                <select id="priority">
+                  <option>Alta</option>
+                  <option selected>Media</option>
+                  <option>Baja</option>
+                </select>
+              </label>
+              <label>Estado
+                <select id="status">
+                  <option>Pendiente</option>
+                  <option>En proceso</option>
+                  <option>Completado</option>
+                </select>
+              </label>
+            </div>
+            <label>Avance
+              <input id="progress" type="range" min="0" max="100" step="5" value="0">
+              <span id="progressText">0%</span>
+            </label>
+            <label>Proyectos
+              <div class="project-picker" id="projectsBox"></div>
+            </label>
+            <label>Agregar proyecto nuevo
+              <div class="small-actions">
+                <input id="newProject" placeholder="Ej. Oakland, Planta 2, Cliente X">
+                <button id="addProjectBtn" class="secondary" type="button">Agregar</button>
+              </div>
+            </label>
+            <label>Notas de seguimiento
+              <textarea id="notes" placeholder="Ej. enviado a supervisores, pendiente evidencia, cliente confirmó recepción..."></textarea>
+            </label>
+            <button type="submit">Guardar obligación</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="listTitle">
+        <div class="panel-head">
+          <h2 id="listTitle">Seguimiento</h2>
+          <span id="countLabel" class="chip blue">0 registros</span>
+        </div>
+        <div class="filters">
+          <label>Buscar
+            <input id="search" placeholder="Título, descripción, nota...">
+          </label>
+          <label>Estado
+            <select id="filterStatus">
+              <option value="">Todos</option>
+              <option>Pendiente</option>
+              <option>En proceso</option>
+              <option>Completado</option>
+            </select>
+          </label>
+          <label>Proyecto
+            <select id="filterProject">
+              <option value="">Todos</option>
+            </select>
+          </label>
+          <label>Vista
+            <select id="filterDate">
+              <option value="">Todo</option>
+              <option value="today">Vence hoy</option>
+              <option value="thisWeek">Esta semana</option>
+              <option value="week">Próximos 7 días</option>
+              <option value="thisMonth">Este mes</option>
+              <option value="overdue">Vencido</option>
+            </select>
+          </label>
+          <label>Desde
+            <input type="date" id="filterFrom">
+          </label>
+          <label>Hasta
+            <input type="date" id="filterTo">
+          </label>
+        </div>
+        <div class="panel-body">
+          <div id="dashboard" class="stats" hidden></div>
+          <div id="tasks" class="tasks"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <dialog id="reportDialog">
+    <div class="panel-head">
+      <h2>Reporte de seguimiento</h2>
+      <button id="closeReportBtn" class="icon ghost" type="button" title="Cerrar">x</button>
+    </div>
+    <div class="panel-body form-grid">
+      <div id="reportOutput" class="report"></div>
+      <div class="small-actions">
+        <button id="copyReportBtn" type="button">Copiar reporte</button>
+        <button id="downloadReportBtn" class="secondary" type="button">Descargar .txt</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <footer class="app-footer">Hecho con <b>LillyTech</b> · Tinta &amp; Latón</footer>
+
+  <script>
+    const STORAGE_KEY = "facilities-control-v1";
+    const SUPABASE_CONFIG_KEY = "facilities-control-supabase-v1";
+    const USER_KEY = "facilities-control-user";
+    const SUPABASE_TABLE = "facilities_control_state";
+    const DEFAULT_SUPABASE_CONFIG = {
+      url: "https://vgkyoyosjewdygxtnqvu.supabase.co",
+      key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZna3lveW9zamV3ZHlneHRucXZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2NTAxNDAsImV4cCI6MjA5ODIyNjE0MH0.oDxSWg61UFLqMh2MeEW6yxarZAjobhEA6TWm0KS_7CA",
+      recordId: "facilities-principal"
+    };
+    const DEFAULT_PROJECTS = ["Todos los proyectos", "Proyecto A", "Proyecto B", "Proyecto C"];
+
+    const state = loadState();
+    const supabaseConfig = loadSupabaseConfig();
+    let currentUser = localStorage.getItem(USER_KEY) || "";
+    let lastKnownRemoteUpdate = localStorage.getItem("facilities-control-last-remote") || null;
+    const el = {
+      form: document.getElementById("taskForm"),
+      taskId: document.getElementById("taskId"),
+      title: document.getElementById("title"),
+      description: document.getElementById("description"),
+      category: document.getElementById("category"),
+      audience: document.getElementById("audience"),
+      dueDate: document.getElementById("dueDate"),
+      dueTime: document.getElementById("dueTime"),
+      priority: document.getElementById("priority"),
+      status: document.getElementById("status"),
+      progress: document.getElementById("progress"),
+      progressText: document.getElementById("progressText"),
+      notes: document.getElementById("notes"),
+      projectsBox: document.getElementById("projectsBox"),
+      newProject: document.getElementById("newProject"),
+      tasks: document.getElementById("tasks"),
+      dashboard: document.getElementById("dashboard"),
+      countLabel: document.getElementById("countLabel"),
+      search: document.getElementById("search"),
+      filterStatus: document.getElementById("filterStatus"),
+      filterProject: document.getElementById("filterProject"),
+      filterDate: document.getElementById("filterDate"),
+      filterFrom: document.getElementById("filterFrom"),
+      filterTo: document.getElementById("filterTo"),
+      reportDialog: document.getElementById("reportDialog"),
+      reportOutput: document.getElementById("reportOutput"),
+      toast: document.getElementById("toast"),
+      loginGate: document.getElementById("loginGate"),
+      loginName: document.getElementById("loginName"),
+      userLabel: document.getElementById("userLabel"),
+      syncStatus: document.getElementById("syncStatus"),
+      recordIdLabel: document.getElementById("recordIdLabel"),
+      syncBanner: document.getElementById("syncBanner")
+    };
+
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return { projects: DEFAULT_PROJECTS, tasks: [] };
+      try {
+        const parsed = JSON.parse(saved);
+        return {
+          projects: Array.isArray(parsed.projects) && parsed.projects.length ? parsed.projects : DEFAULT_PROJECTS,
+          tasks: Array.isArray(parsed.tasks) ? parsed.tasks : []
+        };
+      } catch {
+        return { projects: DEFAULT_PROJECTS, tasks: [] };
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function loadSupabaseConfig() {
+      const saved = localStorage.getItem(SUPABASE_CONFIG_KEY);
+      if (!saved) return { ...DEFAULT_SUPABASE_CONFIG };
+      try {
+        return { ...DEFAULT_SUPABASE_CONFIG, ...JSON.parse(saved) };
+      } catch {
+        return { ...DEFAULT_SUPABASE_CONFIG };
+      }
+    }
+
+    function saveSupabaseConfig() {
+      localStorage.setItem(SUPABASE_CONFIG_KEY, JSON.stringify(supabaseConfig));
+    }
+
+    function todayIso() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function dueDateTime(task) {
+      return new Date(`${task.dueDate}T${task.dueTime || "23:59"}`);
+    }
+
+    function isSameDay(a, b) {
+      return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+    }
+
+    function escapeHtml(value) {
+      return String(value || "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char]));
+    }
+
+    function showToast(message) {
+      el.toast.textContent = message;
+      el.toast.classList.add("show");
+      setTimeout(() => el.toast.classList.remove("show"), 2100);
+    }
+
+    function setSyncStatus(message) {
+      el.syncStatus.textContent = message;
+    }
+
+    // ---- Usuario / login ----
+    function applyUserUI() {
+      el.userLabel.textContent = currentUser || "sin nombre";
+      el.recordIdLabel.textContent = supabaseConfig.recordId;
+    }
+
+    function openLoginGate() {
+      el.loginGate.classList.remove("hidden");
+      el.loginName.value = currentUser || "";
+      setTimeout(() => el.loginName.focus(), 50);
+    }
+
+    function closeLoginGate() {
+      el.loginGate.classList.add("hidden");
+    }
+
+    function ensureLogin() {
+      if (!currentUser) openLoginGate();
+      applyUserUI();
+    }
+
+    function ensureSupabaseConfig() {
+      if (!supabaseConfig.url || !supabaseConfig.key) {
+        throw new Error("Falta la configuración de Supabase.");
+      }
+    }
+
+    async function supabaseRequest(path, options = {}) {
+      ensureSupabaseConfig();
+      const response = await fetch(`${supabaseConfig.url}/rest/v1/${path}`, {
+        ...options,
+        headers: {
+          apikey: supabaseConfig.key,
+          Authorization: `Bearer ${supabaseConfig.key}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation",
+          ...(options.headers || {})
+        }
+      });
+      if (!response.ok) {
+        const detail = await response.text();
+        throw new Error(detail || `Error Supabase ${response.status}`);
+      }
+      if (response.status === 204) return null;
+      return response.json();
+    }
+
+    async function pushToSupabase() {
+      setSyncStatus("Subiendo...");
+      const nowIso = new Date().toISOString();
+      const payload = {
+        id: supabaseConfig.recordId,
+        data: { ...state, lastEditedBy: currentUser || "sin nombre" },
+        updated_at: nowIso
+      };
+      await supabaseRequest(`${SUPABASE_TABLE}?on_conflict=id`, {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify(payload)
+      });
+      lastKnownRemoteUpdate = nowIso;
+      localStorage.setItem("facilities-control-last-remote", nowIso);
+      el.syncBanner.classList.remove("show");
+      setSyncStatus(`⬆ Subido por ${currentUser || "sin nombre"} · ${new Date().toLocaleString("es-CR")}`);
+      showToast("Datos subidos a Supabase");
+    }
+
+    async function pullFromSupabase({ silent } = {}) {
+      if (!silent) setSyncStatus("Descargando...");
+      const rows = await supabaseRequest(`${SUPABASE_TABLE}?id=eq.${encodeURIComponent(supabaseConfig.recordId)}&select=data,updated_at&limit=1`);
+      if (!rows.length) {
+        if (!silent) throw new Error("No existe respaldo con ese ID en Supabase todavía.");
+        return;
+      }
+      if (!Array.isArray(rows[0].data.tasks) || !Array.isArray(rows[0].data.projects)) {
+        if (!silent) throw new Error("El respaldo en Supabase no tiene el formato esperado.");
+        return;
+      }
+      state.tasks = rows[0].data.tasks;
+      state.projects = rows[0].data.projects;
+      saveState();
+      resetForm();
+      renderTasks();
+      lastKnownRemoteUpdate = rows[0].updated_at;
+      localStorage.setItem("facilities-control-last-remote", rows[0].updated_at);
+      el.syncBanner.classList.remove("show");
+      const who = rows[0].data.lastEditedBy ? ` (subido por ${rows[0].data.lastEditedBy})` : "";
+      setSyncStatus(`⬇ Descargado${who} · ${new Date(rows[0].updated_at).toLocaleString("es-CR")}`);
+      if (!silent) showToast("Datos descargados de Supabase");
+    }
+
+    // Al cargar, revisa en silencio si hay algo más nuevo en Supabase sin pisar lo local
+    async function checkRemoteFreshness() {
+      try {
+        ensureSupabaseConfig();
+        const rows = await supabaseRequest(`${SUPABASE_TABLE}?id=eq.${encodeURIComponent(supabaseConfig.recordId)}&select=updated_at&limit=1`);
+        if (!rows.length) return;
+        const remoteTime = new Date(rows[0].updated_at).getTime();
+        const knownTime = lastKnownRemoteUpdate ? new Date(lastKnownRemoteUpdate).getTime() : 0;
+        if (remoteTime > knownTime) {
+          el.syncBanner.classList.add("show");
+        }
+      } catch (error) {
+        console.info("No se pudo revisar Supabase al cargar:", error.message);
+      }
+    }
+
+    function makeId() {
+      if (crypto && typeof crypto.randomUUID === "function") return crypto.randomUUID();
+      return `task-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    function renderProjects() {
+      el.projectsBox.innerHTML = state.projects.map((project, index) => `
+        <label class="checkrow">
+          <input type="checkbox" name="project" value="${escapeHtml(project)}" ${index === 0 ? "checked" : ""}>
+          <span>${escapeHtml(project)}</span>
+          ${index === 0 ? "" : `<button type="button" class="project-delete danger" title="Eliminar proyecto" data-project="${escapeHtml(encodeURIComponent(project))}" onclick="event.preventDefault(); event.stopPropagation(); deleteProject(this.dataset.project)">x</button>`}
+        </label>
+      `).join("");
+
+      const selectedFilter = el.filterProject.value;
+      el.filterProject.innerHTML = `<option value="">Todos</option>` + state.projects
+        .map((project) => `<option ${project === selectedFilter ? "selected" : ""}>${escapeHtml(project)}</option>`)
+        .join("");
+    }
+
+    window.deleteProject = function(encodedProject) {
+      const project = decodeURIComponent(encodedProject);
+      if (project === "Todos los proyectos") return;
+      const affected = state.tasks.filter((task) => task.projects.includes(project)).length;
+      const message = affected
+        ? `¿Eliminar "${project}"? Se quitará de ${affected} obligación(es), sin borrar las obligaciones.`
+        : `¿Eliminar "${project}"?`;
+      if (!confirm(message)) return;
+
+      state.projects = state.projects.filter((item) => item !== project);
+      state.tasks.forEach((task) => {
+        task.projects = task.projects.filter((item) => item !== project);
+        if (!task.projects.length) task.projects = ["Todos los proyectos"];
+        task.updatedAt = new Date().toISOString();
+      });
+      if (el.filterProject.value === project) el.filterProject.value = "";
+      saveState();
+      renderProjects();
+      renderTasks();
+      showToast("Proyecto eliminado");
+    };
+
+    function resetForm() {
+      el.form.reset();
+      el.taskId.value = "";
+      el.dueDate.value = todayIso();
+      el.progress.value = 0;
+      el.progressText.textContent = "0%";
+      renderProjects();
+      document.getElementById("formTitle").textContent = "Agregar obligación";
+    }
+
+    function selectedProjects() {
+      const checked = [...document.querySelectorAll("input[name='project']:checked")].map((item) => item.value);
+      return checked.length ? checked : ["Todos los proyectos"];
+    }
+
+    function taskTone(task) {
+      if (task.status === "Completado") return "done";
+      const now = new Date();
+      const due = dueDateTime(task);
+      if (due < now) return "overdue";
+      if (isSameDay(due, now)) return "today";
+      return "";
+    }
+
+    function statusChip(task) {
+      if (task.status === "Completado") return "green";
+      if (taskTone(task) === "overdue") return "red";
+      if (taskTone(task) === "today") return "amber";
+      return "blue";
+    }
+
+    function filteredTasks() {
+      const q = el.search.value.trim().toLowerCase();
+      const status = el.filterStatus.value;
+      const project = el.filterProject.value;
+      const dateView = el.filterDate.value;
+      const from = el.filterFrom.value ? new Date(`${el.filterFrom.value}T00:00:00`) : null;
+      const to = el.filterTo.value ? new Date(`${el.filterTo.value}T23:59:59`) : null;
+      const now = new Date();
+      const week = new Date();
+      week.setDate(now.getDate() + 7);
+
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay());
+      startOfWeek.setHours(0, 0, 0, 0);
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      endOfWeek.setHours(23, 59, 59, 999);
+
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+      return state.tasks.filter((task) => {
+        const blob = [task.title, task.description, task.category, task.audience, task.notes, task.projects.join(" ")].join(" ").toLowerCase();
+        const due = dueDateTime(task);
+        if (q && !blob.includes(q)) return false;
+        if (status && task.status !== status) return false;
+        if (project && !task.projects.includes(project) && !task.projects.includes("Todos los proyectos")) return false;
+        if (dateView === "today" && !isSameDay(due, now)) return false;
+        if (dateView === "thisWeek" && (due < startOfWeek || due > endOfWeek)) return false;
+        if (dateView === "week" && (due < now || due > week)) return false;
+        if (dateView === "thisMonth" && (due < startOfMonth || due > endOfMonth)) return false;
+        if (dateView === "overdue" && !(due < now && task.status !== "Completado")) return false;
+        if (from && due < from) return false;
+        if (to && due > to) return false;
+        return true;
+      }).sort((a, b) => dueDateTime(a) - dueDateTime(b));
+    }
+
+    function renderDashboard(tasks) {
+      const total = tasks.length;
+      const done = tasks.filter((task) => task.status === "Completado").length;
+      const overdue = tasks.filter((task) => taskTone(task) === "overdue").length;
+      const today = tasks.filter((task) => taskTone(task) === "today").length;
+      const avg = total ? Math.round(tasks.reduce((sum, task) => sum + Number(task.progress || 0), 0) / total) : 0;
+      el.dashboard.innerHTML = `
+        <div class="stat"><b>${total}</b><span>Total visible</span></div>
+        <div class="stat"><b>${done}</b><span>Completadas</span><div class="progressbar"><i style="width:${total ? Math.round(done / total * 100) : 0}%"></i></div></div>
+        <div class="stat"><b>${today}</b><span>Vencen hoy</span></div>
+        <div class="stat"><b>${overdue}</b><span>Vencidas</span><div class="progressbar"><i style="width:${avg}%"></i></div></div>
+      `;
+    }
+
+    function renderTasks() {
+      const tasks = filteredTasks();
+      el.countLabel.textContent = `${tasks.length} registro${tasks.length === 1 ? "" : "s"}`;
+      renderDashboard(tasks);
+
+      if (!tasks.length) {
+        el.tasks.innerHTML = `<div class="empty">No hay obligaciones con estos filtros. Agrega una nueva o cambia la vista.</div>`;
+        return;
+      }
+
+      el.tasks.innerHTML = tasks.map((task) => `
+        <article class="task ${taskTone(task)}">
+          <div class="task-top">
+            <div>
+              <h3 class="task-title">${escapeHtml(task.title)}</h3>
+              <p class="task-desc">${escapeHtml(task.description)}</p>
+            </div>
+            <span class="chip ${statusChip(task)}">${escapeHtml(task.status)}</span>
+          </div>
+          <div class="chips">
+            <span class="chip">${escapeHtml(task.category)}</span>
+            <span class="chip blue">${escapeHtml(task.audience)}</span>
+            <span class="chip ${task.priority === "Alta" ? "red" : task.priority === "Media" ? "amber" : "green"}">${escapeHtml(task.priority)}</span>
+            <span class="chip">${escapeHtml(task.dueDate)} ${escapeHtml(task.dueTime || "")}</span>
+            ${task.projects.map((project) => `<span class="chip">${escapeHtml(project)}</span>`).join("")}
+          </div>
+          <div>
+            <div class="progressbar"><i style="width:${Number(task.progress || 0)}%"></i></div>
+            <small>${Number(task.progress || 0)}% de avance</small>
+          </div>
+          ${task.notes ? `<p class="task-desc"><b>Notas:</b> ${escapeHtml(task.notes)}</p>` : ""}
+          <div class="task-actions">
+            <button type="button" class="secondary" onclick="editTask('${task.id}')">Editar</button>
+            <button type="button" onclick="completeTask('${task.id}')">Completar</button>
+            <button type="button" class="icon danger" title="Eliminar" onclick="deleteTask('${task.id}')">x</button>
+          </div>
+          ${task.notes && task.notes.includes("Importado de Outlook") ? `<button type="button" class="ghost" style="width:100%;font-size:.8rem;" onclick="deleteAllLikeThis('${task.id}')">🧹 Borrar todas las repetidas de "${escapeHtml(task.title)}"</button>` : ""}
+        </article>
+      `).join("");
+    }
+
+    window.deleteAllLikeThis = function(id) {
+      const ref = state.tasks.find((item) => item.id === id);
+      if (!ref) return;
+      const key = ref.title.trim().toLowerCase();
+      const matches = state.tasks.filter((item) => item.title.trim().toLowerCase() === key);
+      if (!confirm(`¿Eliminar las ${matches.length} tarea(s) llamadas "${ref.title}"? Esto no se puede deshacer.`)) return;
+      state.tasks = state.tasks.filter((item) => item.title.trim().toLowerCase() !== key);
+      saveState();
+      renderTasks();
+      showToast(`${matches.length} tarea(s) repetida(s) eliminada(s)`);
+    };
+
+    function collectForm() {
+      const progress = el.status.value === "Completado" ? 100 : Number(el.progress.value);
+      return {
+        id: el.taskId.value || makeId(),
+        title: el.title.value.trim(),
+        description: el.description.value.trim(),
+        category: el.category.value,
+        audience: el.audience.value,
+        dueDate: el.dueDate.value,
+        dueTime: el.dueTime.value,
+        priority: el.priority.value,
+        status: el.status.value,
+        progress,
+        projects: selectedProjects(),
+        notes: el.notes.value.trim(),
+        updatedAt: new Date().toISOString()
+      };
+    }
+
+    window.editTask = function(id) {
+      const task = state.tasks.find((item) => item.id === id);
+      if (!task) return;
+      document.getElementById("formTitle").textContent = "Editar obligación";
+      el.taskId.value = task.id;
+      el.title.value = task.title;
+      el.description.value = task.description;
+      el.category.value = task.category;
+      el.audience.value = task.audience;
+      el.dueDate.value = task.dueDate;
+      el.dueTime.value = task.dueTime;
+      el.priority.value = task.priority;
+      el.status.value = task.status;
+      el.progress.value = task.progress;
+      el.progressText.textContent = `${task.progress}%`;
+      el.notes.value = task.notes;
+      renderProjects();
+      document.querySelectorAll("input[name='project']").forEach((item) => {
+        item.checked = task.projects.includes(item.value);
+      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    window.completeTask = function(id) {
+      const task = state.tasks.find((item) => item.id === id);
+      if (!task) return;
+      task.status = "Completado";
+      task.progress = 100;
+      task.updatedAt = new Date().toISOString();
+      saveState();
+      renderTasks();
+      showToast("Marcado como completado");
+    };
+
+    window.deleteTask = function(id) {
+      if (!confirm("¿Eliminar esta obligación?")) return;
+      const index = state.tasks.findIndex((item) => item.id === id);
+      if (index >= 0) state.tasks.splice(index, 1);
+      saveState();
+      renderTasks();
+      showToast("Obligación eliminada");
+    };
+
+    function buildReport() {
+      const tasks = filteredTasks();
+      const now = new Date();
+      const done = tasks.filter((task) => task.status === "Completado").length;
+      const overdue = tasks.filter((task) => taskTone(task) === "overdue").length;
+      const avg = tasks.length ? Math.round(tasks.reduce((sum, task) => sum + Number(task.progress || 0), 0) / tasks.length) : 0;
+      const lines = [
+        "REPORTE DE SEGUIMIENTO - FACILITIES",
+        `Fecha de reporte: ${now.toLocaleString("es-GT")}`,
+        "",
+        `Total visible: ${tasks.length}`,
+        `Completadas: ${done}`,
+        `Vencidas: ${overdue}`,
+        `Avance promedio: ${avg}%`,
+        "",
+        "DETALLE"
+      ];
+
+      tasks.forEach((task, index) => {
+        lines.push("");
+        lines.push(`${index + 1}. ${task.title}`);
+        lines.push(`Estado: ${task.status} | Avance: ${task.progress}% | Prioridad: ${task.priority}`);
+        lines.push(`Fecha límite: ${task.dueDate} ${task.dueTime || ""}`);
+        lines.push(`Tipo: ${task.category} | Para: ${task.audience}`);
+        lines.push(`Proyectos: ${task.projects.join(", ")}`);
+        if (task.description) lines.push(`Descripción: ${task.description}`);
+        if (task.notes) lines.push(`Notas: ${task.notes}`);
+      });
+
+      return lines.join("\n");
+    }
+
+    // ---- Exportación a Excel con formato (ExcelJS) ----
+    const XLSX_COLORS = {
+      headerBg: "FF0E1220",
+      headerTx: "FFFFFFFF",
+      brass: "FFC39A45",
+      brassSoft: "FFE6CE8C",
+      sageSoft: "FFDDEBE2",
+      rustSoft: "FFF2DED7",
+      line: "FFE0DACB",
+      tx: "FF1B2233"
+    };
+
+    function rowFillForTask(task) {
+      const tone = taskTone(task);
+      if (tone === "done") return XLSX_COLORS.sageSoft;
+      if (tone === "overdue") return XLSX_COLORS.rustSoft;
+      if (tone === "today") return XLSX_COLORS.brassSoft;
+      return null;
+    }
+
+    const TASK_COLUMNS = [
+      { header: "Título", key: "title", width: 30 },
+      { header: "Descripción", key: "description", width: 36 },
+      { header: "Tipo", key: "category", width: 16 },
+      { header: "Para quién", key: "audience", width: 16 },
+      { header: "Fecha límite", key: "dueDate", width: 13 },
+      { header: "Hora", key: "dueTime", width: 8 },
+      { header: "Prioridad", key: "priority", width: 10 },
+      { header: "Estado", key: "status", width: 13 },
+      { header: "Avance %", key: "progress", width: 10 },
+      { header: "Proyectos", key: "projectsLabel", width: 24 },
+      { header: "Notas", key: "notes", width: 32 },
+      { header: "Última actualización", key: "updatedLabel", width: 18 }
+    ];
+
+    function taskRow(task) {
+      return {
+        title: task.title,
+        description: task.description || "",
+        category: task.category,
+        audience: task.audience,
+        dueDate: task.dueDate,
+        dueTime: task.dueTime || "",
+        priority: task.priority,
+        status: task.status,
+        progress: Number(task.progress || 0) / 100,
+        projectsLabel: task.projects.join(", "),
+        notes: task.notes || "",
+        updatedLabel: task.updatedAt ? new Date(task.updatedAt).toLocaleString("es-CR") : ""
+      };
+    }
+
+    function styleTaskSheet(sheet, tasks) {
+      sheet.columns = TASK_COLUMNS;
+      sheet.getRow(1).eachCell((cell) => {
+        cell.font = { name: "Calibri", bold: true, color: { argb: XLSX_COLORS.headerTx } };
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: XLSX_COLORS.headerBg } };
+        cell.alignment = { vertical: "middle" };
+      });
+      sheet.views = [{ state: "frozen", ySplit: 1 }];
+      sheet.autoFilter = { from: "A1", to: `${String.fromCharCode(64 + TASK_COLUMNS.length)}1` };
+
+      tasks.forEach((task) => {
+        const row = sheet.addRow(taskRow(task));
+        const fill = rowFillForTask(task);
+        row.eachCell((cell, colNumber) => {
+          cell.font = { name: "Calibri", size: 11, color: { argb: XLSX_COLORS.tx } };
+          cell.border = { bottom: { style: "thin", color: { argb: XLSX_COLORS.line } } };
+          cell.alignment = { vertical: "top", wrapText: colNumber === 2 || colNumber === 11 };
+          if (fill) cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: fill } };
+          if (TASK_COLUMNS[colNumber - 1].key === "progress") cell.numFmt = "0%";
+        });
+      });
+      sheet.getColumn("progress").alignment = { horizontal: "center", vertical: "top" };
+    }
+
+    function addSummarySheet(workbook, tasks) {
+      const sheet = workbook.addWorksheet("Resumen");
+      sheet.mergeCells("A1:D1");
+      sheet.getCell("A1").value = "Control diario de Facilities — Resumen";
+      sheet.getCell("A1").font = { name: "Calibri", bold: true, size: 16, color: { argb: XLSX_COLORS.tx } };
+      sheet.getCell("A2").value = `Generado: ${new Date().toLocaleString("es-CR")}`;
+      sheet.getCell("A2").font = { name: "Calibri", italic: true, size: 10, color: { argb: "FF5A6275" } };
+
+      const total = tasks.length;
+      const done = tasks.filter((t) => t.status === "Completado").length;
+      const overdue = tasks.filter((t) => taskTone(t) === "overdue").length;
+      const today = tasks.filter((t) => taskTone(t) === "today").length;
+      const avg = total ? Math.round(tasks.reduce((sum, t) => sum + Number(t.progress || 0), 0) / total) : 0;
+
+      const stats = [
+        ["Total de obligaciones", total],
+        ["Completadas", done],
+        ["Vencidas", overdue],
+        ["Vencen hoy", today],
+        ["Avance promedio", `${avg}%`]
+      ];
+      let r = 4;
+      stats.forEach(([label, value]) => {
+        sheet.getCell(`A${r}`).value = label;
+        sheet.getCell(`A${r}`).font = { name: "Calibri", bold: true };
+        sheet.getCell(`B${r}`).value = value;
+        r++;
+      });
+
+      r += 1;
+      sheet.getCell(`A${r}`).value = "Por proyecto";
+      sheet.getCell(`A${r}`).font = { name: "Calibri", bold: true, size: 13 };
+      r++;
+      const headerRow = sheet.getRow(r);
+      ["Proyecto", "Total", "Completadas", "Vencidas", "Avance promedio"].forEach((label, i) => {
+        const cell = headerRow.getCell(i + 1);
+        cell.value = label;
+        cell.font = { name: "Calibri", bold: true, color: { argb: XLSX_COLORS.headerTx } };
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: XLSX_COLORS.headerBg } };
+      });
+      r++;
+      state.projects.filter((p) => p !== "Todos los proyectos").forEach((project) => {
+        const projectTasks = tasks.filter((t) => t.projects.includes(project));
+        const pTotal = projectTasks.length;
+        const pDone = projectTasks.filter((t) => t.status === "Completado").length;
+        const pOverdue = projectTasks.filter((t) => taskTone(t) === "overdue").length;
+        const pAvg = pTotal ? Math.round(projectTasks.reduce((sum, t) => sum + Number(t.progress || 0), 0) / pTotal) : 0;
+        sheet.getRow(r).values = [project, pTotal, pDone, pOverdue, `${pAvg}%`];
+        r++;
+      });
+
+      sheet.getColumn(1).width = 30;
+      sheet.getColumn(2).width = 14;
+      sheet.getColumn(3).width = 14;
+      sheet.getColumn(4).width = 14;
+      sheet.getColumn(5).width = 16;
+    }
+
+    function safeSheetName(name) {
+      return name.replace(/[\\\/\?\*\[\]:]/g, "-").slice(0, 31) || "Proyecto";
+    }
+
+    async function exportExcel() {
+      if (!window.ExcelJS) { showToast("No se pudo cargar el generador de Excel"); return; }
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = "LillyTech";
+      workbook.created = new Date();
+
+      const allTasks = [...state.tasks].sort((a, b) => dueDateTime(a) - dueDateTime(b));
+      addSummarySheet(workbook, allTasks);
+
+      const todasSheet = workbook.addWorksheet("Todas");
+      styleTaskSheet(todasSheet, allTasks);
+
+      const usedNames = new Set(["Resumen", "Todas"]);
+      state.projects.filter((p) => p !== "Todos los proyectos").forEach((project) => {
+        const projectTasks = allTasks.filter((t) => t.projects.includes(project));
+        if (!projectTasks.length) return;
+        let name = safeSheetName(project);
+        let suffix = 2;
+        while (usedNames.has(name)) { name = `${safeSheetName(project).slice(0, 28)} ${suffix++}`; }
+        usedNames.add(name);
+        const sheet = workbook.addWorksheet(name);
+        styleTaskSheet(sheet, projectTasks);
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `facilities_${todayIso()}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("Excel descargado");
+    }
+
+    // ---- Importar CSV de Outlook (calendario) ----
+    const OUTLOOK_FIELD_ALIASES = {
+      title: ["Subject", "Asunto", "Título"],
+      description: ["Description", "Descripción", "Notas"],
+      startDate: ["Start Date", "Fecha de inicio", "Fecha inicio"],
+      startTime: ["Start Time", "Hora de inicio", "Hora inicio"],
+      location: ["Location", "Ubicación", "Lugar"]
+    };
+
+    function pickField(row, aliases) {
+      for (const key of Object.keys(row)) {
+        const clean = key.trim();
+        if (aliases.some((alias) => alias.toLowerCase() === clean.toLowerCase())) {
+          return (row[key] || "").trim();
+        }
+      }
+      return "";
+    }
+
+    function normalizeImportedDate(raw) {
+      if (!raw) return todayIso();
+      const value = raw.trim();
+      // YYYY-MM-DD ya viene bien
+      if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+      // DD/MM/YYYY o MM/DD/YYYY (Outlook exporta según el idioma del sistema; CR usa DD/MM/YYYY)
+      const slash = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (slash) {
+        let [, a, b, year] = slash;
+        let day = Number(a), month = Number(b);
+        // Si el primer número es mayor a 12, es DD/MM. Si no, asumimos DD/MM (locale CR) salvo que el segundo también sea >12.
+        if (day > 12 && month <= 12) { /* ya está bien: DD/MM */ }
+        else if (month > 12 && day <= 12) { [day, month] = [month, day]; }
+        return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      }
+      const parsed = new Date(value);
+      if (!isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10);
+      return todayIso();
+    }
+
+    function normalizeImportedTime(raw) {
+      if (!raw) return "";
+      const value = raw.trim().toLowerCase().replace(/\./g, "");
+      const match = value.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(a\.?\s*m\.?|p\.?\s*m\.?|am|pm)?$/i);
+      if (!match) return "";
+      let [, h, m, ampm] = match;
+      let hour = Number(h);
+      if (ampm) {
+        const isPm = ampm.replace(/\s|\./g, "").startsWith("p");
+        if (isPm && hour < 12) hour += 12;
+        if (!isPm && hour === 12) hour = 0;
+      }
+      return `${String(hour).padStart(2, "0")}:${m}`;
+    }
+
+    function rowToImportedTask(row) {
+      const title = pickField(row, OUTLOOK_FIELD_ALIASES.title);
+      if (!title) return null;
+      const description = pickField(row, OUTLOOK_FIELD_ALIASES.description);
+      const location = pickField(row, OUTLOOK_FIELD_ALIASES.location);
+      return {
+        id: makeId(),
+        title,
+        description: [description, location ? `Lugar: ${location}` : ""].filter(Boolean).join("\n"),
+        category: "Cliente",
+        audience: "Para mí",
+        dueDate: normalizeImportedDate(pickField(row, OUTLOOK_FIELD_ALIASES.startDate)),
+        dueTime: normalizeImportedTime(pickField(row, OUTLOOK_FIELD_ALIASES.startTime)),
+        priority: "Media",
+        status: "Pendiente",
+        progress: 0,
+        projects: ["Todos los proyectos"],
+        notes: "Importado de Outlook",
+        updatedAt: new Date().toISOString()
+      };
+    }
+
+    function importOutlookCsv(file) {
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          const imported = results.data.map(rowToImportedTask).filter(Boolean);
+          if (!imported.length) {
+            showToast("No se encontraron eventos con título en ese CSV");
+            return;
+          }
+          state.tasks.push(...imported);
+          saveState();
+          renderTasks();
+          showToast(`${imported.length} tarea(s) importada(s) de Outlook`);
+        },
+        error: (error) => showToast(`Error al leer el CSV: ${error.message}`)
+      });
+    }
+
+    el.form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const task = collectForm();
+      if (!task.title || !task.dueDate) return;
+      const index = state.tasks.findIndex((item) => item.id === task.id);
+      if (index >= 0) state.tasks[index] = task;
+      else state.tasks.push(task);
+      saveState();
+      resetForm();
+      renderTasks();
+      showToast("Obligación guardada");
+    });
+
+    el.progress.addEventListener("input", () => {
+      el.progressText.textContent = `${el.progress.value}%`;
+      if (Number(el.progress.value) === 100) el.status.value = "Completado";
+      if (Number(el.progress.value) > 0 && el.status.value === "Pendiente") el.status.value = "En proceso";
+    });
+
+    document.getElementById("addProjectBtn").addEventListener("click", () => {
+      const project = el.newProject.value.trim();
+      if (!project) return;
+      if (!state.projects.includes(project)) state.projects.push(project);
+      el.newProject.value = "";
+      saveState();
+      renderProjects();
+      showToast("Proyecto agregado");
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", resetForm);
+    document.getElementById("dashboardBtn").addEventListener("click", () => {
+      el.dashboard.hidden = !el.dashboard.hidden;
+      renderTasks();
+    });
+    document.getElementById("reportBtn").addEventListener("click", () => {
+      el.reportOutput.textContent = buildReport();
+      el.reportDialog.showModal();
+    });
+    document.getElementById("excelBtn").addEventListener("click", async () => {
+      try {
+        await exportExcel();
+      } catch (error) {
+        showToast(`Error al generar Excel: ${error.message}`);
+      }
+    });
+    document.getElementById("importBtn").addEventListener("click", () => {
+      document.getElementById("importFile").click();
+    });
+    document.getElementById("importFile").addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (file) importOutlookCsv(file);
+      event.target.value = "";
+    });
+    document.getElementById("pushBtn").addEventListener("click", async () => {
+      try {
+        await pushToSupabase();
+      } catch (error) {
+        showToast(error.message);
+        setSyncStatus(`Error al subir: ${error.message}`);
+      }
+    });
+    async function handlePull() {
+      if (state.tasks.length && !confirm("Esto va a reemplazar lo que ves acá con lo que hay en Supabase. ¿Seguro?")) return;
+      try {
+        await pullFromSupabase();
+      } catch (error) {
+        showToast(error.message);
+        setSyncStatus(`Error al descargar: ${error.message}`);
+      }
+    }
+    document.getElementById("pullBtn").addEventListener("click", handlePull);
+    document.getElementById("bannerPullBtn").addEventListener("click", handlePull);
+    document.getElementById("closeReportBtn").addEventListener("click", () => el.reportDialog.close());
+    document.getElementById("copyReportBtn").addEventListener("click", async () => {
+      await navigator.clipboard.writeText(el.reportOutput.textContent);
+      showToast("Reporte copiado");
+    });
+    document.getElementById("downloadReportBtn").addEventListener("click", () => {
+      const blob = new Blob([el.reportOutput.textContent], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `reporte_facilities_${todayIso()}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+    [el.search, el.filterStatus, el.filterProject, el.filterDate, el.filterFrom, el.filterTo].forEach((item) => {
+      item.addEventListener("input", renderTasks);
+      item.addEventListener("change", renderTasks);
+    });
+
+    document.getElementById("loginBtn").addEventListener("click", () => {
+      const name = el.loginName.value.trim();
+      if (!name) { el.loginName.focus(); return; }
+      currentUser = name;
+      localStorage.setItem(USER_KEY, name);
+      applyUserUI();
+      closeLoginGate();
+      showToast(`Hola, ${name}`);
+    });
+    el.loginName.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") document.getElementById("loginBtn").click();
+    });
+    document.getElementById("changeUserBtn").addEventListener("click", openLoginGate);
+
+    resetForm();
+    renderTasks();
+    ensureLogin();
+    checkRemoteFreshness();
+  </script>
+</body>
+</html>

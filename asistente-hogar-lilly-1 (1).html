@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Lilly — Asistente del Hogar</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg-body:       #0f1117;
+  --bg-main:       #161b24;
+  --bg-header:     #1a2030;
+  --bg-sidebar:    #1a2030;
+  --bg-input:      #232b3a;
+  --bg-card:       #1e2535;
+  --bg-bubble-bot: #232b3a;
+  --bg-bubble-usr: #c75535;
+  --bg-subpanel:   #1e2535;
+  --terracotta:    #d4603a;
+  --terracotta-lt: #e8845f;
+  --amber:         #f4a447;
+  --amber-lt:      #f0c070;
+  --teal:          #3dbdb5;
+  --teal-dark:     #2a9990;
+  --green:         #4caf50;
+  --green-dark:    #388e3c;
+  --red:           #e05050;
+  --text-1: #eef0f4;
+  --text-2: #a8b0c0;
+  --text-3: #6a7590;
+  --border:    #2a3345;
+  --border-lt: #303d54;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,.4);
+  --shadow:    0 4px 20px rgba(0,0,0,.5);
+  --sidebar-w: 78px;
+}
+*{ margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{ height:100%; height:100dvh; overflow:hidden; font-family:'Nunito Sans',sans-serif; background:var(--bg-body); color:var(--text-1); }
+#app{ display:flex; flex-direction:column; height:100%; height:100dvh; max-width:720px; margin:0 auto; background:var(--bg-main); }
+
+/* ══════════════════════════════════════
+   LOCK SCREEN
+══════════════════════════════════════ */
+#lock-screen {
+  position:fixed; inset:0; z-index:999;
+  background: radial-gradient(ellipse at 30% 20%, #1e2a40 0%, #0f1117 60%);
+  display:flex; align-items:center; justify-content:center;
+  padding:20px;
+}
+#lock-screen.hidden { display:none; }
+
+.lock-box {
+  width:100%; max-width:340px;
+  display:flex; flex-direction:column; align-items:center; gap:0;
+}
+
+/* logo + title */
+.lock-logo {
+  width:72px; height:72px; border-radius:50%;
+  background:linear-gradient(135deg,var(--terracotta),var(--amber));
+  display:flex; align-items:center; justify-content:center;
+  font-size:32px; margin-bottom:14px;
+  box-shadow:0 4px 24px rgba(212,96,58,.5);
+  cursor:pointer; /* tap 5x to reveal demo code */
+  user-select:none;
+}
+
+.lock-title {
+  font-family:'Nunito',sans-serif; font-size:22px; font-weight:900;
+  color:var(--text-1); margin-bottom:4px;
+}
+.lock-sub {
+  font-size:12px; color:var(--text-3); font-weight:600;
+  margin-bottom:28px; text-align:center;
+}
+
+/* mode badge */
+#mode-badge {
+  font-size:11px; font-weight:800; padding:3px 12px;
+  border-radius:20px; margin-bottom:20px;
+  font-family:'Nunito',sans-serif; letter-spacing:.5px;
+  transition:all .3s;
+}
+#mode-badge.demo  { background:#1e2a44; color:#78a0e0; border:1px solid #2a3a5a; }
+#mode-badge.owner { background:#142814; color:#7aab59; border:1px solid #1e4018; }
+
+/* PIN dots */
+.pin-dots {
+  display:flex; gap:14px; margin-bottom:10px;
+}
+.pin-dot {
+  width:14px; height:14px; border-radius:50%;
+  border:2px solid var(--border-lt);
+  background:transparent; transition:all .15s;
+}
+.pin-dot.filled { background:var(--amber); border-color:var(--amber); }
+.pin-dot.error  { background:var(--red);   border-color:var(--red); animation:shake .3s; }
+
+@keyframes shake {
+  0%,100%{transform:translateX(0)}
+  25%{transform:translateX(-6px)} 75%{transform:translateX(6px)}
+}
+
+/* error message */
+#pin-error {
+  height:20px; font-size:12px; color:var(--red);
+  font-weight:700; margin-bottom:14px; text-align:center;
+  font-family:'Nunito',sans-serif;
+}
+
+/* lockout bar */
+#lockout-bar {
+  width:100%; height:3px; border-radius:2px;
+  background:var(--border); margin-bottom:20px; display:none; overflow:hidden;
+}
+#lockout-progress {
+  height:100%; border-radius:2px;
+  background:var(--red); transition:width 1s linear;
+}
+
+/* KEYPAD */
+.keypad {
+  display:grid; grid-template-columns:repeat(3,1fr);
+  gap:10px; width:100%; max-width:260px;
+}
+.key {
+  height:62px; border-radius:16px;
+  border:1.5px solid var(--border-lt);
+  background:var(--bg-card);
+  color:var(--text-1); cursor:pointer;
+  font-family:'Nunito',sans-serif; font-size:20px; font-weight:700;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:1px; transition:all .12s; user-select:none;
+}
+.key .letters { font-size:8px; color:var(--text-3); font-weight:600; letter-spacing:1px; }
+.key:hover  { background:var(--bg-input); border-color:var(--amber-lt); }
+.key:active { transform:scale(.93); background:var(--border-lt); }
+.key.del    { color:var(--text-2); font-size:18px; }
+.key.empty  { border:none; background:none; cursor:default; }
+.key.enter  {
+  border-color:var(--terracotta); background:var(--terracotta);
+  color:#fff; font-size:14px;
+}
+.key.enter:hover{ background:var(--terracotta-lt); }
+
+/* demo code toast */
+#demo-toast {
+  position:fixed; bottom:30px; left:50%; transform:translateX(-50%);
+  background:var(--bg-card); border:1px solid var(--amber);
+  border-radius:14px; padding:12px 20px; z-index:1000;
+  text-align:center; display:none; animation:fadeUp .3s ease;
+}
+#demo-toast p  { font-size:12px; color:var(--text-2); margin-bottom:4px; }
+#demo-toast .code {
+  font-family:'Nunito',sans-serif; font-size:28px; font-weight:900;
+  color:var(--amber-lt); letter-spacing:6px;
+}
+#demo-toast .expires {
+  font-size:10px; color:var(--text-3); margin-top:4px;
+}
+
+/* setup PIN screen */
+#setup-screen {
+  position:fixed; inset:0; z-index:998;
+  background:rgba(10,12,18,.95);
+  display:none; align-items:center; justify-content:center; padding:20px;
+}
+#setup-screen.show { display:flex; }
+.setup-box {
+  background:var(--bg-card); border:1px solid var(--border-lt);
+  border-radius:20px; padding:24px; width:100%; max-width:340px;
+  text-align:center;
+}
+.setup-box h3 {
+  font-family:'Nunito',sans-serif; font-size:18px; font-weight:900;
+  color:var(--terracotta-lt); margin-bottom:8px;
+}
+.setup-box p { font-size:13px; color:var(--text-2); line-height:1.6; margin-bottom:18px; }
+.setup-input {
+  width:100%; padding:12px 16px; border-radius:14px;
+  border:1.5px solid var(--border-lt); background:var(--bg-input);
+  color:var(--text-1); font-family:'Nunito',sans-serif;
+  font-size:18px; font-weight:700; text-align:center;
+  letter-spacing:4px; outline:none; margin-bottom:8px;
+  transition:border-color .18s;
+}
+.setup-input:focus { border-color:var(--amber); }
+.setup-input::placeholder { letter-spacing:0; font-size:13px; font-weight:400; }
+.setup-hint { font-size:11px; color:var(--text-3); margin-bottom:16px; }
+.setup-btn {
+  width:100%; padding:12px; border-radius:14px;
+  background:var(--teal-dark); color:#fff; border:none;
+  font-family:'Nunito',sans-serif; font-weight:800; font-size:14px;
+  cursor:pointer; transition:background .18s; margin-bottom:8px;
+}
+.setup-btn:hover { background:var(--teal); }
+.setup-skip {
+  font-size:12px; color:var(--text-3); cursor:pointer;
+  font-family:'Nunito',sans-serif; font-weight:700; text-decoration:underline;
+}
+.setup-skip:hover { color:var(--text-2); }
+
+/* ── HEADER ───────────────────────────────── */
+header{ flex-shrink:0; display:flex; align-items:center; gap:10px; padding:11px 14px; background:var(--bg-header); border-bottom:1px solid var(--border); box-shadow:var(--shadow-sm); }
+.avatar{ width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,var(--terracotta),var(--amber)); display:flex; align-items:center; justify-content:center; font-size:19px; flex-shrink:0; box-shadow:0 2px 10px rgba(212,96,58,.4); }
+.hinfo{ flex:1; }
+.hinfo h1{ font-family:'Nunito',sans-serif; font-size:15px; font-weight:800; color:var(--text-1); line-height:1.1; }
+.hinfo p{ font-size:11px; color:var(--teal); font-weight:600; }
+.dot{ width:7px; height:7px; border-radius:50%; background:var(--green); display:inline-block; margin-right:4px; animation:pulse 2s infinite; }
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+#demo-mode-tag{ font-size:10px; padding:2px 8px; border-radius:8px; background:#1e2a44; color:#78a0e0; font-weight:800; font-family:'Nunito',sans-serif; display:none; }
+
+.header-right{ display:flex; align-items:center; gap:8px; }
+#clear-btn{ background:none; border:1.5px solid var(--border-lt); border-radius:10px; padding:5px 9px; color:var(--text-3); font-size:11px; font-family:'Nunito',sans-serif; font-weight:700; cursor:pointer; transition:all .18s; flex-shrink:0; }
+#clear-btn:hover{ color:var(--terracotta-lt); border-color:var(--terracotta); }
+#lock-btn{ background:none; border:none; font-size:18px; cursor:pointer; color:var(--text-3); padding:4px; transition:color .18s; }
+#stats-btn{ background:none; border:none; font-size:18px; cursor:pointer; color:var(--text-3); padding:4px; transition:color .18s; }
+#stats-btn:hover{ color:var(--amber-lt); }
+#lock-btn:hover{ color:var(--amber-lt); }
+
+/* ── API KEY ──────────────────────────────── */
+#apikey-panel{ flex-shrink:0; display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:8px 14px; background:var(--bg-header); border-bottom:1px solid var(--border); }
+#apikey-panel.hidden{ display:none; }
+#apikey-panel label{ font-family:'Nunito',sans-serif; font-size:11px; font-weight:800; color:var(--amber-lt); white-space:nowrap; }
+#apikey-input{ flex:1; min-width:120px; padding:6px 11px; border-radius:10px; border:1.5px solid var(--border-lt); background:var(--bg-input); color:var(--text-1); font-size:13px; outline:none; transition:border-color .18s; }
+#apikey-input:focus{ border-color:var(--teal); }
+#apikey-input::placeholder{ color:var(--text-3); }
+#apikey-save{ padding:6px 13px; border-radius:10px; background:var(--teal-dark); color:#fff; border:none; font-family:'Nunito',sans-serif; font-weight:700; font-size:12px; cursor:pointer; transition:background .15s; white-space:nowrap; }
+#apikey-save:hover{ background:var(--teal); }
+#apikey-ok{ font-size:12px; color:var(--green); font-weight:700; display:none; }
+
+/* ── BODY ROW ─────────────────────────────── */
+#body-row{ flex:1; display:flex; overflow:hidden; }
+
+/* ── LEFT SIDEBAR ─────────────────────────── */
+#sidebar{ width:var(--sidebar-w); flex-shrink:0; background:var(--bg-sidebar); border-right:1px solid var(--border); display:flex; flex-direction:column; align-items:center; padding:10px 0; gap:4px; overflow-y:auto; scrollbar-width:none; }
+#sidebar::-webkit-scrollbar{ display:none; }
+.nav-btn{ width:66px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:10px 4px; border-radius:14px; border:none; cursor:pointer; background:transparent; transition:all .18s; font-family:'Nunito',sans-serif; color:var(--text-2); position:relative; }
+.nav-btn .icon{ font-size:24px; line-height:1; transition:transform .18s; }
+.nav-btn .label{ font-size:10px; font-weight:800; text-align:center; line-height:1.2; }
+.nav-btn.recipes  { --c:#e8845f; --bg:#2a1e16; }
+.nav-btn.shopping { --c:var(--teal); --bg:#142420; }
+.nav-btn.cleaning { --c:#7aab59; --bg:#182214; }
+.nav-btn.homework { --c:var(--amber-lt); --bg:#252010; }
+.nav-btn.english  { --c:#78a0e0; --bg:#141a2a; }
+.nav-btn.emotional{ --c:#d880a0; --bg:#28141e; }
+.nav-btn.budget   { --c:#a0e0a0; --bg:#142814; }
+.nav-btn:hover{ background:var(--bg); color:var(--c); transform:scale(1.04); }
+.nav-btn:hover .icon{ transform:scale(1.1); }
+.nav-btn.active{ background:var(--bg); color:var(--c); }
+.nav-btn.active::before{ content:''; position:absolute; left:0; top:20%; bottom:20%; width:3px; border-radius:0 3px 3px 0; background:var(--c); }
+.nav-divider{ width:44px; height:1px; background:var(--border); margin:4px 0; flex-shrink:0; }
+
+/* ── CHAT COLUMN ──────────────────────────── */
+#chat-col{ flex:1; display:flex; flex-direction:column; overflow:hidden; }
+
+/* subtopics */
+#subtopics-panel{ flex-shrink:0; display:none; padding:8px 12px; background:var(--bg-subpanel); border-bottom:1px solid var(--border); animation:slideDown .2s ease; }
+#subtopics-panel.visible{ display:block; }
+@keyframes slideDown{ from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+.sub-title{ font-size:10px; font-weight:800; color:var(--text-3); text-transform:uppercase; letter-spacing:.8px; margin-bottom:7px; }
+.sub-row{ display:flex; flex-wrap:wrap; gap:6px; }
+.sub-btn{ padding:5px 11px; border-radius:14px; background:var(--bg-input); border:1.5px solid var(--border-lt); color:var(--text-2); font-family:'Nunito',sans-serif; font-size:11px; font-weight:700; cursor:pointer; transition:all .15s; }
+.sub-btn:hover{ background:var(--border-lt); color:var(--text-1); }
+.sub-btn.en{ border-color:#1e2a44; color:#78a0e0; }
+.sub-btn.en:hover{ background:#1e2a44; color:#a0c0f0; }
+
+/* chat view */
+#chat-view{ flex:1; display:flex; flex-direction:column; overflow:hidden; }
+#chat{ flex:1; overflow-y:auto; overflow-x:hidden; padding:14px 12px; display:flex; flex-direction:column; gap:12px; -webkit-overflow-scrolling:touch; }
+#chat::-webkit-scrollbar{ width:3px; }
+#chat::-webkit-scrollbar-thumb{ background:var(--border-lt); border-radius:2px; }
+.row{ display:flex; gap:7px; animation:fadeUp .22s ease; }
+@keyframes fadeUp{ from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+.row.bot{ align-items:flex-start; }
+.row.user{ justify-content:flex-end; }
+.mavatar{ width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg,var(--terracotta),var(--amber)); display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; margin-top:2px; }
+.bubble{ max-width:86%; padding:10px 14px; border-radius:18px; line-height:1.6; font-size:13.5px; }
+.bubble.bot{ background:var(--bg-bubble-bot); color:var(--text-1); border-radius:4px 18px 18px 18px; border:1px solid var(--border); box-shadow:var(--shadow-sm); }
+.bubble.user{ background:var(--bg-bubble-usr); color:#fff; border-radius:18px 4px 18px 18px; box-shadow:0 2px 8px rgba(200,80,50,.3); }
+.bubble b{ font-weight:700; color:var(--amber-lt); }
+.bubble em{ color:var(--teal); font-style:normal; font-weight:600; }
+.bubble ul{ padding-left:16px; margin-top:4px; }
+.bubble li{ margin-bottom:3px; }
+.dots{ display:flex; gap:5px; padding:3px 0; }
+.dots span{ width:7px; height:7px; border-radius:50%; background:var(--teal); animation:bounce 1.2s infinite; }
+.dots span:nth-child(2){ animation-delay:.2s; }
+.dots span:nth-child(3){ animation-delay:.4s; }
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-7px)}}
+.wcard{ background:linear-gradient(135deg,#1e2535,#1a2a28); border:1px solid var(--border-lt); border-radius:14px; padding:16px; text-align:center; }
+.wcard h2{ font-family:'Nunito',sans-serif; font-size:17px; font-weight:900; color:var(--terracotta-lt); margin-bottom:5px; }
+.wcard p{ font-size:12.5px; color:var(--text-2); line-height:1.6; }
+.wcard .hint{ margin-top:12px; padding:8px 12px; background:#1a2a20; border:1px solid #2a4030; border-radius:10px; font-size:11.5px; color:#7aab59; font-weight:700; line-height:1.5; }
+#input-bar{ flex-shrink:0; display:flex; gap:8px; align-items:flex-end; padding:9px 12px; padding-bottom:max(12px,env(safe-area-inset-bottom)); background:var(--bg-header); border-top:1px solid var(--border); }
+#user-input{ flex:1; padding:10px 14px; border-radius:22px; border:1.5px solid var(--border-lt); background:var(--bg-input); color:var(--text-1); font-family:'Nunito Sans',sans-serif; font-size:14px; resize:none; max-height:100px; outline:none; transition:border-color .18s; line-height:1.4; }
+#user-input:focus{ border-color:var(--teal); }
+#user-input::placeholder{ color:var(--text-3); }
+#send-btn{ width:42px; height:42px; border-radius:50%; background:var(--terracotta); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .18s; flex-shrink:0; box-shadow:0 2px 8px rgba(212,96,58,.4); }
+#send-btn:hover{ background:var(--terracotta-lt); transform:scale(1.06); }
+#send-btn:active{ transform:scale(.94); }
+#send-btn:disabled{ background:var(--border-lt); cursor:not-allowed; transform:none; box-shadow:none; }
+#send-btn svg{ fill:#fff; width:19px; height:19px; }
+
+/* BUDGET VIEW */
+#budget-view{ flex:1; display:none; flex-direction:column; overflow:hidden; }
+#budget-view.active{ display:flex; }
+#budget-scroll{ flex:1; overflow-y:auto; padding:14px 12px; display:flex; flex-direction:column; gap:12px; -webkit-overflow-scrolling:touch; }
+#budget-scroll::-webkit-scrollbar{ width:3px; }
+#budget-scroll::-webkit-scrollbar-thumb{ background:var(--border-lt); border-radius:2px; }
+.b-card{ background:var(--bg-card); border:1px solid var(--border-lt); border-radius:16px; padding:14px; }
+.b-card-title{ font-family:'Nunito',sans-serif; font-size:12px; font-weight:800; color:var(--text-3); text-transform:uppercase; letter-spacing:.8px; margin-bottom:10px; }
+.income-row{ display:flex; align-items:center; gap:8px; }
+.currency-tag{ font-family:'Nunito',sans-serif; font-weight:800; font-size:16px; color:var(--amber-lt); flex-shrink:0; }
+.b-input{ flex:1; padding:10px 14px; border-radius:12px; border:1.5px solid var(--border-lt); background:var(--bg-input); color:var(--text-1); font-family:'Nunito',sans-serif; font-size:15px; font-weight:700; outline:none; transition:border-color .18s; }
+.b-input:focus{ border-color:var(--amber); }
+.b-input::placeholder{ color:var(--text-3); font-weight:400; font-size:13px; }
+.expense-list{ display:flex; flex-direction:column; gap:8px; }
+.exp-row{ display:flex; align-items:center; gap:8px; animation:fadeUp .2s ease; }
+.exp-icon{ font-size:18px; flex-shrink:0; width:28px; text-align:center; }
+.exp-name{ flex:1; padding:9px 11px; border-radius:10px; border:1.5px solid var(--border-lt); background:var(--bg-input); color:var(--text-1); font-family:'Nunito Sans',sans-serif; font-size:13px; outline:none; transition:border-color .18s; }
+.exp-name:focus{ border-color:var(--teal); }
+.exp-name::placeholder{ color:var(--text-3); }
+.exp-amount{ width:100px; padding:9px 10px; border-radius:10px; border:1.5px solid var(--border-lt); background:var(--bg-input); color:var(--amber-lt); font-family:'Nunito',sans-serif; font-size:13px; font-weight:700; text-align:right; outline:none; transition:border-color .18s; }
+.exp-amount:focus{ border-color:var(--amber); }
+.exp-amount::placeholder{ color:var(--text-3); font-weight:400; }
+.exp-del{ width:28px; height:28px; border-radius:8px; background:none; border:1.5px solid #3a2020; color:var(--red); font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; flex-shrink:0; }
+.exp-del:hover{ background:#3a2020; }
+.add-expense-btn{ display:flex; align-items:center; gap:6px; padding:8px 14px; border-radius:12px; background:none; border:1.5px dashed var(--border-lt); color:var(--text-3); font-family:'Nunito',sans-serif; font-size:12px; font-weight:700; cursor:pointer; transition:all .18s; width:100%; }
+.add-expense-btn:hover{ border-color:var(--teal); color:var(--teal); }
+#summary-card{ background:linear-gradient(135deg,#1a2a1a,#1e2535); border:1.5px solid var(--border-lt); border-radius:16px; padding:16px; display:none; }
+#summary-card.visible{ display:block; }
+.sum-title{ font-family:'Nunito',sans-serif; font-size:13px; font-weight:900; color:var(--text-2); margin-bottom:12px; }
+.sum-row{ display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--border); }
+.sum-row:last-of-type{ border-bottom:none; }
+.sum-label{ font-size:13px; color:var(--text-2); }
+.sum-value{ font-family:'Nunito',sans-serif; font-weight:800; font-size:14px; }
+.sum-value.income  { color:var(--green); }
+.sum-value.expenses{ color:var(--red); }
+.sum-value.savings { color:var(--amber-lt); }
+#remaining-display{ margin-top:12px; padding:14px; background:var(--bg-input); border-radius:14px; text-align:center; border:2px solid var(--border-lt); transition:border-color .3s; }
+#remaining-display.positive{ border-color:var(--green); }
+#remaining-display.negative{ border-color:var(--red); }
+#remaining-label{ font-size:12px; color:var(--text-3); font-weight:700; margin-bottom:4px; }
+#remaining-amount{ font-family:'Nunito',sans-serif; font-size:28px; font-weight:900; }
+#remaining-amount.positive{ color:var(--green); }
+#remaining-amount.negative{ color:var(--red); }
+#remaining-amount.zero    { color:var(--amber-lt); }
+#remaining-msg{ font-size:12px; color:var(--text-2); margin-top:4px; line-height:1.5; }
+#ai-advice-btn{ width:100%; padding:12px; background:linear-gradient(135deg,var(--teal-dark),var(--teal)); border:none; border-radius:14px; color:#fff; font-family:'Nunito',sans-serif; font-weight:800; font-size:14px; cursor:pointer; transition:all .2s; margin-top:4px; display:flex; align-items:center; justify-content:center; gap:8px; }
+#ai-advice-btn:hover{ transform:translateY(-2px); box-shadow:0 4px 16px rgba(42,153,144,.4); }
+#ai-advice-btn:disabled{ background:var(--border-lt); cursor:not-allowed; transform:none; box-shadow:none; }
+#ai-response{ background:var(--bg-input); border:1px solid var(--border-lt); border-radius:14px; padding:14px; margin-top:4px; font-size:13.5px; line-height:1.7; color:var(--text-1); display:none; animation:fadeUp .3s ease; }
+#ai-response.visible{ display:block; }
+#ai-response b{ color:var(--amber-lt); font-weight:700; }
+#ai-response em{ color:var(--teal); font-style:normal; }
+#budget-bar{ flex-shrink:0; display:flex; gap:8px; align-items:center; padding:9px 12px; padding-bottom:max(12px,env(safe-area-inset-bottom)); background:var(--bg-header); border-top:1px solid var(--border); }
+#calc-btn{ flex:1; padding:11px; border-radius:14px; background:var(--terracotta); color:#fff; border:none; font-family:'Nunito',sans-serif; font-weight:800; font-size:14px; cursor:pointer; transition:all .18s; }
+#calc-btn:hover{ background:var(--terracotta-lt); transform:translateY(-1px); }
+#save-budget-btn{ padding:11px 16px; border-radius:14px; background:var(--bg-input); color:var(--teal); border:1.5px solid var(--teal-dark); font-family:'Nunito',sans-serif; font-weight:700; font-size:13px; cursor:pointer; transition:all .18s; white-space:nowrap; }
+#save-budget-btn:hover{ background:var(--teal-dark); color:#fff; }
+
+/* ── FEEDBACK BUTTONS ─────────────────────── */
+.feedback-row {
+  display:flex; align-items:center; gap:8px;
+  margin-top:6px; margin-left:38px;
+  animation:fadeUp .3s ease;
+}
+.fb-btn {
+  background:none; border:1.5px solid var(--border-lt);
+  border-radius:20px; padding:4px 12px;
+  font-size:14px; cursor:pointer;
+  transition:all .18s; color:var(--text-3);
+  font-family:'Nunito',sans-serif; font-weight:700;
+  display:flex; align-items:center; gap:5px;
+}
+.fb-btn:hover { transform:scale(1.1); }
+.fb-btn.up:hover   { border-color:var(--green); color:var(--green); background:#142814; }
+.fb-btn.down:hover { border-color:var(--red);   color:var(--red);   background:#2a1414; }
+.fb-btn.selected-up   { border-color:var(--green); color:var(--green); background:#142814; }
+.fb-btn.selected-down { border-color:var(--red);   color:var(--red);   background:#2a1414; }
+.fb-btn.done { pointer-events:none; opacity:.5; }
+.fb-label { font-size:11px; color:var(--text-3); }
+
+/* feedback summary panel */
+#fb-panel {
+  position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+  width:100%; max-width:720px;
+  background:var(--bg-header); border-top:2px solid var(--border-lt);
+  padding:10px 16px; z-index:200;
+  display:none; animation:slideUp .3s ease;
+}
+#fb-panel.show { display:block; }
+@keyframes slideUp { from{opacity:0;transform:translateX(-50%) translateY(20px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+.fb-panel-title {
+  font-family:'Nunito',sans-serif; font-size:12px; font-weight:800;
+  color:var(--text-3); text-transform:uppercase; letter-spacing:.8px; margin-bottom:8px;
+}
+.fb-stats { display:flex; gap:16px; align-items:center; }
+.fb-stat  { display:flex; align-items:center; gap:6px; }
+.fb-stat .num { font-family:'Nunito',sans-serif; font-size:18px; font-weight:900; }
+.fb-stat .lbl { font-size:11px; color:var(--text-3); }
+.fb-stat.pos .num { color:var(--green); }
+.fb-stat.neg .num { color:var(--red); }
+.fb-stat.pct .num { color:var(--amber-lt); }
+#fb-close { float:right; background:none; border:none; color:var(--text-3); font-size:18px; cursor:pointer; margin-top:-2px; }
+#fb-close:hover { color:var(--text-1); }
+</style>
+</head>
+<body>
+
+<!-- ══ LOCK SCREEN ═════════════════════════════════ -->
+<div id="lock-screen">
+  <div class="lock-box">
+    <div class="lock-logo" id="lock-logo" onclick="logoTap()">🏠</div>
+    <div class="lock-title">Lilly</div>
+    <div class="lock-sub">Asistente del Hogar · Acceso privado</div>
+
+    <div id="mode-badge" class="demo">🔵 Modo Demo</div>
+
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <div id="pin-error"></div>
+
+    <div id="lockout-bar"><div id="lockout-progress" style="width:100%"></div></div>
+
+    <div class="keypad">
+      <button class="key" onclick="kp('1')">1</button>
+      <button class="key" onclick="kp('2')">2<span class="letters">ABC</span></button>
+      <button class="key" onclick="kp('3')">3<span class="letters">DEF</span></button>
+      <button class="key" onclick="kp('4')">4<span class="letters">GHI</span></button>
+      <button class="key" onclick="kp('5')">5<span class="letters">JKL</span></button>
+      <button class="key" onclick="kp('6')">6<span class="letters">MNO</span></button>
+      <button class="key" onclick="kp('7')">7<span class="letters">PQRS</span></button>
+      <button class="key" onclick="kp('8')">8<span class="letters">TUV</span></button>
+      <button class="key" onclick="kp('9')">9<span class="letters">WXYZ</span></button>
+      <button class="key empty"></button>
+      <button class="key" onclick="kp('0')">0</button>
+      <button class="key del" onclick="kpDel()">⌫</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DEMO CODE TOAST ══════════════════════════════ -->
+<div id="demo-toast">
+  <p>🔐 Código del día (solo para vos)</p>
+  <div class="code" id="toast-code">----</div>
+  <div class="expires">Cambia a medianoche automáticamente</div>
+</div>
+
+<!-- ══ SETUP SCREEN ══════════════════════════════════ -->
+<div id="setup-screen">
+  <div class="setup-box">
+    <h3>🔐 Crear tu clave personal</h3>
+    <p>Esta clave es tuya. No la compartas. El código del día lo usás para demos — este es tu acceso de dueña.</p>
+    <input class="setup-input" id="setup-pin1" type="password" inputmode="numeric"
+      maxlength="6" placeholder="Elige tu clave (4-6 dígitos)"/>
+    <input class="setup-input" id="setup-pin2" type="password" inputmode="numeric"
+      maxlength="6" placeholder="Confirmala"/>
+    <div class="setup-hint" id="setup-hint"></div>
+    <button class="setup-btn" onclick="saveOwnerPin()">Guardar mi clave</button>
+    <div class="setup-skip" onclick="skipSetup()">Ahora no, entrar de todas formas</div>
+  </div>
+</div>
+
+<!-- ══ MAIN APP ═══════════════════════════════════════ -->
+<div id="app">
+  <header>
+    <div class="avatar">🏠</div>
+    <div class="hinfo">
+      <h1>Lilly · Asistente del Hogar</h1>
+      <p><span class="dot"></span>En línea — siempre lista para ayudarte</p>
+    </div>
+    <div class="header-right">
+      <span id="demo-mode-tag">DEMO</span>
+      <button id="clear-btn" onclick="clearChat()">🗑 Limpiar</button>
+      <button id="stats-btn" onclick="toggleFbPanel()" title="Ver estadísticas">📊</button>
+      <button id="lock-btn" onclick="lockApp()" title="Bloquear">🔒</button>
+    </div>
+  </header>
+
+  <div id="apikey-panel">
+    <label>🔑 API Key Groq:</label>
+    <input id="apikey-input" type="password" placeholder="gsk_..." autocomplete="off"/>
+    <button id="apikey-save" onclick="saveKey()">Guardar</button>
+    <span id="apikey-ok">✅ Lista</span>
+  </div>
+
+  <div id="body-row">
+    <nav id="sidebar">
+      <button class="nav-btn recipes"   onclick="goChat('recetas')"><span class="icon">🍳</span><span class="label">Recetas</span></button>
+      <button class="nav-btn shopping"  onclick="goChat('compras')"><span class="icon">🛒</span><span class="label">Compras</span></button>
+      <button class="nav-btn cleaning"  onclick="goChat('limpieza')"><span class="icon">🧹</span><span class="label">Limpieza</span></button>
+      <div class="nav-divider"></div>
+      <button class="nav-btn homework"  onclick="toggleSub('homework')"><span class="icon">📚</span><span class="label">Tareas</span></button>
+      <button class="nav-btn english"   onclick="toggleSub('english')"><span class="icon">🇺🇸</span><span class="label">Inglés</span></button>
+      <div class="nav-divider"></div>
+      <button class="nav-btn budget"    onclick="openBudget()"><span class="icon">💰</span><span class="label">Presupuesto</span></button>
+      <div class="nav-divider"></div>
+      <button class="nav-btn emotional" onclick="goChat('apoyo')"><span class="icon">💛</span><span class="label">Apoyo</span></button>
+    </nav>
+
+    <div id="chat-col">
+      <div id="subtopics-panel">
+        <div class="sub-title" id="sub-title">Elegí un tema:</div>
+        <div id="sub-content" class="sub-row"></div>
+      </div>
+
+      <!-- CHAT VIEW -->
+      <div id="chat-view">
+        <div id="chat">
+          <div class="row bot">
+            <div class="mavatar">🏠</div>
+            <div class="bubble bot">
+              <div class="wcard">
+                <h2>¡Hola! Soy Lilly 👋</h2>
+                <p>Tu asistente del hogar. Recetas, compras, tareas, inglés y <b>presupuesto mensual</b>.</p>
+                <div class="hint"><span>👈</span> Tocá cualquier botón del menú para empezar</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="input-bar">
+          <textarea id="user-input" rows="1" placeholder="O escribe tu pregunta aquí..."
+            onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          <button id="send-btn" onclick="sendMsg()">
+            <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- BUDGET VIEW -->
+      <div id="budget-view">
+        <div id="budget-scroll">
+          <div class="b-card">
+            <div class="b-card-title">💵 Ingresos del mes</div>
+            <div class="expense-list" id="income-list"></div>
+            <br/>
+            <button class="add-expense-btn" onclick="addIncome()">＋ Agregar otro ingreso</button>
+          </div>
+          <div class="b-card">
+            <div class="b-card-title">📋 Gastos fijos del mes</div>
+            <div class="expense-list" id="expense-list"></div>
+            <br/>
+            <button class="add-expense-btn" onclick="addExpense()">＋ Agregar otro gasto</button>
+          </div>
+          <div id="summary-card">
+            <div class="sum-title">📊 Resumen del mes</div>
+            <div class="sum-row"><span class="sum-label">Total que entra</span><span class="sum-value income" id="sum-income">₡0</span></div>
+            <div class="sum-row"><span class="sum-label">Total gastos fijos</span><span class="sum-value expenses" id="sum-expenses">₡0</span></div>
+            <div class="sum-row"><span class="sum-label">Para comida (estimado)</span><span class="sum-value savings" id="sum-food">₡0</span></div>
+            <div class="sum-row"><span class="sum-label">Para ahorro (10%)</span><span class="sum-value savings" id="sum-savings">₡0</span></div>
+            <div id="remaining-display">
+              <div id="remaining-label">Te queda disponible</div>
+              <div id="remaining-amount">₡0</div>
+              <div id="remaining-msg"></div>
+            </div>
+            <br/>
+            <button id="ai-advice-btn" onclick="askLilly()">✨ Que Lilly me dé consejos con este presupuesto</button>
+            <div id="ai-response"></div>
+          </div>
+        </div>
+        <div id="budget-bar">
+          <button id="calc-btn" onclick="calcAndScroll()">Calcular mi presupuesto</button>
+          <button id="save-budget-btn" onclick="saveBudget()">💾 Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// LOCK SYSTEM
+// ══════════════════════════════════════════
+
+let pin = '';
+let attempts = 0;
+let locked = false;
+let accessMode = null; // 'demo' | 'owner'
+let logoTaps = 0; let logoTimer = null;
+
+// Daily rotating demo code — changes every day
+// Formula: opaque enough that nobody guesses it, but deterministic
+function getDailyCode() {
+  const d = new Date();
+  const day   = d.getDate();
+  const month = d.getMonth() + 1;
+  const year  = d.getFullYear();
+  const n = ((day * 41 + month * 97 + (year % 100) * 23) * 19 + 3571) % 9000 + 1000;
+  return String(n);
+}
+
+// Simple hash for owner PIN storage
+function hashPin(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0).toString(36);
+}
+
+function getOwnerHash() { return localStorage.getItem('lilly_pin_hash') || null; }
+
+function kp(digit) {
+  if (locked || pin.length >= 4) return;
+  pin += digit;
+  updateDots();
+  if (pin.length === 4) setTimeout(checkPin, 120);
+}
+
+function kpDel() {
+  if (locked) return;
+  pin = pin.slice(0, -1);
+  updateDots();
+  clearError();
+}
+
+function updateDots() {
+  for (let i = 0; i < 4; i++) {
+    const d = document.getElementById('pd' + i);
+    d.classList.toggle('filled', i < pin.length);
+    d.classList.remove('error');
+  }
+}
+
+function checkPin() {
+  const daily     = getDailyCode();
+  const ownerHash = getOwnerHash();
+  const inputHash = hashPin(pin);
+  const isDaily   = pin === daily;
+  const isOwner   = ownerHash && inputHash === ownerHash;
+
+  if (isDaily || isOwner) {
+    accessMode = isOwner ? 'owner' : 'demo';
+    sessionStorage.setItem('lilly_unlocked', accessMode);
+    document.getElementById('lock-screen').classList.add('hidden');
+    applyAccessMode(accessMode);
+
+    // If first time with demo code and no owner PIN set → offer setup
+    if (isDaily && !ownerHash) {
+      setTimeout(() => document.getElementById('setup-screen').classList.add('show'), 800);
+    }
+  } else {
+    attempts++;
+    showError(attempts >= 3 ? '🔒 Demasiados intentos' : '❌ Código incorrecto');
+    shakeDots();
+    pin = '';
+    if (attempts >= 3) startLockout();
+  }
+}
+
+function showError(msg) {
+  document.getElementById('pin-error').textContent = msg;
+}
+function clearError() {
+  document.getElementById('pin-error').textContent = '';
+}
+
+function shakeDots() {
+  for (let i = 0; i < 4; i++) {
+    const d = document.getElementById('pd' + i);
+    d.classList.add('error');
+    setTimeout(() => { d.classList.remove('error','filled'); }, 400);
+  }
+}
+
+function startLockout() {
+  locked = true;
+  const bar  = document.getElementById('lockout-bar');
+  const prog = document.getElementById('lockout-progress');
+  bar.style.display = 'block';
+  prog.style.width  = '100%';
+  let secs = 30;
+  showError(`🔒 Espera ${secs} segundos`);
+
+  const iv = setInterval(() => {
+    secs--;
+    prog.style.width = (secs / 30 * 100) + '%';
+    showError(`🔒 Espera ${secs} segundo${secs !== 1 ? 's' : ''}`);
+    if (secs <= 0) {
+      clearInterval(iv);
+      locked   = false;
+      attempts = 0;
+      bar.style.display = 'none';
+      clearError(); pin = '';
+    }
+  }, 1000);
+}
+
+function applyAccessMode(mode) {
+  const badge = document.getElementById('demo-mode-tag');
+  if (mode === 'demo') {
+    badge.style.display = 'inline';
+    badge.textContent   = '🔵 DEMO';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+// Lock button
+function lockApp() {
+  pin = ''; accessMode = null;
+  sessionStorage.removeItem('lilly_unlocked');
+  updateDots();
+  document.getElementById('lock-screen').classList.remove('hidden');
+  document.getElementById('mode-badge').style.display = 'block';
+}
+
+// Tap logo 5x to reveal daily demo code (owner trick)
+function logoTap() {
+  logoTaps++;
+  clearTimeout(logoTimer);
+  logoTimer = setTimeout(() => { logoTaps = 0; }, 2000);
+  if (logoTaps >= 5) {
+    logoTaps = 0;
+    showDemoToast();
+  }
+}
+
+function showDemoToast() {
+  const toast = document.getElementById('demo-toast');
+  document.getElementById('toast-code').textContent = getDailyCode();
+  toast.style.display = 'block';
+  setTimeout(() => { toast.style.display = 'none'; }, 5000);
+}
+
+// ── SETUP OWNER PIN ──────────────────────────────────
+function saveOwnerPin() {
+  const p1 = document.getElementById('setup-pin1').value.trim();
+  const p2 = document.getElementById('setup-pin2').value.trim();
+  const hint = document.getElementById('setup-hint');
+
+  if (p1.length < 4) { hint.style.color='var(--red)'; hint.textContent='Mínimo 4 dígitos'; return; }
+  if (!/^\d+$/.test(p1)) { hint.style.color='var(--red)'; hint.textContent='Solo números por ahora'; return; }
+  if (p1 !== p2) { hint.style.color='var(--red)'; hint.textContent='Las claves no coinciden'; return; }
+  if (p1 === '1234' || p1 === '0000' || p1 === '1111') { hint.style.color='var(--red)'; hint.textContent='Esa clave es muy fácil de adivinar'; return; }
+
+  localStorage.setItem('lilly_pin_hash', hashPin(p1));
+  hint.style.color = 'var(--green)';
+  hint.textContent = '✅ ¡Clave guardada!';
+  setTimeout(() => document.getElementById('setup-screen').classList.remove('show'), 1200);
+}
+
+function skipSetup() {
+  document.getElementById('setup-screen').classList.remove('show');
+}
+
+// Check session on load
+window.addEventListener('load', () => {
+  const sess = sessionStorage.getItem('lilly_unlocked');
+  if (sess) {
+    accessMode = sess;
+    document.getElementById('lock-screen').classList.add('hidden');
+    applyAccessMode(accessMode);
+  } else {
+    document.getElementById('mode-badge').style.display = 'block';
+  }
+
+  if (APIKEY) {
+    document.getElementById('apikey-ok').style.display = 'inline';
+    document.getElementById('apikey-input').placeholder = 'Cargada ✅';
+    setTimeout(() => document.getElementById('apikey-panel').classList.add('hidden'), 1800);
+  }
+  loadBudget();
+});
+
+// ══════════════════════════════════════════
+// API KEY
+// ══════════════════════════════════════════
+let APIKEY = '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';
+
+function saveKey() {
+  const v = document.getElementById('apikey-input').value.trim();
+  if (!v) return;
+  APIKEY = v;
+  localStorage.setItem('lilly_groqkey', v);
+  document.getElementById('apikey-ok').style.display = 'inline';
+  document.getElementById('apikey-input').value = '••••••••••••';
+  setTimeout(() => document.getElementById('apikey-panel').classList.add('hidden'), 1200);
+}
+
+// ══════════════════════════════════════════
+// SYSTEM PROMPT
+// ══════════════════════════════════════════
+const SYS = `Eres "Lilly", asistente inteligente y cálida para hogares costarricenses. Ayudas a madres y padres de familia con:
+🍳 HOGAR: recetas económicas, listas de compras, limpieza, organización, menús semanales.
+📚 TAREAS ESCOLARES: Matemáticas, Ciencias, Español, Historia, Geografía — explicás paso a paso.
+🇺🇸 INGLÉS PARA PADRES: vocabulario con pronunciación en español, gramática simple, traducción de tareas.
+💰 PRESUPUESTO: distribución del dinero del hogar, ahorro, prioridades de gasto.
+REGLAS: Español latino neutro. Sin voseo. Sin "claro", "por supuesto". Máximo 6 líneas. Directa, cálida y práctica.`;
+
+// ══════════════════════════════════════════
+// SUBTOPICS
+// ══════════════════════════════════════════
+const HW = [
+  ['➕ Matemáticas','Ayúdame a explicarle matemáticas a mi hijo: '],
+  ['🔬 Ciencias','Tengo una duda de ciencias: '],
+  ['📖 Español','Necesito ayuda con español: '],
+  ['🗺️ Geografía','Explicame algo de geografía: '],
+  ['🏛️ Historia','Tengo una tarea de historia: '],
+  ['📝 Resumir texto','Ayúdame a resumir este texto: '],
+  ['✏️ Redacción','Mi hijo debe escribir sobre: '],
+];
+const EN = [
+  ['🔤 Vocabulario','Enséñame vocabulario en inglés sobre: '],
+  ['📢 Pronunciación','¿Cómo se pronuncia en inglés: '],
+  ['🔄 Traducir tarea','Tradúceme esta tarea al español: '],
+  ['📝 Gramática','Explicame en español esta regla de inglés: '],
+  ['💬 Frases útiles','Dame frases básicas en inglés sobre: '],
+  ['🎯 Mini ejercicio','Haz un ejercicio sencillo de inglés sobre: '],
+];
+
+// ══════════════════════════════════════════
+// NAV + VIEWS
+// ══════════════════════════════════════════
+let history  = [];
+let busy     = false;
+let curPanel = null;
+let expenses = [];
+let incomes  = [];
+
+function setActive(key) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const map = { recetas:'recipes', compras:'shopping', limpieza:'cleaning', homework:'homework', english:'english', budget:'budget', apoyo:'emotional' };
+  const el = document.querySelector(`.nav-btn.${map[key]||key}`);
+  if (el) el.classList.add('active');
+}
+
+function showChatView()  { document.getElementById('chat-view').style.display='flex'; document.getElementById('budget-view').classList.remove('active'); }
+function showBudgetView(){ document.getElementById('chat-view').style.display='none'; document.getElementById('budget-view').classList.add('active'); }
+
+function goChat(topic) {
+  closeSub(); setActive(topic); showChatView();
+  const labels = { recetas:'🍳 Recetas', compras:'🛒 Compras', limpieza:'🧹 Limpieza', apoyo:'💛 Apoyo' };
+  currentSection = labels[topic] || topic;
+  const m = { recetas:'Dame una receta económica con ingredientes comunes en Costa Rica', compras:'Ayúdame a hacer una lista de compras para la semana', limpieza:'Dame consejos prácticos de limpieza para el hogar', apoyo:'Me siento muy cansada con tantas responsabilidades del hogar' };
+  send(m[topic]);
+}
+
+function toggleSub(type) {
+  showChatView();
+  currentSection = type==='homework' ? '📚 Tareas Escolares' : '🇺🇸 Inglés';
+  if (curPanel === type) { closeSub(); return; }
+  curPanel = type;
+  const list  = type==='homework' ? HW : EN;
+  const cls   = type==='english' ? 'en' : '';
+  const title = type==='homework' ? '📚 ¿Qué materia?' : '🇺🇸 ¿En qué de inglés?';
+  document.getElementById('sub-title').textContent = title;
+  document.getElementById('sub-content').innerHTML = list.map(([l,m]) => `<button class="sub-btn ${cls}" onclick="prefill('${m.replace(/'/g,"&#39;")}')">${l}</button>`).join('');
+  document.getElementById('subtopics-panel').classList.add('visible');
+  setActive(type);
+}
+
+function closeSub() { curPanel=null; document.getElementById('subtopics-panel').classList.remove('visible'); }
+
+function prefill(msg) { const el=document.getElementById('user-input'); el.value=msg; autoResize(el); el.focus(); el.setSelectionRange(msg.length,msg.length); }
+
+function clearChat() {
+  if (document.getElementById('budget-view').classList.contains('active')) { openBudget(); return; }
+  history=[]; closeSub();
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('chat').innerHTML=`<div class="row bot"><div class="mavatar">🏠</div><div class="bubble bot"><div class="wcard"><h2>Chat limpiado 🧹</h2><p>Lista para una nueva consulta.</p><div class="hint"><span>👈</span> Elegí una categoría del menú</div></div></div></div>`;
+}
+
+// ══════════════════════════════════════════
+// BUDGET
+// ══════════════════════════════════════════
+const DEFAULT_EXPENSES = [
+  { icon:'🏠', name:'Alquiler', amount:'' },
+  { icon:'💧', name:'Agua', amount:'' },
+  { icon:'💡', name:'Luz', amount:'' },
+  { icon:'📱', name:'Internet', amount:'' },
+  { icon:'💳', name:'Deudas', amount:'' },
+  { icon:'🚌', name:'Transporte', amount:'' },
+];
+
+function openBudget() {
+  closeSub(); setActive('budget'); showBudgetView();
+  currentSection = '💰 Presupuesto';
+  if (expenses.length===0) { expenses=DEFAULT_EXPENSES.map(e=>({...e})); renderExpenses(); }
+  if (incomes.length===0)  { incomes=[{icon:'💼',name:'Salario',amount:''}]; renderIncomes(); }
+}
+
+function renderExpenses() {
+  const list=document.getElementById('expense-list');
+  list.innerHTML='';
+  expenses.forEach((exp,i) => {
+    const row=document.createElement('div');
+    row.className='exp-row';
+    row.innerHTML=`<span class="exp-icon">${exp.icon}</span>
+      <input class="exp-name" type="text" value="${exp.name}" placeholder="Nombre del gasto" oninput="expenses[${i}].name=this.value"/>
+      <input class="exp-amount" type="number" inputmode="numeric" value="${exp.amount}" placeholder="₡0" oninput="expenses[${i}].amount=this.value;recalc()"/>
+      <button class="exp-del" onclick="deleteExpense(${i})">✕</button>`;
+    list.appendChild(row);
+  });
+}
+
+function renderIncomes() {
+  const list=document.getElementById('income-list');
+  list.innerHTML='';
+  incomes.forEach((inc,i) => {
+    const row=document.createElement('div');
+    row.className='exp-row';
+    row.innerHTML=`<span class="exp-icon">${inc.icon}</span>
+      <input class="exp-name" type="text" value="${inc.name}" placeholder="Nombre del ingreso" oninput="incomes[${i}].name=this.value"/>
+      <input class="exp-amount" type="number" inputmode="numeric" value="${inc.amount}" placeholder="₡0" oninput="incomes[${i}].amount=this.value;recalc()"/>
+      <button class="exp-del" onclick="deleteIncome(${i})">✕</button>`;
+    list.appendChild(row);
+  });
+}
+
+function addIncome() {
+  const icons=['💼','🏪','👨‍👩‍👦','🤝','💻','🌱','🎨','🚗'];
+  incomes.push({ icon:icons[incomes.length%icons.length], name:'', amount:'' });
+  renderIncomes();
+  setTimeout(()=>{ const rows=document.getElementById('income-list').querySelectorAll('.exp-row'); rows[rows.length-1]?.querySelector('.exp-name')?.focus(); },100);
+}
+
+function deleteIncome(i) {
+  if (incomes.length<=1) return; // keep at least one
+  incomes.splice(i,1); renderIncomes(); recalc();
+}
+
+function addExpense() {
+  const icons=['📦','🎓','🏥','👗','🐾','🎮','⛽','🧴','📺','🛁'];
+  expenses.push({ icon:icons[expenses.length%icons.length], name:'', amount:'' });
+  renderExpenses();
+  setTimeout(()=>{ const rows=document.querySelectorAll('.exp-row'); rows[rows.length-1]?.querySelector('.exp-name')?.focus(); },100);
+}
+
+function deleteExpense(i) { expenses.splice(i,1); renderExpenses(); recalc(); }
+
+function fmtC(n) { return '₡'+Math.round(n).toLocaleString('es-CR'); }
+
+function calcAndScroll() {
+  recalc();
+  setTimeout(()=>{ document.getElementById('summary-card').scrollIntoView({behavior:'smooth', block:'start'}); }, 150);
+}
+
+function recalc() {
+  const income  =incomes.reduce((s,i)=>s+(parseFloat(i.amount)||0),0);
+  const totalExp=expenses.reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
+  const after   =income-totalExp;
+  const savings =after>0?after*0.10:0;
+  const food    =after>0?after*0.55:0;
+  const free    =after>0?after-savings-food:after;
+  document.getElementById('sum-income').textContent  =fmtC(income);
+  document.getElementById('sum-expenses').textContent=fmtC(totalExp);
+  document.getElementById('sum-food').textContent    =fmtC(Math.max(0,food));
+  document.getElementById('sum-savings').textContent =fmtC(Math.max(0,savings));
+  const remEl=document.getElementById('remaining-display');
+  const remAmt=document.getElementById('remaining-amount');
+  const remMsg=document.getElementById('remaining-msg');
+  remEl.className=''; remAmt.className='';
+  if (income>0||totalExp>0) {
+    document.getElementById('summary-card').classList.add('visible');
+    remAmt.textContent=fmtC(free);
+    if (free>0){ remEl.classList.add('positive'); remAmt.classList.add('positive'); remMsg.textContent='¡Hay margen! Podés guardar o cubrir imprevistos 🎉'; }
+    else if (free<0){ remEl.classList.add('negative'); remAmt.classList.add('negative'); remMsg.textContent='Los gastos superan el ingreso. Revisemos qué se puede reducir 🔍'; }
+    else{ remAmt.classList.add('zero'); remMsg.textContent='Queda exacto. No hay margen para imprevistos ⚠️'; }
+
+  }
+}
+
+async function askLilly() {
+  const income   = incomes.reduce((s,i)=>s+(parseFloat(i.amount)||0),0);
+  const totalExp = expenses.reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
+  const remaining= income - totalExp;
+  if (!income){ alert('Primero ingresá tus ingresos del mes.'); return; }
+  const incList = incomes.filter(i=>i.name&&parseFloat(i.amount)>0).map(i=>`- ${i.name}: ${fmtC(parseFloat(i.amount))}`).join('\n');
+  const expList = expenses.filter(e=>e.name&&parseFloat(e.amount)>0).map(e=>`- ${e.name}: ${fmtC(parseFloat(e.amount))}`).join('\n');
+  const prompt=`Mi presupuesto mensual:\nIngresos:\n${incList}\nTotal ingresos: ${fmtC(income)}\nGastos fijos:\n${expList}\nTotal gastos: ${fmtC(totalExp)}\nMe queda disponible: ${fmtC(remaining)}\nDame consejos concretos: cómo distribuir lo que queda, si algo se puede reducir, cómo estirar la comida con ese dinero. Usa colones costarricenses. Máximo 8 líneas.`;
+  const btn=document.getElementById('ai-advice-btn');
+  const box=document.getElementById('ai-response');
+  btn.disabled=true; btn.textContent='⏳ Consultando con Lilly...'; box.classList.remove('visible');
+  try {
+    if (!APIKEY){ box.innerHTML='⚠️ Necesitás guardar tu API Key de Groq primero.'; box.classList.add('visible'); document.getElementById('apikey-panel').classList.remove('hidden'); btn.disabled=false; btn.innerHTML='✨ Que Lilly me dé consejos con este presupuesto'; return; }
+    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{ method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+APIKEY}, body:JSON.stringify({ model:'llama-3.1-8b-instant', max_tokens:600, messages:[{role:'system',content:SYS},{role:'user',content:prompt}] }) });
+    const data=await res.json();
+    const reply=data?.choices?.[0]?.message?.content||'No pude generar consejos.';
+    box.innerHTML=fmtBubble(reply); box.classList.add('visible');
+  } catch(e){ box.innerHTML='⚠️ No pude conectar. Revisá tu internet.'; box.classList.add('visible'); }
+  btn.disabled=false; btn.innerHTML='✨ Que Lilly me dé consejos con este presupuesto';
+  setTimeout(()=>document.getElementById('budget-scroll').scrollTop=99999,100);
+}
+
+function saveBudget() {
+  localStorage.setItem('lilly_budget',JSON.stringify({ incomes, expenses }));
+  const btn=document.getElementById('save-budget-btn');
+  btn.textContent='✅ Guardado'; setTimeout(()=>btn.textContent='💾 Guardar',2000);
+}
+
+function loadBudget() {
+  const raw=localStorage.getItem('lilly_budget');
+  if (!raw) return;
+  try {
+    const data=JSON.parse(raw);
+    incomes  = data.incomes  || [{icon:'💼',name:'Salario',amount:data.income||''}];
+    expenses = data.expenses || [];
+    renderIncomes(); renderExpenses();
+    if(incomes.some(i=>i.amount)) recalc();
+  } catch(e){}
+}
+
+// ══════════════════════════════════════════
+// CHAT
+// ══════════════════════════════════════════
+async function sendMsg() {
+  const el=document.getElementById('user-input');
+  const text=el.value.trim();
+  if (!text||busy) return;
+  el.value=''; autoResize(el); closeSub();
+  lastQuestion = text;
+  addBubble('user',text); history.push({role:'user',content:text});
+  showTyping(); busy=true; document.getElementById('send-btn').disabled=true;
+  try {
+    if (!APIKEY){ hideTyping(); addBubble('bot','⚠️ Primero guardá tu API Key de Groq en el campo de arriba.'); document.getElementById('apikey-panel').classList.remove('hidden'); busy=false; document.getElementById('send-btn').disabled=false; return; }
+    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{ method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+APIKEY}, body:JSON.stringify({ model:'llama-3.1-8b-instant', max_tokens:800, messages:[{role:'system',content:SYS},...history] }) });
+    const data=await res.json(); hideTyping();
+    const reply=data?.choices?.[0]?.message?.content||data?.error?.message||'Ocurrió un error.';
+    addBubble('bot',reply); history.push({role:'assistant',content:reply});
+  } catch(e){ hideTyping(); addBubble('bot','⚠️ No pude conectar. Revisá tu internet.'); }
+  busy=false; document.getElementById('send-btn').disabled=false;
+}
+
+function send(text){ showChatView(); document.getElementById('user-input').value=text; sendMsg(); }
+
+const STATS_URL = 'https://script.google.com/macros/s/AKfycbwGOS7IncY3KLtKFFgzfKPmAYgcrTwx502xiA_KPBfE7ZSX5hjLEuKZ1TeBHnq8hO-Q/exec';
+
+let fbCount = 0;
+let fbData      = JSON.parse(localStorage.getItem('lilly_feedback')||'{"up":0,"down":0}');
+let lastQuestion = '';
+let lastAnswer   = '';
+let currentSection = 'General';
+
+function addBubble(role,text){
+  const chat=document.getElementById('chat');
+  const row=document.createElement('div'); row.className='row '+role;
+  if (role==='bot') {
+    const id = 'fb-'+(++fbCount);
+    row.innerHTML=`<div class="mavatar">🏠</div><div class="bubble bot">${fmtBubble(text)}</div>`;
+    chat.appendChild(row);
+    // add feedback row below bubble
+    const fbRow=document.createElement('div'); fbRow.className='feedback-row'; fbRow.id=id;
+    fbRow.innerHTML=`
+      <button class="fb-btn up" onclick="giveFb('up','${id}')">👍</button>
+      <button class="fb-btn down" onclick="giveFb('down','${id}')">👎</button>
+      <span class="fb-label">¿Te ayudó?</span>`;
+    chat.appendChild(fbRow);
+  } else {
+    row.innerHTML=`<div class="bubble user">${xss(text)}</div>`;
+    chat.appendChild(row);
+  }
+  chat.scrollTop=chat.scrollHeight;
+}
+
+function giveFb(type, id) {
+  const row = document.getElementById(id);
+  if (!row) return;
+
+  // Mark as used immediately
+  row.querySelectorAll('.fb-btn').forEach(b => b.classList.add('done'));
+  const selected = row.querySelector('.fb-btn.'+type);
+  if (selected) selected.classList.add('selected-'+type);
+  const lbl = row.querySelector('.fb-label');
+  if (lbl) lbl.textContent = type==='up' ? '¡Gracias! 😊' : 'Entendido, mejoraré 🙏';
+
+  // Save locally
+  fbData[type]++;
+  localStorage.setItem('lilly_feedback', JSON.stringify(fbData));
+  updateFbPanel();
+
+  // Send to Google Sheets via GET (avoids CORS issues)
+  const now   = new Date();
+  const fecha = now.toLocaleDateString('es-CR');
+  const hora  = now.toLocaleTimeString('es-CR', {hour:'2-digit', minute:'2-digit'});
+  const tz    = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Desconocido';
+  const cal   = type==='up' ? '👍 Útil' : '👎 No ayudó';
+
+  const params = new URLSearchParams({
+    fecha,
+    hora,
+    seccion:      currentSection,
+    pregunta:     lastQuestion.substring(0, 200),
+    respuesta:    lastAnswer.substring(0, 300),
+    calificacion: cal,
+    timezone:     tz
+  });
+
+  fetch(STATS_URL + '?' + params.toString(), {
+    method: 'GET',
+    mode:   'no-cors'
+  }).catch(() => {}); // falla silenciosamente si no hay internet
+}
+
+function updateFbPanel() {
+  const up   = fbData.up   || 0;
+  const down = fbData.down || 0;
+  const total= up + down;
+  const pct  = total>0 ? Math.round(up/total*100)+'%' : '-';
+  document.getElementById('fb-up-count').textContent   = up;
+  document.getElementById('fb-down-count').textContent = down;
+  document.getElementById('fb-pct').textContent        = pct;
+}
+
+function toggleFbPanel() {
+  updateFbPanel();
+  document.getElementById('fb-panel').classList.toggle('show');
+}
+
+function fmtBubble(raw){
+  let t=xss(raw);
+  t=t.replace(/\*\*(.*?)\*\*/g,'<b>$1</b>');
+  t=t.replace(/\*(.*?)\*/g,'<em>$1</em>');
+  t=t.replace(/^[•·\-]\s+(.+)$/gm,'<li>$1</li>');
+  t=t.replace(/^\d+\.\s+(.+)$/gm,'<li>$1</li>');
+  t=t.replace(/(<li>[\s\S]*?<\/li>)+/g,m=>`<ul>${m}</ul>`);
+  t=t.replace(/\n/g,'<br>');
+  return t;
+}
+
+function xss(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function showTyping(){ const chat=document.getElementById('chat'); const row=document.createElement('div'); row.className='row bot'; row.id='typing-row'; row.innerHTML=`<div class="mavatar">🏠</div><div class="bubble bot"><div class="dots"><span></span><span></span><span></span></div></div>`; chat.appendChild(row); chat.scrollTop=chat.scrollHeight; }
+function hideTyping(){ const el=document.getElementById('typing-row'); if(el)el.remove(); }
+function handleKey(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();} }
+function autoResize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,100)+'px'; }
+</script>
+</body>
+</html>

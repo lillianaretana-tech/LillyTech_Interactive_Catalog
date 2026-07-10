@@ -1,0 +1,1751 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Costos Mecánicos - Costa Rica</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            padding: 15px;
+            min-height: auto;
+        }
+
+        .calculator-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            order: 2;
+        }
+
+        .summary-section {
+            background: #fff;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            height: fit-content;
+            position: static;
+            order: 1;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            -webkit-appearance: none;
+            background-color: white;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%23666" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 12px;
+            padding-right: 35px;
+        }
+
+        input {
+            background-image: none;
+            padding-right: 12px;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            background: #e9ecef;
+            border-radius: 10px;
+            padding: 3px;
+            gap: 2px;
+        }
+
+        .tab {
+            flex: 1;
+            min-width: 100px;
+            padding: 10px 8px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .service-category {
+            background: white;
+            border-radius: 10px;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+        }
+
+        .service-category h3 {
+            color: #2c3e50;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #667eea;
+            font-size: 1rem;
+        }
+
+        .service-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f3f4;
+        }
+
+        .service-item:last-child {
+            border-bottom: none;
+        }
+
+        .service-info {
+            flex: 1;
+        }
+
+        .service-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9rem;
+            line-height: 1.3;
+        }
+
+        .service-price {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .service-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: space-between;
+        }
+
+        .qty-input {
+            width: 60px;
+            padding: 8px 4px;
+            text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .add-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: background 0.3s;
+            touch-action: manipulation;
+        }
+
+        .add-btn:hover {
+            background: #218838;
+        }
+
+        .quick-quotes {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .quick-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: transform 0.3s;
+            touch-action: manipulation;
+            text-align: left;
+        }
+
+        .quick-btn:hover, .quick-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+            gap: 10px;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-item > div:first-child {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .summary-item > div:last-child {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            margin-top: 4px;
+            touch-action: manipulation;
+        }
+
+        .total-section {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .total-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .final-total {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #28a745;
+            border-top: 2px solid #28a745;
+            padding-top: 8px;
+        }
+
+        .action-buttons {
+            display: grid;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: background 0.3s;
+            touch-action: manipulation;
+        }
+
+        .btn-primary:hover, .btn-primary:active {
+            background: #5a67d8;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            touch-action: manipulation;
+        }
+
+        .custom-service {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            margin-bottom: 15px;
+        }
+
+        .custom-service h3 {
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+
+        .multiplier-info {
+            background: #e3f2fd;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-weight: 600;
+            color: #1565c0;
+            font-size: 0.9rem;
+        }
+
+        /* Mobile-specific media queries */
+        @media (max-width: 768px) {
+            body {
+                padding: 5px;
+            }
+            
+            .header h1 {
+                font-size: 1.3rem;
+            }
+            
+            .header p {
+                font-size: 0.8rem;
+            }
+            
+            .main-content {
+                grid-template-columns: 1fr;
+                padding: 10px;
+                gap: 10px;
+            }
+            
+            .calculator-section, .summary-section {
+                padding: 12px;
+            }
+            
+            .tabs {
+                flex-wrap: wrap;
+            }
+            
+            .tab {
+                font-size: 0.8rem;
+                padding: 8px 6px;
+                min-width: 80px;
+            }
+            
+            .service-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+                padding: 10px 0;
+            }
+            
+            .service-controls {
+                justify-content: flex-end;
+                gap: 10px;
+            }
+            
+            .quick-quotes {
+                grid-template-columns: 1fr;
+            }
+            
+            .summary-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            
+            .summary-item > div:last-child {
+                text-align: left;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.1rem;
+            }
+            
+            .main-content {
+                padding: 8px;
+            }
+            
+            .calculator-section, .summary-section {
+                padding: 10px;
+            }
+            
+            .tab {
+                font-size: 0.75rem;
+                padding: 6px 4px;
+            }
+            
+            .service-name {
+                font-size: 0.85rem;
+            }
+            
+            .service-price {
+                font-size: 0.75rem;
+            }
+            
+            .add-btn {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+            }
+            
+            .total-line {
+                font-size: 0.85rem;
+            }
+            
+            .final-total {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* Tablet improvements */
+        @media (min-width: 481px) and (max-width: 768px) {
+            .main-content {
+                padding: 15px;
+            }
+            
+            .calculator-section, .summary-section {
+                padding: 15px;
+            }
+            
+            .services-grid {
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            }
+            
+            .quick-quotes {
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            }
+            
+            .service-item {
+                flex-direction: row;
+                align-items: center;
+            }
+            
+            .tab {
+                font-size: 0.85rem;
+                padding: 10px 8px;
+            }
+        }
+
+        /* Additional mobile optimizations */
+        @media (max-width: 768px) {
+            /* Improve touch targets */
+            .add-btn, .btn-primary, .btn-secondary, .quick-btn {
+                min-height: 44px;
+                min-width: 44px;
+            }
+            
+            /* Better text sizing */
+            .summary-item div:first-child div:first-child {
+                font-size: 0.9rem;
+                font-weight: 600;
+            }
+            
+            .summary-item div:first-child div:last-child {
+                font-size: 0.8rem;
+                color: #666;
+                margin-top: 2px;
+            }
+            
+            .summary-item div:last-child div:first-child {
+                font-size: 0.9rem;
+                font-weight: 600;
+            }
+            
+            /* Improve form layout */
+            .form-group {
+                margin-bottom: 12px;
+            }
+            
+            /* Better spacing for auto generator */
+            .autoGenPreview {
+                margin-top: 15px;
+                padding: 12px;
+                font-size: 0.9rem;
+            }
+        }
+            body {
+                padding: 20px;
+            }
+            
+            .main-content {
+                grid-template-columns: 1fr 400px;
+                padding: 20px;
+                gap: 20px;
+            }
+            
+            .calculator-section {
+                order: 1;
+                padding: 20px;
+            }
+            
+            .summary-section {
+                order: 2;
+                position: sticky;
+                top: 20px;
+                padding: 20px;
+            }
+            
+            .services-grid {
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 15px;
+            }
+            
+            .service-item {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+            }
+            
+            .quick-quotes {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+            }
+            
+            .tabs {
+                flex-wrap: nowrap;
+            }
+        }
+
+        .print-section {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .print-section.show {
+            display: block;
+        }
+
+        .print-section table {
+            font-size: 0.9rem;
+        }
+
+        .print-section th,
+        .print-section td {
+            padding: 8px !important;
+            font-size: 0.85rem;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            
+            .print-section, .print-section * {
+                visibility: visible;
+            }
+            
+            .print-section {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 20px;
+            }
+            
+            .print-section table {
+                font-size: 12px;
+            }
+            
+            .print-section th,
+            .print-section td {
+                padding: 6px !important;
+                font-size: 11px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .print-section {
+                padding: 10px;
+            }
+            
+            .print-section h1 {
+                font-size: 1.2rem;
+            }
+            
+            .print-section table {
+                font-size: 0.75rem;
+            }
+            
+            .print-section th,
+            .print-section td {
+                padding: 4px !important;
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 Calculadora de Costos Mecánicos</h1>
+            <p>Sistema profesional para talleres mecánicos - Costa Rica</p>
+        </div>
+
+        <div class="main-content">
+            <div class="calculator-section">
+                <!-- Vehicle Selection -->
+                <div class="form-group">
+                    <label for="brand">Marca del Vehículo:</label>
+                    <select id="brand" onchange="updateModels()">
+                        <option value="">Seleccionar marca...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="model">Modelo:</label>
+                    <select id="model" onchange="updateMultiplier()">
+                        <option value="">Seleccionar modelo...</option>
+                    </select>
+                </div>
+
+                <div class="multiplier-info" id="multiplierInfo" style="display: none;">
+                    Multiplicador de precio: <span id="multiplierValue"></span>
+                </div>
+
+                <!-- Tabs for different sections -->
+                <div class="tabs">
+                    <div class="tab active" onclick="showTab('services')">Servicios</div>
+                    <div class="tab" onclick="showTab('auto')">Generador Automático</div>
+                    <div class="tab" onclick="showTab('custom')">Personalizado</div>
+                    <div class="tab" onclick="showTab('quick')">Cotización Rápida</div>
+                </div>
+
+                <!-- Auto Generator Tab -->
+                <div id="autoTab" class="tab-content">
+                    <div style="background: white; padding: 20px; border-radius: 10px; border: 2px solid #667eea;">
+                        <h3 style="color: #667eea; margin-bottom: 20px;">🤖 Generador Automático de Presupuestos</h3>
+                        <p style="color: #666; margin-bottom: 20px;">Selecciona el vehículo y tipo de servicio, y el sistema generará automáticamente un presupuesto completo con todos los componentes necesarios.</p>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 20px;">
+                            <div class="form-group">
+                                <label for="autoGenBrand">Marca del Vehículo:</label>
+                                <select id="autoGenBrand" onchange="updateAutoGenModels()">
+                                    <option value="">Seleccionar marca...</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="autoGenModel">Modelo:</label>
+                                <select id="autoGenModel" onchange="updateAutoGenYear()">
+                                    <option value="">Seleccionar modelo...</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="autoGenYear">Año:</label>
+                                <select id="autoGenYear">
+                                    <option value="">Seleccionar año...</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="autoGenService">Tipo de Servicio:</label>
+                            <select id="autoGenService">
+                                <option value="">Seleccionar tipo de servicio...</option>
+                                <option value="mantenimiento_preventivo">🔧 Mantenimiento Preventivo Completo</option>
+                                <option value="mantenimiento_mayor">🛠️ Mantenimiento Mayor (40,000+ km)</option>
+                                <option value="sistema_frenos">🛑 Sistema de Frenos Completo</option>
+                                <option value="sistema_suspension">🚗 Sistema de Suspensión</option>
+                                <option value="sistema_motor">⚙️ Revisión de Motor</option>
+                                <option value="sistema_electrico">⚡ Sistema Eléctrico</option>
+                                <option value="neumaticos_completo">🏁 Neumáticos y Alineación</option>
+                                <option value="pre_inspeccion">📋 Pre-inspección Técnica</option>
+                                <option value="accesorios_comfort">✨ Paquete de Accesorios</option>
+                                <option value="restauracion_estetica">🎨 Restauración Estética</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="autoGenQuality">Nivel de Calidad:</label>
+                            <select id="autoGenQuality">
+                                <option value="economico">💰 Económico - Repuestos compatibles</option>
+                                <option value="premium">⭐ Premium - Repuestos originales</option>
+                            </select>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 20px;">
+                            <button class="btn-primary" onclick="generateAutoQuote()" style="font-size: 1rem; padding: 15px; min-height: 50px;">
+                                🚀 Generar Presupuesto Automático
+                            </button>
+                            <button class="btn-secondary" onclick="clearAutoGenerator()" style="min-height: 44px;">
+                                🗑️ Limpiar
+                            </button>
+                        </div>
+                        
+                        <div id="autoGenPreview" style="display: none; margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #28a745;">
+                            <h4 style="color: #28a745; margin-bottom: 10px;">Vista Previa del Presupuesto:</h4>
+                            <div id="autoGenPreviewContent"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Services Tab -->
+                <div id="servicesTab" class="tab-content active">
+                    <div class="form-group">
+                        <label for="quality">Nivel de Calidad:</label>
+                        <select id="quality" onchange="updatePrices()">
+                            <option value="economico">Económico</option>
+                            <option value="premium">Premium</option>
+                        </select>
+                    </div>
+
+                    <div class="services-grid" id="servicesGrid">
+                        <!-- Services will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Custom Tab -->
+                <div id="customTab" class="tab-content">
+                    <div class="custom-service">
+                        <h3>Trabajo Personalizado</h3>
+                        <div class="form-group">
+                            <label for="customName">Descripción del Trabajo:</label>
+                            <input type="text" id="customName" placeholder="Ej: Reparación de motor especial">
+                        </div>
+                        <div class="form-group">
+                            <label for="customPrice">Precio (₡):</label>
+                            <input type="number" id="customPrice" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="customQty">Cantidad:</label>
+                            <input type="number" id="customQty" value="1" min="1">
+                        </div>
+                        <button class="btn-primary" onclick="addCustomService()">Agregar Servicio Personalizado</button>
+                    </div>
+                </div>
+
+                <!-- Quick Quotes Tab -->
+                <div id="quickTab" class="tab-content">
+                    <div class="quick-quotes">
+                        <button class="quick-btn" onclick="addQuickQuote('mantenimiento10k')">Mantenimiento 10,000 km</button>
+                        <button class="quick-btn" onclick="addQuickQuote('frenosCompletos')">Frenos Completos</button>
+                        <button class="quick-btn" onclick="addQuickQuote('cambioAceite')">Cambio de Aceite</button>
+                        <button class="quick-btn" onclick="addQuickQuote('suspension')">Suspensión Completa</button>
+                        <button class="quick-btn" onclick="addQuickQuote('bateria')">Cambio de Batería</button>
+                        <button class="quick-btn" onclick="addQuickQuote('neumaticos')">Neumáticos Nuevos</button>
+                    </div>
+                </div>
+
+                <!-- Additional Costs -->
+                <div style="background: white; padding: 15px; border-radius: 10px; margin-top: 15px;">
+                    <h3 style="margin-bottom: 15px; font-size: 1rem;">Costos Adicionales</h3>
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label for="diagnosticCost">Diagnóstico (₡):</label>
+                            <input type="number" id="diagnosticCost" value="15000" onchange="updateTotals()">
+                        </div>
+                        <div class="form-group">
+                            <label for="transportCost">Transporte (₡):</label>
+                            <input type="number" id="transportCost" value="0" onchange="updateTotals()">
+                        </div>
+                        <div class="form-group">
+                            <label for="profitMargin">Margen de Ganancia (%):</label>
+                            <input type="number" id="profitMargin" value="20" min="0" max="100" onchange="updateTotals()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="summary-section">
+                <h3>Resumen de Cotización</h3>
+                
+                <div id="selectedServices">
+                    <p style="color: #666; text-align: center; padding: 20px;">No hay servicios seleccionados</p>
+                </div>
+
+                <div class="total-section">
+                    <div class="total-line">
+                        <span>Subtotal Servicios:</span>
+                        <span id="subtotalServices">₡0</span>
+                    </div>
+                    <div class="total-line">
+                        <span>Diagnóstico:</span>
+                        <span id="totalDiagnostic">₡15,000</span>
+                    </div>
+                    <div class="total-line">
+                        <span>Transporte:</span>
+                        <span id="totalTransport">₡0</span>
+                    </div>
+                    <div class="total-line">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">₡15,000</span>
+                    </div>
+                    <div class="total-line">
+                        <span>Margen (<span id="marginPercent">20</span>%):</span>
+                        <span id="marginAmount">₡3,000</span>
+                    </div>
+                    <div class="total-line final-total">
+                        <span>TOTAL:</span>
+                        <span id="finalTotal">₡18,000</span>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn-primary" onclick="generateQuote()">Generar Cotización</button>
+                    <button class="btn-secondary" onclick="newQuote()">Nueva Cotización</button>
+                    <button class="btn-primary" onclick="printQuote()">Imprimir</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Print Section -->
+        <div class="print-section" id="printSection">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h1>COTIZACIÓN DE SERVICIOS MECÁNICOS</h1>
+                <p><strong>Taller Mecánico Profesional</strong></p>
+                <p>Costa Rica</p>
+                <hr style="margin: 20px 0;">
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <p><strong>Fecha:</strong> <span id="quoteDate"></span></p>
+                <p><strong>Vehículo:</strong> <span id="quoteVehicle"></span></p>
+                <p><strong>Cotización #:</strong> <span id="quoteNumber"></span></p>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <thead>
+                    <tr style="background: #f8f9fa;">
+                        <th style="border: 1px solid #ddd; padding: 10px; text-align: left;">Descripción</th>
+                        <th style="border: 1px solid #ddd; padding: 10px; text-align: center;">Cant.</th>
+                        <th style="border: 1px solid #ddd; padding: 10px; text-align: right;">Precio Unit.</th>
+                        <th style="border: 1px solid #ddd; padding: 10px; text-align: right;">Total</th>
+                    </tr>
+                </thead>
+                <tbody id="quoteItems">
+                </tbody>
+            </table>
+
+            <div style="text-align: right; margin-top: 20px;">
+                <p><strong>Subtotal: <span id="printSubtotal"></span></strong></p>
+                <p><strong>Diagnóstico: <span id="printDiagnostic"></span></strong></p>
+                <p><strong>Transporte: <span id="printTransport"></span></strong></p>
+                <p><strong>Margen: <span id="printMargin"></span></strong></p>
+                <p style="font-size: 1.2em; border-top: 2px solid #000; padding-top: 10px;"><strong>TOTAL: <span id="printTotal"></span></strong></p>
+            </div>
+
+            <div style="margin-top: 40px; font-size: 0.9em;">
+                <p><strong>Términos y Condiciones:</strong></p>
+                <ul>
+                    <li>Esta cotización es válida por 15 días</li>
+                    <li>Los precios incluyen mano de obra especializada</li>
+                    <li>Se requiere 50% de anticipo para iniciar trabajos</li>
+                    <li>Garantía de 6 meses en mano de obra</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Database of vehicles with multipliers
+        const vehicleData = {
+            'Toyota': {
+                multiplier: 1.0,
+                models: ['Corolla', 'Camry', 'RAV4', 'Prius', 'Hilux', 'Land Cruiser', 'Yaris', 'Highlander']
+            },
+            'Honda': {
+                multiplier: 1.0,
+                models: ['Civic', 'Accord', 'CR-V', 'Pilot', 'Fit', 'HR-V', 'Ridgeline', 'Insight']
+            },
+            'Nissan': {
+                multiplier: 1.0,
+                models: ['Sentra', 'Altima', 'X-Trail', 'Pathfinder', 'Versa', 'Frontier', 'Murano', 'Kicks']
+            },
+            'Hyundai': {
+                multiplier: 0.9,
+                models: ['Elantra', 'Sonata', 'Tucson', 'Santa Fe', 'Accent', 'Kona', 'Palisade', 'Venue']
+            },
+            'Kia': {
+                multiplier: 0.9,
+                models: ['Rio', 'Forte', 'Optima', 'Sorento', 'Sportage', 'Soul', 'Stinger', 'Telluride']
+            },
+            'Suzuki': {
+                multiplier: 0.85,
+                models: ['Swift', 'Vitara', 'Jimny', 'Baleno', 'S-Cross', 'Ignis', 'Alto', 'Ertiga']
+            },
+            'Mazda': {
+                multiplier: 1.1,
+                models: ['Mazda3', 'Mazda6', 'CX-3', 'CX-5', 'CX-9', 'MX-5', 'CX-30', 'BT-50']
+            },
+            'Subaru': {
+                multiplier: 1.2,
+                models: ['Impreza', 'Legacy', 'Outback', 'Forester', 'XV', 'WRX', 'BRZ', 'Ascent']
+            },
+            'Volkswagen': {
+                multiplier: 1.3,
+                models: ['Jetta', 'Passat', 'Tiguan', 'Atlas', 'Golf', 'Polo', 'Touareg', 'Arteon']
+            },
+            'Peugeot': {
+                multiplier: 1.4,
+                models: ['206', '207', '208', '307', '308', '408', '508', '2008', '3008', '5008', 'Partner']
+            },
+            'Renault': {
+                multiplier: 1.3,
+                models: ['Logan', 'Sandero', 'Duster', 'Koleos', 'Captur', 'Megane', 'Fluence', 'Oroch']
+            },
+            'BMW': {
+                multiplier: 1.7,
+                models: ['Serie 1', 'Serie 3', 'Serie 5', 'X1', 'X3', 'X5', 'Serie 2', 'Serie 4']
+            },
+            'Mercedes-Benz': {
+                multiplier: 1.8,
+                models: ['Clase A', 'Clase C', 'Clase E', 'GLA', 'GLC', 'GLE', 'Clase B', 'Clase S']
+            },
+            'Audi': {
+                multiplier: 1.6,
+                models: ['A3', 'A4', 'A6', 'Q3', 'Q5', 'Q7', 'A1', 'Q2']
+            },
+            'Ford': {
+                multiplier: 1.1,
+                models: ['Fiesta', 'Focus', 'Fusion', 'Escape', 'Explorer', 'F-150', 'Ranger', 'EcoSport']
+            },
+            'Chevrolet': {
+                multiplier: 1.0,
+                models: ['Spark', 'Sonic', 'Cruze', 'Equinox', 'Traverse', 'Silverado', 'Tahoe', 'Camaro']
+            }
+        };
+
+        // Services database based on uploaded data
+        const servicesData = {
+            'Batería': [
+                {name: 'Batería 12V 550A (Sedán/Compacto)', economico: 88000, premium: 145000, unit: 'unidad'},
+                {name: 'Batería AGM 12V 650-770CCA (SUV/4x4)', economico: 120000, premium: 260000, unit: 'unidad'},
+                {name: 'Instalación de batería', economico: 8000, premium: 12000, unit: 'servicio'}
+            ],
+            'Frenos': [
+                {name: 'Pastillas delanteras', economico: 22000, premium: 65000, unit: 'juego'},
+                {name: 'Pastillas traseras', economico: 18000, premium: 55000, unit: 'juego'},
+                {name: 'Discos/rotores delanteros', economico: 45000, premium: 140000, unit: 'par'},
+                {name: 'Discos/rotores traseros', economico: 35000, premium: 120000, unit: 'par'},
+                {name: 'Líquido de frenos', economico: 8000, premium: 15000, unit: 'servicio'},
+                {name: 'Mano de obra frenos completos', economico: 32000, premium: 48000, unit: 'servicio'}
+            ],
+            'Motor': [
+                {name: 'Cambio de aceite y filtro', economico: 18000, premium: 35000, unit: 'servicio'},
+                {name: 'Filtro de aire', economico: 8000, premium: 20000, unit: 'unidad'},
+                {name: 'Bujías', economico: 12000, premium: 45000, unit: 'juego'},
+                {name: 'Correa de distribución', economico: 45000, premium: 85000, unit: 'unidad'},
+                {name: 'Bomba de agua', economico: 35000, premium: 120000, unit: 'unidad'},
+                {name: 'Radiador', economico: 85000, premium: 180000, unit: 'unidad'},
+                {name: 'Termostato', economico: 15000, premium: 35000, unit: 'unidad'}
+            ],
+            'Transmisión': [
+                {name: 'Clutch completo', economico: 120000, premium: 250000, unit: 'kit'},
+                {name: 'Aceite de transmisión', economico: 25000, premium: 55000, unit: 'servicio'},
+                {name: 'Filtro de transmisión', economico: 15000, premium: 35000, unit: 'unidad'},
+                {name: 'Mano de obra clutch', economico: 80000, premium: 120000, unit: 'servicio'}
+            ],
+            'Suspensión': [
+                {name: 'Amortiguadores delanteros', economico: 45000, premium: 120000, unit: 'par'},
+                {name: 'Amortiguadores traseros', economico: 40000, premium: 110000, unit: 'par'},
+                {name: 'Terminales de dirección', economico: 25000, premium: 65000, unit: 'par'},
+                {name: 'Rótulas', economico: 30000, premium: 75000, unit: 'par'},
+                {name: 'Bujes estabilizadora', economico: 12000, premium: 28000, unit: 'juego'},
+                {name: 'Mano de obra suspensión', economico: 40000, premium: 60000, unit: 'servicio'}
+            ],
+            'Sistema Eléctrico': [
+                {name: 'Alternador', economico: 85000, premium: 180000, unit: 'unidad'},
+                {name: 'Motor de arranque', economico: 75000, premium: 150000, unit: 'unidad'},
+                {name: 'Luces LED completas', economico: 35000, premium: 85000, unit: 'kit'},
+                {name: 'Sistema de alarma', economico: 45000, premium: 120000, unit: 'kit'},
+                {name: 'Diagnóstico eléctrico', economico: 15000, premium: 25000, unit: 'servicio'}
+            ],
+            'Neumáticos': [
+                {name: 'Neumáticos 185/65 R15', economico: 45000, premium: 85000, unit: 'unidad'},
+                {name: 'Neumáticos 205/55 R16', economico: 55000, premium: 110000, unit: 'unidad'},
+                {name: 'Neumáticos 225/60 R17', economico: 75000, premium: 145000, unit: 'unidad'},
+                {name: 'Alineación y balanceo', economico: 12000, premium: 18000, unit: 'servicio'},
+                {name: 'Rotación de neumáticos', economico: 8000, premium: 12000, unit: 'servicio'},
+                {name: 'Rines de aleación R16', economico: 85000, premium: 180000, unit: 'unidad'}
+            ],
+            'Accesorios': [
+                {name: 'Fundas de asientos', economico: 25000, premium: 85000, unit: 'juego'},
+                {name: 'Tapetes premium', economico: 15000, premium: 35000, unit: 'juego'},
+                {name: 'Sistema de sonido', economico: 85000, premium: 250000, unit: 'kit'},
+                {name: 'Cámara de reversa', economico: 45000, premium: 120000, unit: 'kit'},
+                {name: 'Película protectora', economico: 35000, premium: 85000, unit: 'servicio'}
+            ],
+            'Carrocería': [
+                {name: 'Pulido y encerado completo', economico: 25000, premium: 55000, unit: 'servicio'},
+                {name: 'Retoque de pintura', economico: 35000, premium: 85000, unit: 'servicio'},
+                {name: 'Polarizado completo', economico: 45000, premium: 85000, unit: 'servicio'},
+                {name: 'Lavado premium', economico: 8000, premium: 15000, unit: 'servicio'},
+                {name: 'Restauración de faros', economico: 18000, premium: 35000, unit: 'servicio'}
+            ],
+            'Diagnósticos': [
+                {name: 'Scanner OBD2 completo', economico: 15000, premium: 25000, unit: 'servicio'},
+                {name: 'Pre-inspección técnica', economico: 20000, premium: 35000, unit: 'servicio'},
+                {name: 'Diagnóstico de motor', economico: 18000, premium: 30000, unit: 'servicio'},
+                {name: 'Análisis de emisiones', economico: 12000, premium: 20000, unit: 'servicio'}
+            ]
+        };
+
+        // Global variables
+        let selectedServices = [];
+        let currentMultiplier = 1.0;
+        let currentQuality = 'economico';
+        
+        // Auto generator service packages
+        const autoServicePackages = {
+            'mantenimiento_preventivo': {
+                name: 'Mantenimiento Preventivo Completo',
+                description: 'Servicios básicos cada 10,000 km',
+                services: [
+                    {category: 'Motor', service: 'Cambio de aceite y filtro'},
+                    {category: 'Motor', service: 'Filtro de aire'},
+                    {category: 'Frenos', service: 'Líquido de frenos'},
+                    {category: 'Diagnósticos', service: 'Scanner OBD2 completo'},
+                    {category: 'Neumáticos', service: 'Rotación de neumáticos'},
+                    {category: 'Carrocería', service: 'Lavado premium'}
+                ]
+            },
+            'mantenimiento_mayor': {
+                name: 'Mantenimiento Mayor (40,000+ km)',
+                description: 'Servicios completos para alto kilometraje',
+                services: [
+                    {category: 'Motor', service: 'Cambio de aceite y filtro'},
+                    {category: 'Motor', service: 'Filtro de aire'},
+                    {category: 'Motor', service: 'Bujías'},
+                    {category: 'Transmisión', service: 'Aceite de transmisión'},
+                    {category: 'Frenos', service: 'Líquido de frenos'},
+                    {category: 'Frenos', service: 'Pastillas delanteras'},
+                    {category: 'Neumáticos', service: 'Alineación y balanceo'},
+                    {category: 'Diagnósticos', service: 'Scanner OBD2 completo'},
+                    {category: 'Diagnósticos', service: 'Pre-inspección técnica'}
+                ]
+            },
+            'sistema_frenos': {
+                name: 'Sistema de Frenos Completo',
+                description: 'Renovación completa del sistema de frenos',
+                services: [
+                    {category: 'Frenos', service: 'Pastillas delanteras'},
+                    {category: 'Frenos', service: 'Pastillas traseras'},
+                    {category: 'Frenos', service: 'Discos/rotores delanteros'},
+                    {category: 'Frenos', service: 'Líquido de frenos'},
+                    {category: 'Frenos', service: 'Mano de obra frenos completos'},
+                    {category: 'Diagnósticos', service: 'Scanner OBD2 completo'}
+                ]
+            },
+            'sistema_suspension': {
+                name: 'Sistema de Suspensión',
+                description: 'Renovación completa de la suspensión',
+                services: [
+                    {category: 'Suspensión', service: 'Amortiguadores delanteros'},
+                    {category: 'Suspensión', service: 'Amortiguadores traseros'},
+                    {category: 'Suspensión', service: 'Terminales de dirección'},
+                    {category: 'Suspensión', service: 'Bujes estabilizadora'},
+                    {category: 'Suspensión', service: 'Mano de obra suspensión'},
+                    {category: 'Neumáticos', service: 'Alineación y balanceo'}
+                ]
+            },
+            'sistema_motor': {
+                name: 'Revisión de Motor',
+                description: 'Diagnóstico y mantenimiento del motor',
+                services: [
+                    {category: 'Motor', service: 'Cambio de aceite y filtro'},
+                    {category: 'Motor', service: 'Filtro de aire'},
+                    {category: 'Motor', service: 'Bujías'},
+                    {category: 'Motor', service: 'Termostato'},
+                    {category: 'Diagnósticos', service: 'Diagnóstico de motor'},
+                    {category: 'Diagnósticos', service: 'Scanner OBD2 completo'}
+                ]
+            },
+            'sistema_electrico': {
+                name: 'Sistema Eléctrico',
+                description: 'Revisión completa del sistema eléctrico',
+                services: [
+                    {category: 'Batería', service: 'Batería 12V 550A (Sedán/Compacto)'},
+                    {category: 'Batería', service: 'Instalación de batería'},
+                    {category: 'Sistema Eléctrico', service: 'Diagnóstico eléctrico'},
+                    {category: 'Sistema Eléctrico', service: 'Luces LED completas'},
+                    {category: 'Diagnósticos', service: 'Scanner OBD2 completo'}
+                ]
+            },
+            'neumaticos_completo': {
+                name: 'Neumáticos y Alineación',
+                description: 'Cambio completo de neumáticos',
+                services: [
+                    {category: 'Neumáticos', service: 'Neumáticos 205/55 R16', quantity: 4},
+                    {category: 'Neumáticos', service: 'Alineación y balanceo'},
+                    {category: 'Neumáticos', service: 'Rotación de neumáticos'},
+                    {category: 'Diagnósticos', service: 'Scanner OBD2 completo'}
+                ]
+            },
+            'pre_inspeccion': {
+                name: 'Pre-inspección Técnica',
+                description: 'Preparación para la inspección técnica',
+                services: [
+                    {category: 'Diagnósticos', service: 'Pre-inspección técnica'},
+                    {category: 'Diagnósticos', service: 'Análisis de emisiones'},
+                    {category: 'Frenos', service: 'Líquido de frenos'},
+                    {category: 'Sistema Eléctrico', service: 'Luces LED completas'},
+                    {category: 'Motor', service: 'Filtro de aire'},
+                    {category: 'Neumáticos', service: 'Alineación y balanceo'}
+                ]
+            },
+            'accesorios_comfort': {
+                name: 'Paquete de Accesorios',
+                description: 'Mejoras de confort y seguridad',
+                services: [
+                    {category: 'Accesorios', service: 'Fundas de asientos'},
+                    {category: 'Accesorios', service: 'Tapetes premium'},
+                    {category: 'Accesorios', service: 'Sistema de sonido'},
+                    {category: 'Accesorios', service: 'Cámara de reversa'},
+                    {category: 'Sistema Eléctrico', service: 'Sistema de alarma'}
+                ]
+            },
+            'restauracion_estetica': {
+                name: 'Restauración Estética',
+                description: 'Mejora completa de la apariencia',
+                services: [
+                    {category: 'Carrocería', service: 'Pulido y encerado completo'},
+                    {category: 'Carrocería', service: 'Polarizado completo'},
+                    {category: 'Carrocería', service: 'Restauración de faros'},
+                    {category: 'Accesorios', service: 'Película protectora'},
+                    {category: 'Neumáticos', service: 'Rines de aleación R16', quantity: 4}
+                ]
+            }
+        };
+
+        // Initialize the application
+        function initApp() {
+            populateBrands();
+            populateAutoGenBrands();
+            renderServices();
+            updateTotals();
+        }
+
+        // Populate brands dropdown
+        function populateBrands() {
+            const brandSelect = document.getElementById('brand');
+            brandSelect.innerHTML = '<option value="">Seleccionar marca...</option>';
+            
+            Object.keys(vehicleData).sort().forEach(brand => {
+                const option = document.createElement('option');
+                option.value = brand;
+                option.textContent = brand;
+                brandSelect.appendChild(option);
+            });
+        }
+
+        // Populate auto generator brands
+        function populateAutoGenBrands() {
+            const brandSelect = document.getElementById('autoGenBrand');
+            brandSelect.innerHTML = '<option value="">Seleccionar marca...</option>';
+            
+            Object.keys(vehicleData).sort().forEach(brand => {
+                const option = document.createElement('option');
+                option.value = brand;
+                option.textContent = brand;
+                brandSelect.appendChild(option);
+            });
+        }
+
+        // Update auto generator models
+        function updateAutoGenModels() {
+            const brand = document.getElementById('autoGenBrand').value;
+            const modelSelect = document.getElementById('autoGenModel');
+            
+            modelSelect.innerHTML = '<option value="">Seleccionar modelo...</option>';
+            
+            if (brand && vehicleData[brand]) {
+                vehicleData[brand].models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model;
+                    option.textContent = model;
+                    modelSelect.appendChild(option);
+                });
+            }
+            
+            updateAutoGenYear();
+        }
+
+        // Update auto generator years
+        function updateAutoGenYear() {
+            const model = document.getElementById('autoGenModel').value;
+            const yearSelect = document.getElementById('autoGenYear');
+            
+            yearSelect.innerHTML = '<option value="">Seleccionar año...</option>';
+            
+            if (model) {
+                // Generate years from 2000 to current year + 1
+                const currentYear = new Date().getFullYear();
+                for (let year = currentYear + 1; year >= 2000; year--) {
+                    const option = document.createElement('option');
+                    option.value = year;
+                    option.textContent = year;
+                    yearSelect.appendChild(option);
+                }
+            }
+        }
+
+        // Generate automatic quote
+        function generateAutoQuote() {
+            const brand = document.getElementById('autoGenBrand').value;
+            const model = document.getElementById('autoGenModel').value;
+            const year = document.getElementById('autoGenYear').value;
+            const serviceType = document.getElementById('autoGenService').value;
+            const quality = document.getElementById('autoGenQuality').value;
+            
+            if (!brand || !model || !year || !serviceType) {
+                alert('Por favor complete todos los campos requeridos');
+                return;
+            }
+            
+            // Set the main form values
+            document.getElementById('brand').value = brand;
+            updateModels();
+            document.getElementById('model').value = model;
+            updateMultiplier();
+            document.getElementById('quality').value = quality;
+            updatePrices();
+            
+            // Get the service package
+            const packageData = autoServicePackages[serviceType];
+            if (!packageData) {
+                alert('Tipo de servicio no encontrado');
+                return;
+            }
+            
+            // Clear existing services
+            selectedServices = [];
+            
+            // Add services from package
+            let previewHTML = `<h5>${packageData.name}</h5><p><em>${packageData.description}</em></p><ul>`;
+            let totalEstimated = 0;
+            
+            packageData.services.forEach(packageService => {
+                const category = packageService.category;
+                const serviceName = packageService.service;
+                const quantity = packageService.quantity || 1;
+                
+                // Find the service in our database
+                if (servicesData[category]) {
+                    const service = servicesData[category].find(s => s.name === serviceName);
+                    if (service) {
+                        const basePrice = service[quality];
+                        const finalPrice = Math.round(basePrice * currentMultiplier);
+                        const total = finalPrice * quantity;
+                        
+                        const serviceItem = {
+                            id: `auto_${category}_${serviceName}_${Date.now()}_${Math.random()}`,
+                            category: category,
+                            name: serviceName,
+                            price: finalPrice,
+                            quantity: quantity,
+                            unit: service.unit,
+                            total: total
+                        };
+                        
+                        selectedServices.push(serviceItem);
+                        totalEstimated += total;
+                        
+                        previewHTML += `<li>${serviceName} (${quantity} ${service.unit}) - ₡${total.toLocaleString()}</li>`;
+                    }
+                }
+            });
+            
+            previewHTML += `</ul><p><strong>Total estimado: ₡${totalEstimated.toLocaleString()}</strong></p>`;
+            
+            // Show preview
+            document.getElementById('autoGenPreviewContent').innerHTML = previewHTML;
+            document.getElementById('autoGenPreview').style.display = 'block';
+            
+            // Update summary and totals
+            updateSummary();
+            updateTotals();
+            
+            // Switch to services tab to show results
+            showTab('services');
+            
+            alert(`✅ Presupuesto automático generado!\n\n${packageData.name}\n${selectedServices.length} servicios agregados\nTotal estimado: ₡${totalEstimated.toLocaleString()}`);
+        }
+
+        // Clear auto generator
+        function clearAutoGenerator() {
+            document.getElementById('autoGenBrand').value = '';
+            document.getElementById('autoGenModel').value = '';
+            document.getElementById('autoGenYear').value = '';
+            document.getElementById('autoGenService').value = '';
+            document.getElementById('autoGenQuality').value = 'economico';
+            document.getElementById('autoGenPreview').style.display = 'none';
+        }
+        function updateModels() {
+            const brand = document.getElementById('brand').value;
+            const modelSelect = document.getElementById('model');
+            
+            modelSelect.innerHTML = '<option value="">Seleccionar modelo...</option>';
+            
+            if (brand && vehicleData[brand]) {
+                vehicleData[brand].models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model;
+                    option.textContent = model;
+                    modelSelect.appendChild(option);
+                });
+            }
+            
+            updateMultiplier();
+        }
+
+        // Update price multiplier
+        function updateMultiplier() {
+            const brand = document.getElementById('brand').value;
+            const model = document.getElementById('model').value;
+            const multiplierInfo = document.getElementById('multiplierInfo');
+            const multiplierValue = document.getElementById('multiplierValue');
+            
+            if (brand && vehicleData[brand]) {
+                currentMultiplier = vehicleData[brand].multiplier;
+                multiplierValue.textContent = `${currentMultiplier}x`;
+                multiplierInfo.style.display = 'block';
+                
+                // Update service prices
+                renderServices();
+                updateTotals();
+            } else {
+                currentMultiplier = 1.0;
+                multiplierInfo.style.display = 'none';
+            }
+        }
+
+        // Update quality level
+        function updatePrices() {
+            currentQuality = document.getElementById('quality').value;
+            renderServices();
+            updateTotals();
+        }
+
+        // Render services grid
+        function renderServices() {
+            const servicesGrid = document.getElementById('servicesGrid');
+            servicesGrid.innerHTML = '';
+            
+            Object.keys(servicesData).forEach(category => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'service-category';
+                
+                const categoryTitle = document.createElement('h3');
+                categoryTitle.textContent = category;
+                categoryDiv.appendChild(categoryTitle);
+                
+                servicesData[category].forEach((service, index) => {
+                    const serviceDiv = document.createElement('div');
+                    serviceDiv.className = 'service-item';
+                    
+                    const basePrice = service[currentQuality];
+                    const finalPrice = Math.round(basePrice * currentMultiplier);
+                    
+                    serviceDiv.innerHTML = `
+                        <div class="service-info">
+                            <div class="service-name">${service.name}</div>
+                            <div class="service-price">₡${finalPrice.toLocaleString()} / ${service.unit}</div>
+                        </div>
+                        <div class="service-controls">
+                            <input type="number" class="qty-input" id="qty_${category}_${index}" value="1" min="1" max="10">
+                            <button class="add-btn" onclick="addService('${category}', ${index})">Agregar</button>
+                        </div>
+                    `;
+                    
+                    categoryDiv.appendChild(serviceDiv);
+                });
+                
+                servicesGrid.appendChild(categoryDiv);
+            });
+        }
+
+        // Add service to selection
+        function addService(category, serviceIndex) {
+            const service = servicesData[category][serviceIndex];
+            const qty = parseInt(document.getElementById(`qty_${category}_${serviceIndex}`).value) || 1;
+            
+            const basePrice = service[currentQuality];
+            const finalPrice = Math.round(basePrice * currentMultiplier);
+            
+            const serviceItem = {
+                id: `${category}_${serviceIndex}_${Date.now()}`,
+                category: category,
+                name: service.name,
+                price: finalPrice,
+                quantity: qty,
+                unit: service.unit,
+                total: finalPrice * qty
+            };
+            
+            selectedServices.push(serviceItem);
+            updateSummary();
+            updateTotals();
+            
+            // Reset quantity to 1
+            document.getElementById(`qty_${category}_${serviceIndex}`).value = 1;
+        }
+
+        // Add custom service
+        function addCustomService() {
+            const name = document.getElementById('customName').value.trim();
+            const price = parseInt(document.getElementById('customPrice').value) || 0;
+            const qty = parseInt(document.getElementById('customQty').value) || 1;
+            
+            if (!name || price <= 0) {
+                alert('Por favor ingrese un nombre y precio válidos');
+                return;
+            }
+            
+            const serviceItem = {
+                id: `custom_${Date.now()}`,
+                category: 'Personalizado',
+                name: name,
+                price: price,
+                quantity: qty,
+                unit: 'servicio',
+                total: price * qty
+            };
+            
+            selectedServices.push(serviceItem);
+            updateSummary();
+            updateTotals();
+            
+            // Clear form
+            document.getElementById('customName').value = '';
+            document.getElementById('customPrice').value = '';
+            document.getElementById('customQty').value = 1;
+        }
+
+        // Add quick quote packages
+        function addQuickQuote(packageType) {
+            const packages = {
+                'mantenimiento10k': [
+                    {name: 'Cambio de aceite y filtro', price: 25000, qty: 1},
+                    {name: 'Filtro de aire', price: 15000, qty: 1},
+                    {name: 'Revisión general', price: 20000, qty: 1}
+                ],
+                'frenosCompletos': [
+                    {name: 'Pastillas delanteras', price: 45000, qty: 1},
+                    {name: 'Pastillas traseras', price: 35000, qty: 1},
+                    {name: 'Líquido de frenos', price: 12000, qty: 1},
+                    {name: 'Mano de obra frenos', price: 40000, qty: 1}
+                ],
+                'cambioAceite': [
+                    {name: 'Cambio de aceite premium', price: 30000, qty: 1},
+                    {name: 'Filtro de aceite', price: 8000, qty: 1}
+                ],
+                'suspension': [
+                    {name: 'Amortiguadores delanteros', price: 80000, qty: 1},
+                    {name: 'Amortiguadores traseros', price: 75000, qty: 1},
+                    {name: 'Mano de obra suspensión', price: 50000, qty: 1}
+                ],
+                'bateria': [
+                    {name: 'Batería premium', price: 120000, qty: 1},
+                    {name: 'Instalación', price: 10000, qty: 1}
+                ],
+                'neumaticos': [
+                    {name: 'Neumáticos 205/55 R16', price: 80000, qty: 4},
+                    {name: 'Alineación y balanceo', price: 15000, qty: 1}
+                ]
+            };
+            
+            if (packages[packageType]) {
+                packages[packageType].forEach(item => {
+                    const serviceItem = {
+                        id: `quick_${packageType}_${Date.now()}_${Math.random()}`,
+                        category: 'Paquete Rápido',
+                        name: item.name,
+                        price: Math.round(item.price * currentMultiplier),
+                        quantity: item.qty,
+                        unit: 'servicio',
+                        total: Math.round(item.price * currentMultiplier) * item.qty
+                    };
+                    selectedServices.push(serviceItem);
+                });
+                
+                updateSummary();
+                updateTotals();
+            }
+        }
+
+        // Remove service from selection
+        function removeService(serviceId) {
+            selectedServices = selectedServices.filter(service => service.id !== serviceId);
+            updateSummary();
+            updateTotals();
+        }
+
+        // Update summary display
+        function updateSummary() {
+            const summaryContainer = document.getElementById('selectedServices');
+            
+            if (selectedServices.length === 0) {
+                summaryContainer.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No hay servicios seleccionados</p>';
+                return;
+            }
+            
+            summaryContainer.innerHTML = selectedServices.map(service => `
+                <div class="summary-item">
+                    <div>
+                        <div style="font-weight: 600;">${service.name}</div>
+                        <div style="font-size: 0.9em; color: #666;">
+                            ${service.quantity} ${service.unit} × ₡${service.price.toLocaleString()}
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: 600;">₡${service.total.toLocaleString()}</div>
+                        <button class="remove-btn" onclick="removeService('${service.id}')">Eliminar</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update all totals
+        function updateTotals() {
+            const subtotalServices = selectedServices.reduce((sum, service) => sum + service.total, 0);
+            const diagnosticCost = parseInt(document.getElementById('diagnosticCost').value) || 0;
+            const transportCost = parseInt(document.getElementById('transportCost').value) || 0;
+            const profitMargin = parseInt(document.getElementById('profitMargin').value) || 0;
+            
+            const subtotal = subtotalServices + diagnosticCost + transportCost;
+            const marginAmount = Math.round(subtotal * (profitMargin / 100));
+            const finalTotal = subtotal + marginAmount;
+            
+            // Update display
+            document.getElementById('subtotalServices').textContent = `₡${subtotalServices.toLocaleString()}`;
+            document.getElementById('totalDiagnostic').textContent = `₡${diagnosticCost.toLocaleString()}`;
+            document.getElementById('totalTransport').textContent = `₡${transportCost.toLocaleString()}`;
+            document.getElementById('subtotal').textContent = `₡${subtotal.toLocaleString()}`;
+            document.getElementById('marginPercent').textContent = profitMargin;
+            document.getElementById('marginAmount').textContent = `₡${marginAmount.toLocaleString()}`;
+            document.getElementById('finalTotal').textContent = `₡${finalTotal.toLocaleString()}`;
+        }
+
+        // Show tab
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        // Generate quote
+        function generateQuote() {
+            const brand = document.getElementById('brand').value;
+            const model = document.getElementById('model').value;
+            
+            if (!brand || !model) {
+                alert('Por favor seleccione marca y modelo del vehículo');
+                return;
+            }
+            
+            if (selectedServices.length === 0) {
+                alert('Por favor agregue al menos un servicio');
+                return;
+            }
+            
+            // Populate quote data
+            const now = new Date();
+            document.getElementById('quoteDate').textContent = now.toLocaleDateString('es-CR');
+            document.getElementById('quoteVehicle').textContent = `${brand} ${model}`;
+            document.getElementById('quoteNumber').textContent = `COT-${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}-${Math.floor(Math.random() * 1000)}`;
+            
+            // Populate quote items
+            const quoteItems = document.getElementById('quoteItems');
+            quoteItems.innerHTML = selectedServices.map(service => `
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px;">${service.name}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${service.quantity}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">₡${service.price.toLocaleString()}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">₡${service.total.toLocaleString()}</td>
+                </tr>
+            `).join('');
+            
+            // Add additional costs if they exist
+            const diagnosticCost = parseInt(document.getElementById('diagnosticCost').value) || 0;
+            const transportCost = parseInt(document.getElementById('transportCost').value) || 0;
+            
+            if (diagnosticCost > 0) {
+                quoteItems.innerHTML += `
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;">Diagnóstico</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">1</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">₡${diagnosticCost.toLocaleString()}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">₡${diagnosticCost.toLocaleString()}</td>
+                    </tr>
+                `;
+            }
+            
+            if (transportCost > 0) {
+                quoteItems.innerHTML += `
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;">Transporte</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">1</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">₡${transportCost.toLocaleString()}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">₡${transportCost.toLocaleString()}</td>
+                    </tr>
+                `;
+            }
+            
+            // Update print totals
+            document.getElementById('printSubtotal').textContent = document.getElementById('subtotal').textContent;
+            document.getElementById('printDiagnostic').textContent = document.getElementById('totalDiagnostic').textContent;
+            document.getElementById('printTransport').textContent = document.getElementById('totalTransport').textContent;
+            document.getElementById('printMargin').textContent = document.getElementById('marginAmount').textContent;
+            document.getElementById('printTotal').textContent = document.getElementById('finalTotal').textContent;
+            
+            // Show print section
+            document.getElementById('printSection').classList.add('show');
+            
+            alert('Cotización generada exitosamente. Puede imprimirla usando el botón "Imprimir".');
+        }
+
+        // Print quote
+        function printQuote() {
+            if (!document.getElementById('printSection').classList.contains('show')) {
+                alert('Primero debe generar la cotización');
+                return;
+            }
+            
+            window.print();
+        }
+
+        // New quote - reset everything
+        function newQuote() {
+            if (selectedServices.length > 0) {
+                if (!confirm('¿Está seguro de que desea crear una nueva cotización? Se perderán todos los datos actuales.')) {
+                    return;
+                }
+            }
+            
+            // Reset all form fields
+            document.getElementById('brand').value = '';
+            document.getElementById('model').value = '';
+            document.getElementById('quality').value = 'economico';
+            document.getElementById('customName').value = '';
+            document.getElementById('customPrice').value = '';
+            document.getElementById('customQty').value = '1';
+            document.getElementById('diagnosticCost').value = '15000';
+            document.getElementById('transportCost').value = '0';
+            document.getElementById('profitMargin').value = '20';
+            
+            // Reset variables
+            selectedServices = [];
+            currentMultiplier = 1.0;
+            currentQuality = 'economico';
+            
+            // Update displays
+            document.getElementById('multiplierInfo').style.display = 'none';
+            document.getElementById('printSection').classList.remove('show');
+            clearAutoGenerator();
+            updateModels();
+            renderServices();
+            updateSummary();
+            updateTotals();
+            
+            // Reset to first tab
+            showTab('services');
+        }
+
+        // Clear auto generator
+        function clearAutoGenerator() {
+            document.getElementById('autoGenBrand').value = '';
+            document.getElementById('autoGenModel').value = '';
+            document.getElementById('autoGenYear').value = '';
+            document.getElementById('autoGenService').value = '';
+            document.getElementById('autoGenQuality').value = 'economico';
+            document.getElementById('autoGenPreview').style.display = 'none';
+        }
+
+        // Initialize app when page loads
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
