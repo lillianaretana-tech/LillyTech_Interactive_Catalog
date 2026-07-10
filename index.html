@@ -75,13 +75,14 @@ button,a{font:inherit}.stage{width:100%;max-width:482px;display:flex;flex-direct
   <div class="viewport" id="viewport"><div class="track" id="track"></div></div>
   <div class="controls">
     <button id="prev" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <button id="home" aria-label="Volver al inicio" title="Volver al inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M9.5 20v-6h5v6"/></svg></button>
     <div class="meta"><div class="cat" id="metaCat">Catálogo</div><div class="num" id="metaNum">1 / 1</div></div>
     <button id="next" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></button>
   </div>
 </div>
 <script>
 const WHATSAPP = "50688035571";
-const EMAIL = "lilliana.retana@gmail.com";
+const EMAIL = "lillianaretana.tech@gmail.com";
 const ECOSYSTEMS = [
   ["Soluciones Empresariales","emp","💼","Soluciones para dirección, estrategia, seguimiento ejecutivo y toma de decisiones."],
   ["Operaciones y trazabilidad","ops","⚙️","Control diario, registros, pedidos, inventarios, turnos y seguimiento operativo."],
@@ -102,6 +103,7 @@ const tools = [
   {eco:"Operaciones y trazabilidad",icon:"📦",title:"SBM Inventario",url:"https://lillianaretana-tech.github.io/sbm-inventario/",desc:"Sistema digital para control de inventario, seguimiento de activos y organización operativa de suministros.",tags:["Inventario","Control","Operaciones"],featured:true},
   {eco:"Operaciones y trazabilidad",icon:"📋",title:"SBM Pedido Mensual",url:"https://lillianaretana-tech.github.io/SBM_Pedido_Mensual/",desc:"Sistema para gestión y control de pedidos mensuales de suministros, con planificación y seguimiento de requerimientos.",tags:["Pedidos","Inventario","Operaciones"],featured:true},
   {eco:"Academias y capacitación",icon:"🚀",title:"Wordyssey",url:"https://lillianaretana-tech.github.io/Wordyssey/",desc:"Plataforma gamificada de aprendizaje de inglés con historias interactivas, desafíos, práctica adaptativa y seguimiento del progreso.",tags:["Inglés","Gamificación","Aprendizaje","Vocabulario"],featured:true},
+  {eco:"Academias y capacitación",icon:"🌎",title:"Wordyssey — Inglés con Bruno",url:"https://inglesconbruno.com/",desc:"Experiencia de aprendizaje de inglés con Bruno, diseñada para practicar de forma dinámica, fortalecer habilidades y avanzar con acompañamiento.",tags:["Inglés","Bruno","Aprendizaje","Práctica"],featured:true},
   {eco:"Academias y capacitación",icon:"🤖",title:"IA para el Trabajo Real",url:"https://lillianaretana-tech.github.io/IA_aprendizaje_trabajo/",desc:"Programa de capacitación para enseñar el uso práctico de IA en entornos laborales: productividad, comunicación, análisis y automatización.",tags:["IA","Capacitación","Empresas","Productividad"],featured:true},
   {eco:"Operaciones y trazabilidad",icon:"🧭",title:"Lilly Trazabilidad General",url:"https://lillianaretana-tech.github.io/Lilly_trazabilidadgeneral/",desc:"Plataforma para registrar, documentar y dar seguimiento a actividades, responsables, evidencias e historial operativo.",tags:["Trazabilidad","Seguimiento","Operaciones","Supabase"]},
   {eco:"Soluciones Empresariales",icon:"📍",title:"Lilly Tracker",url:"https://lillianaretana-tech.github.io/Lilly_tracker/",desc:"Sistema central para seguimiento de proyectos, pilotos, implementaciones y actividades estratégicas con estados, responsables e indicadores.",tags:["Tracker","Proyectos","KPIs","Gestión"]},
@@ -193,7 +195,7 @@ ECOSYSTEMS.forEach(([name,theme,icon,desc]) => {
   items.forEach(t => {slideIndex[t.title] = sheets.length; addSheet(name, toolSlide(t));});
 });
 addSheet("Cierre", `<div class="slide backcover"><div class="seal">LT</div><h2>Transformar procesos. Potenciar personas.</h2><p>Agenda una conversación para priorizar pilotos, adaptar soluciones y medir impacto.</p><div class="contact"><a class="btn wa" href="${CONTACT}" target="_blank" rel="noopener">WhatsApp ${WHATSAPP}</a><a class="btn mail" href="mailto:${EMAIL}" target="_blank" rel="noopener">${EMAIL}</a></div></div>`);
-const track = document.getElementById("track"), prevBtn = document.getElementById("prev"), nextBtn = document.getElementById("next"), metaCat = document.getElementById("metaCat"), metaNum = document.getElementById("metaNum"), barFill = document.getElementById("barFill"), viewport = document.getElementById("viewport");
+const track = document.getElementById("track"), prevBtn = document.getElementById("prev"), homeBtn = document.getElementById("home"), nextBtn = document.getElementById("next"), metaCat = document.getElementById("metaCat"), metaNum = document.getElementById("metaNum"), barFill = document.getElementById("barFill"), viewport = document.getElementById("viewport");
 let current = 0;
 track.innerHTML = sheets.map(s => s.html).join("");
 function render(){
@@ -202,12 +204,14 @@ function render(){
   metaNum.textContent = `${current + 1} / ${sheets.length}`;
   barFill.style.width = `${current / (sheets.length - 1) * 100}%`;
   prevBtn.disabled = current === 0;
+  homeBtn.disabled = current === 0;
   nextBtn.disabled = current === sheets.length - 1;
 }
 function goTo(key){if(slideIndex[key] != null){current = slideIndex[key]; render();}}
 function next(){if(current < sheets.length - 1){current++; render();}}
 function prev(){if(current > 0){current--; render();}}
-prevBtn.onclick = prev; nextBtn.onclick = next;
+function home(){current = 0; render();}
+prevBtn.onclick = prev; homeBtn.onclick = home; nextBtn.onclick = next;
 document.addEventListener("keydown", e => {if(e.key === "ArrowRight") next(); if(e.key === "ArrowLeft") prev();});
 track.addEventListener("click", e => {
   const tool = e.target.closest("[data-tool]"), eco = e.target.closest("[data-eco]");
