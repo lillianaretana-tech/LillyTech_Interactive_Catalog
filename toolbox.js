@@ -1,8 +1,8 @@
 (function(){
   "use strict";
 
-  const SUPABASE_URL = "https://lipkgzneyweiyjoanrcm.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_z5RxIO2RbVPaBvvh0GYpOQ_obEe_F8I";
+  const SUPABASE_URL = "https://vgkyoyosjewdygxtnqvu.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZna3lveW9zamV3ZHlneHRucXZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2NTAxNDAsImV4cCI6MjA5ODIyNjE0MH0.oDxSWg61UFLqMh2MeEW6yxarZAjobhEA6TWm0KS_7CA";
   const STATUS_LABELS = {
     idea:"Idea",
     desarrollo:"En desarrollo",
