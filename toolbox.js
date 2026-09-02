@@ -19,6 +19,29 @@
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
   const asArray = value => Array.isArray(value) ? value : String(value || "").split(",").map(v => v.trim()).filter(Boolean);
   const label = value => STATUS_LABELS[value] || value || "Sin estado";
+  const AREA_OVERRIDES = {
+    "biblia en familia":"Crecimiento personal",
+    "mi camino en la palabra":"Crecimiento personal",
+    "sbm monthly report":"Operaciones",
+    "planilla":"Recursos Humanos"
+  };
+  const AREA_ALIASES = {
+    "monthly report":"Operaciones",
+    "operaciones":"Operaciones",
+    "operaciones y limpieza":"Operaciones",
+    "limpieza":"Operaciones",
+    "planilla":"Recursos Humanos",
+    "rh":"Recursos Humanos",
+    "rrhh":"Recursos Humanos",
+    "recursos humanos":"Recursos Humanos",
+    "crecimiento personal":"Crecimiento personal"
+  };
+  const normalizedArea = tool => {
+    const name = String(tool.name || "").trim().toLowerCase();
+    if(AREA_OVERRIDES[name]) return AREA_OVERRIDES[name];
+    const raw = String(tool.business_area || tool.category || "Otras herramientas").trim();
+    return AREA_ALIASES[raw.toLowerCase()] || raw;
+  };
   const validUrl = value => {
     if(!value) return false;
     try { const url = new URL(value, window.location.href); return ["http:","https:"].includes(url.protocol) || !value.includes(":"); }
@@ -42,7 +65,7 @@
         .order("sort_order", { ascending:true })
         .order("name", { ascending:true });
       if(error) throw error;
-      state.tools = data || [];
+      state.tools = (data || []).map(tool => ({...tool, display_area:normalizedArea(tool)}));
       fillFilters();
       applyFilters();
       if(message) message.hidden = true;
@@ -68,14 +91,14 @@
   }
 
   function fillFilters(){
-    fillSelect("toolboxCategory", unique("category"));
+    fillSelect("toolboxCategory", unique("display_area"));
     fillSelect("toolboxStatus", unique("status"));
     fillSelect("toolboxArea", unique("business_area"));
   }
 
   function haystack(tool){
     return [
-      tool.name, tool.description, tool.category, tool.status, tool.business_area,
+      tool.name, tool.description, tool.category, tool.status, tool.business_area, tool.display_area,
       tool.target_users, tool.potential_users, ...(tool.tags || [])
     ].join(" ").toLowerCase();
   }
@@ -88,7 +111,7 @@
     const featured = $("toolboxFeatured")?.checked || false;
     state.filtered = state.tools.filter(tool => {
       if(q && !haystack(tool).includes(q)) return false;
-      if(category && tool.category !== category) return false;
+      if(category && tool.display_area !== category) return false;
       if(status && tool.status !== status) return false;
       if(area && tool.business_area !== area) return false;
       if(featured && !tool.featured) return false;
@@ -127,9 +150,8 @@
           </div>
         </div>
         <div class="toolbox-meta">
-          <span class="toolbox-pill">${esc(tool.category || "Utilidad")}</span>
+          <span class="toolbox-pill">${esc(tool.display_area)}</span>
           <span class="toolbox-pill state">${esc(label(tool.status))}</span>
-          ${tool.business_area ? `<span class="toolbox-pill">${esc(tool.business_area)}</span>` : ""}
           ${tool.featured ? `<span class="toolbox-pill off">Destacada</span>` : ""}
         </div>
         ${(tool.tags || []).length ? `<div class="toolbox-meta">${tool.tags.slice(0,5).map(tag => `<span class="toolbox-pill">${esc(tag)}</span>`).join("")}</div>` : ""}
