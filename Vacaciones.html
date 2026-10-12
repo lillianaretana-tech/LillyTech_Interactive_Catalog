@@ -1120,16 +1120,21 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
 
 <!-- ADMIN PANEL -->
 <div class="overlay" id="adminOverlay">
-  <div class="modal" style="width:600px; max-height:80vh; overflow-y:auto">
+  <div class="modal" style="width:700px; max-height:80vh; overflow-y:auto">
     <div class="modal-head">
       <h3>⚙️ Panel Administrativo</h3>
-      <div class="sub">Gestión de proyectos</div>
+      <div class="sub">Gestión de proyectos y supervisores</div>
     </div>
     <div class="modal-body">
-      <div style="margin-bottom:20px">
-        <h4 style="margin-bottom:12px">Proyectos</h4>
+      <div style="margin-bottom:30px">
+        <h4 style="margin-bottom:12px">📋 Proyectos</h4>
         <div id="projectList"></div>
         <button class="btn btn-success" onclick="openAddProjectModal()" style="width:100%;margin-top:10px">＋ Agregar Proyecto</button>
+      </div>
+      <div style="border-top:1px solid var(--border); padding-top:20px">
+        <h4 style="margin-bottom:12px">👤 Supervisores</h4>
+        <div id="supervisorList"></div>
+        <button class="btn btn-success" onclick="openAddSupervisorModal()" style="width:100%;margin-top:10px">＋ Agregar Supervisor</button>
       </div>
     </div>
     <div class="modal-foot">
@@ -1162,6 +1167,41 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
       <button class="btn btn-secondary" onclick="closeProjectModal()">Cancelar</button>
       <button class="btn btn-danger" id="deleteProjectBtn" onclick="deleteProject()" style="display:none; margin-right:auto">🗑 Eliminar</button>
       <button class="btn btn-success" onclick="saveProject()">✔ Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT SUPERVISOR MODAL -->
+<div class="overlay" id="supervisorOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="supTitle">Nuevo Supervisor</h3>
+      <div class="sub" id="supSub"></div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Usuario (nombre de acceso)</label>
+        <input type="text" id="supUser" placeholder="Ej: bryan.torres" style="text-transform:lowercase">
+      </div>
+      <div class="form-group">
+        <label>Nombre Completo</label>
+        <input type="text" id="supName" placeholder="Ej: Bryan Torres">
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="supPass" placeholder="••••••••">
+      </div>
+      <div class="form-group">
+        <label>Proyecto Asignado</label>
+        <select id="supProj">
+          <option value="">Seleccionar proyecto...</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="closeSupervisorModal()">Cancelar</button>
+      <button class="btn btn-danger" id="deleteSupervisorBtn" onclick="deleteSupervisor()" style="display:none; margin-right:auto">🗑 Eliminar</button>
+      <button class="btn btn-success" onclick="saveSupervisor()">✔ Guardar</button>
     </div>
   </div>
 </div>
@@ -3107,6 +3147,7 @@ let editingProjectName = null;
 
 function openAdminPanel() {
   renderProjectList();
+  renderSupervisorList();
   document.getElementById('adminOverlay').classList.add('open');
 }
 
@@ -3220,6 +3261,182 @@ document.addEventListener('input', (e) => {
     }
   }
 });
+
+// ═══════════════════════════════════════════
+// SUPERVISOR MANAGEMENT
+// ═══════════════════════════════════════════
+let editingSupervisorUser = null;
+
+async function renderSupervisorList() {
+  const list = document.getElementById('supervisorList');
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/usuarios?rol=eq.supervisor', {
+      headers: {'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY}
+    });
+    const supervisors = await r.json();
+    if (!supervisors || supervisors.length === 0) {
+      list.innerHTML = '<div style="padding:10px; color:var(--text-muted); text-align:center">No hay supervisores registrados</div>';
+      return;
+    }
+    list.innerHTML = supervisors.map(sup => `
+      <div style="padding:12px; background:var(--surface-2); border-radius:4px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center">
+        <div>
+          <div style="font-weight:600">${sup.usuario}</div>
+          <div style="font-size:11px; color:var(--text-muted); margin-top:3px">${sup.proyecto} · ${sup.contraseña ? '🔒 Con contraseña' : '⚠️ Sin contraseña'}</div>
+        </div>
+        <div style="display:flex; gap:6px">
+          <button class="btn btn-sm" onclick="openEditSupervisorModal('${sup.usuario}')" style="padding:4px 8px; font-size:11px">✏️ Editar</button>
+          <button class="btn btn-sm" style="padding:4px 8px; font-size:11px; background:#d32f2f" onclick="deleteSupervisorFromList('${sup.usuario}')">🗑 Eliminar</button>
+        </div>
+      </div>
+    `).join('');
+  } catch (ex) {
+    list.innerHTML = '<div style="padding:10px; color:#f44336">Error al cargar supervisores: ' + ex.message + '</div>';
+  }
+}
+
+function openAddSupervisorModal() {
+  editingSupervisorUser = null;
+  document.getElementById('supTitle').textContent = 'Nuevo Supervisor';
+  document.getElementById('supSub').textContent = '';
+  document.getElementById('supUser').value = '';
+  document.getElementById('supName').value = '';
+  document.getElementById('supPass').value = '';
+  document.getElementById('supProj').value = '';
+  populateSupervisorProjects();
+  document.getElementById('deleteSupervisorBtn').style.display = 'none';
+  document.getElementById('supervisorOverlay').classList.add('open');
+}
+
+async function openEditSupervisorModal(usuario) {
+  try {
+    editingSupervisorUser = usuario;
+    const r = await fetch(SB_URL + '/rest/v1/usuarios?usuario=eq.' + encodeURIComponent(usuario), {
+      headers: {'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY}
+    });
+    const users = await r.json();
+    if (!users || users.length === 0) { alert('Supervisor no encontrado'); return; }
+    const sup = users[0];
+
+    document.getElementById('supTitle').textContent = 'Editar Supervisor';
+    document.getElementById('supSub').textContent = usuario;
+    document.getElementById('supUser').value = sup.usuario;
+    document.getElementById('supName').value = sup.nombre || '';
+    document.getElementById('supPass').value = sup.contraseña || '';
+    document.getElementById('supProj').value = sup.proyecto || '';
+    populateSupervisorProjects();
+    document.getElementById('deleteSupervisorBtn').style.display = 'inline-flex';
+    document.getElementById('supervisorOverlay').classList.add('open');
+  } catch (ex) {
+    alert('Error al cargar supervisor: ' + ex.message);
+  }
+}
+
+function populateSupervisorProjects() {
+  const sel = document.getElementById('supProj');
+  const projects = [...new Set(emps.map(e => e.proyecto))].sort();
+  sel.innerHTML = '<option value="">Seleccionar proyecto...</option>' +
+    projects.map(p => `<option value="${p}">${p}</option>`).join('');
+}
+
+function closeSupervisorModal() {
+  document.getElementById('supervisorOverlay').classList.remove('open');
+  editingSupervisorUser = null;
+}
+
+async function saveSupervisor() {
+  const usuario = document.getElementById('supUser').value.trim().toLowerCase();
+  const nombre = document.getElementById('supName').value.trim();
+  const contraseña = document.getElementById('supPass').value;
+  const proyecto = document.getElementById('supProj').value.trim();
+
+  if (!usuario) { alert('Ingrese el usuario (nombre de acceso)'); return; }
+  if (!contraseña) { alert('Ingrese la contraseña'); return; }
+  if (!proyecto) { alert('Seleccione un proyecto'); return; }
+
+  try {
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+
+    if (editingSupervisorUser) {
+      // Update existing
+      const r = await fetch(SB_URL + '/rest/v1/usuarios?usuario=eq.' + encodeURIComponent(editingSupervisorUser), {
+        method: 'PATCH',
+        headers: SB_HEADERS,
+        body: JSON.stringify({
+          usuario: usuario,
+          nombre: nombre,
+          contraseña: contraseña,
+          proyecto: proyecto,
+          rol: 'supervisor',
+          activo: true
+        })
+      });
+      if (!r.ok) throw new Error('Error al actualizar: ' + r.status);
+    } else {
+      // Create new
+      const r = await fetch(SB_URL + '/rest/v1/usuarios', {
+        method: 'POST',
+        headers: SB_HEADERS,
+        body: JSON.stringify({
+          usuario: usuario,
+          nombre: nombre,
+          contraseña: contraseña,
+          proyecto: proyecto,
+          rol: 'supervisor',
+          activo: true
+        })
+      });
+      if (!r.ok) throw new Error('Error al crear: ' + r.status);
+    }
+
+    closeSupervisorModal();
+    renderSupervisorList();
+    showSyncStatus(`✅ Supervisor ${usuario} guardado correctamente`, '#2E7D32');
+    btn.disabled = false;
+    btn.textContent = '✔ Guardar';
+  } catch (ex) {
+    alert('Error: ' + ex.message);
+    if (btn) { btn.disabled = false; btn.textContent = '✔ Guardar'; }
+  }
+}
+
+async function deleteSupervisor() {
+  const usuario = document.getElementById('supUser').value.trim();
+  if (!confirm(`¿Eliminar el supervisor "${usuario}"?`)) return;
+
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/usuarios?usuario=eq.' + encodeURIComponent(usuario), {
+      method: 'DELETE',
+      headers: SB_HEADERS
+    });
+    if (!r.ok) throw new Error('Error al eliminar: ' + r.status);
+
+    closeSupervisorModal();
+    renderSupervisorList();
+    showSyncStatus(`🗑 Supervisor ${usuario} eliminado`, '#d32f2f');
+  } catch (ex) {
+    alert('Error: ' + ex.message);
+  }
+}
+
+async function deleteSupervisorFromList(usuario) {
+  if (!confirm(`¿Eliminar el supervisor "${usuario}"?`)) return;
+
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/usuarios?usuario=eq.' + encodeURIComponent(usuario), {
+      method: 'DELETE',
+      headers: SB_HEADERS
+    });
+    if (!r.ok) throw new Error('Error al eliminar: ' + r.status);
+
+    renderSupervisorList();
+    showSyncStatus(`🗑 Supervisor ${usuario} eliminado`, '#d32f2f');
+  } catch (ex) {
+    alert('Error: ' + ex.message);
+  }
+}
 
 // ═══════════════════════════════════════════
 // CONTEXT MENU
@@ -3570,9 +3787,18 @@ function docStatusHtml(emp) {
 
 function lastUniformHtml(emp) {
   const list = [...(emp.uniformes||[])].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
-  const u = list[0];
-  if (!u) return '<span class="status-pill status-muted">Sin registro</span>';
-  return `<strong>${fmtFullDate(u.fecha)}</strong><br><span style="color:#9ab0d0" class="saldo-mode">${u.tipo||'Entrega'} x${u.cantidad||1}</span>`;
+  if (!list.length) return '<span class="status-pill status-muted">Sin registro</span>';
+
+  // Show all entries with most recent first
+  const entries = list.map(u =>
+    `<div style="font-size:11px; margin:4px 0; padding:6px; background:rgba(255,255,255,0.05); border-radius:3px">
+      <strong>${fmtFullDate(u.fecha)}</strong><br>
+      <span style="color:#9ab0d0">${u.tipo||'Entrega'} x${u.cantidad||1}</span>
+      ${u.observacion ? `<br><span style="color:#7a84a0; font-size:10px">${u.observacion}</span>` : ''}
+    </div>`
+  ).join('');
+
+  return `<div style="max-height:120px; overflow-y:auto">${entries}</div>`;
 }
 
 function renderCumpleanos() {
