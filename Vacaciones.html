@@ -701,6 +701,8 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
   <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📂 Importar</button>
   <button class="btn btn-secondary" onclick="window.print()">🖨 Imprimir</button>
   <button class="btn btn-danger" onclick="resetData()" title="Volver a datos originales">↺ Reset</button>
+  <button class="btn btn-secondary" onclick="openAdminPanel()" title="Administrar proyectos y eliminar grupos de empleados">⚙️ Admin Panel</button>
+
   <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
 </div>
 
@@ -940,8 +942,8 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
           <label>Proyecto</label>
           <select id="eProy">
             <option>ADVANT</option>
-            <option>BAYER</option>
             <option>DXC</option>
+            <option>EMERSON</option>
             <option>LSEG</option>
             <option>MCK</option>
             <option>MULTIPARK</option>
@@ -1004,6 +1006,50 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
   </div>
 </div>
 
+
+<!-- ADMIN PANEL MODAL -->
+<div class="overlay" id="adminOverlay">
+  <div class="modal" style="width:600px; max-height:80vh">
+    <div class="modal-head">
+      <h3>Panel de Administración</h3>
+      <div class="sub">Gestionar proyectos y eliminar grupos de empleados</div>
+    </div>
+    <div class="modal-body" style="max-height:60vh; overflow-y:auto">
+      <div class="section-title">Renombrar Proyecto</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Proyecto actual</label>
+          <select id="adminRenameFrom">
+            <option value="">— Seleccione —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Nuevo nombre</label>
+          <input type="text" id="adminRenameTo" placeholder="Nuevo nombre del proyecto">
+        </div>
+      </div>
+      <button class="btn btn-info" onclick="renameProject()" style="margin-bottom:20px">✏️ Renombrar Proyecto</button>
+
+      <div style="border-top:1px solid var(--border); padding-top:20px; margin-top:20px">
+        <div class="section-title">Eliminar Todos los Empleados de un Proyecto</div>
+        <div class="form-group">
+          <label>Proyecto a limpiar</label>
+          <select id="adminDeleteProj">
+            <option value="">— Seleccione —</option>
+          </select>
+        </div>
+        <div style="background:#3e1111; border:1px solid #7f1d1d; border-radius:6px; padding:12px; margin-bottom:14px; font-size:12px; color:#fb7777">
+          ⚠️ ADVERTENCIA: Esto eliminará TODOS los empleados del proyecto seleccionado. Esta acción NO se puede deshacer.
+        </div>
+        <button class="btn btn-danger" onclick="deleteAllProjectEmployees()" style="margin-bottom:20px">🗑️ Eliminar Empleados del Proyecto</button>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="closeAdminPanel()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Context menu -->
 <div class="ctx-menu" id="ctxMenu">
   <div class="ctx-item" onclick="ctxVac()">🗓 Programar vacaciones</div>
@@ -1041,8 +1087,8 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
 // ═══════════════════════════════════════════
 const PC = {
   'ADVANT':       '#1565C0',
-  'BAYER':        '#E65100',
   'DXC':          '#6A1B9A',
+  'EMERSON':      '#00897B',
   'LSEG':         '#2E7D32',
   'MCK':          '#B71C1C',
   'MULTIPARK':    '#00695C',
@@ -1094,73 +1140,24 @@ const SEED = [
     "cedula": "155837245019",
     "codigo": "CR1-7253",
     "nombre": "Romero Maylling Del Carmen",
-    "proyecto": "BAYER",
-    "vacaciones": [],
-    "fechaIngreso": "2025-09-17",
-    "tipoIdentificacion": "DIMEX",
-    "venceIdentificacion": "2026-10-10",
-    "cumpleanos": "",
-    "uniformes": []
-  },
   {
     "id": 5,
     "saldo": 0,
     "cedula": "602770412",
     "codigo": "CR1-6382",
     "nombre": "Mendoza Fajardo Matilde",
-    "proyecto": "BAYER",
-    "vacaciones": [
-      {
-        "fin": "2025-09-21",
-        "dias": 13,
-        "notas": "",
-        "inicio": "2025-09-08",
-        "cobertura": "Juana Díaz"
-      }
-    ],
-    "fechaIngreso": "2024-08-22",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2028-08-05",
-    "cumpleanos": "",
-    "uniformes": []
-  },
   {
     "id": 7,
     "saldo": 0,
     "cedula": "603690027",
     "codigo": "CR1-6365",
     "nombre": "Rodríguez Quesada Marilyn",
-    "proyecto": "BAYER",
-    "vacaciones": [
-      {
-        "fin": "2026-02-25",
-        "dias": 5,
-        "notas": "",
-        "inicio": "2026-02-19",
-        "cobertura": "Juana Díaz"
-      }
-    ],
-    "fechaIngreso": "2024-08-16",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2027-01-25",
-    "cumpleanos": "",
-    "uniformes": []
-  },
   {
     "id": 8,
     "saldo": 0,
     "cedula": "401740300",
     "codigo": "CR1-6179",
     "nombre": "Sánchez Salas Andrea Marcela",
-    "proyecto": "BAYER",
-    "vacaciones": [
-      {
-        "fin": "2025-06-01",
-        "dias": 14,
-        "notas": "",
-        "inicio": "2025-05-19",
-        "cobertura": "Juana Díaz"
-      },
       {
         "fin": "2026-05-31",
         "dias": 14,
@@ -1934,16 +1931,6 @@ const SEED = [
     "cedula": "134000433200",
     "codigo": "CR1-3556",
     "nombre": "Guevara Cruz Celia",
-    "proyecto": "BAYER",
-    "uniformes": [],
-    "vacaciones": [
-      {
-        "fin": "2024-10-06",
-        "dias": 6,
-        "notas": "",
-        "inicio": "2024-10-01",
-        "cobertura": "Juana Díaz"
-      },
       {
         "fin": "2025-11-02",
         "dias": 7,
@@ -2005,42 +1992,18 @@ const SEED = [
     "cedula": "702250818",
     "codigo": "CR1-6935",
     "nombre": "Ramírez Jiménez Manuel José",
-    "proyecto": "BAYER",
-    "uniformes": [],
-    "vacaciones": [],
-    "fechaIngreso": "2025-05-19",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2034-02-06",
-    "cumpleanos": ""
-  },
   {
     "id": 45,
     "saldo": 0,
     "cedula": "155820694405",
     "codigo": "",
     "nombre": "Romero Dania",
-    "proyecto": "BAYER",
-    "uniformes": [],
-    "vacaciones": [],
-    "fechaIngreso": "2026-09-17",
-    "tipoIdentificacion": "DIMEX",
-    "venceIdentificacion": "2026-09-17",
-    "cumpleanos": ""
-  },
   {
     "id": 46,
     "saldo": 0,
     "cedula": "155853401908",
     "codigo": "",
     "nombre": "Leiva Muñoz Lisbeth",
-    "proyecto": "BAYER",
-    "uniformes": [],
-    "vacaciones": [],
-    "fechaIngreso": "2025-07-21",
-    "tipoIdentificacion": "DIMEX",
-    "venceIdentificacion": "2026-08-13",
-    "cumpleanos": ""
-  },
   {
     "id": 47,
     "saldo": 0,
@@ -3699,6 +3662,97 @@ function closePrint() {
 
 // ── START ──
 init();
+
+// ═══════════════════════════════════════════
+// ADMIN PANEL FUNCTIONS
+// ═══════════════════════════════════════════
+function openAdminPanel() {
+  const adminRenameFrom = document.getElementById('adminRenameFrom');
+  const adminDeleteProj = document.getElementById('adminDeleteProj');
+  const projects = [...new Set(employees.map(e => e.proyecto))].sort();
+  
+  adminRenameFrom.innerHTML = '<option value="">— Seleccione —</option>';
+  adminDeleteProj.innerHTML = '<option value="">— Seleccione —</option>';
+  
+  projects.forEach(proj => {
+    adminRenameFrom.appendChild(new Option(proj, proj));
+    adminDeleteProj.appendChild(new Option(proj, proj));
+  });
+  
+  document.getElementById('adminOverlay').classList.add('open');
+}
+
+function closeAdminPanel() {
+  document.getElementById('adminOverlay').classList.remove('open');
+}
+
+function renameProject() {
+  const oldName = document.getElementById('adminRenameFrom').value;
+  const newName = document.getElementById('adminRenameTo').value.trim();
+  
+  if (!oldName || !newName) {
+    alert('Por favor seleccione el proyecto y escriba un nuevo nombre');
+    return;
+  }
+  
+  if (oldName === newName) {
+    alert('El nuevo nombre es igual al anterior');
+    return;
+  }
+  
+  // Renombrar en employees
+  employees.forEach(emp => {
+    if (emp.proyecto === oldName) {
+      emp.proyecto = newName;
+    }
+  });
+  
+  // Actualizar PC (project colors)
+  if (oldName in PC) {
+    PC[newName] = PC[oldName];
+    delete PC[oldName];
+  }
+  
+  syncToCloud();
+  renderTable();
+  renderLegend();
+  
+  alert(`✓ Proyecto "${oldName}" renombrado a "${newName}"`);
+  document.getElementById('adminRenameTo').value = '';
+  openAdminPanel(); // Actualizar dropdown
+}
+
+function deleteAllProjectEmployees() {
+  const projName = document.getElementById('adminDeleteProj').value;
+  
+  if (!projName) {
+    alert('Por favor seleccione un proyecto');
+    return;
+  }
+  
+  const count = employees.filter(e => e.proyecto === projName).length;
+  
+  if (count === 0) {
+    alert(`El proyecto "${projName}" no tiene empleados`);
+    return;
+  }
+  
+  if (!confirm(`¿Está seguro? Esto eliminará ${count} empleado(s) del proyecto "${projName}". Esta acción NO se puede deshacer.`)) {
+    return;
+  }
+  
+  // Eliminar empleados
+  employees = employees.filter(e => e.proyecto !== projName);
+  
+  syncToCloud();
+  renderTable();
+  renderLegend();
+  
+  alert(`✓ ${count} empleado(s) eliminado(s) del proyecto "${projName}"`);
+  closeAdminPanel();
+}
+
+
 </script>
 </body>
 </html>
