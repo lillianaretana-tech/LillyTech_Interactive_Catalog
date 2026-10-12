@@ -1342,11 +1342,11 @@ function doLogout() {
 // ROLE-BASED FILTERING & UI CONTROL
 // ═══════════════════════════════════════════
 function applyProjectFilter() {
-  // Filter employees based on user role
-  if (currentRole === 'supervisor' && currentProject) {
-    // Supervisors only see employees from their project
-    emps = emps.filter(e => e.proyecto === currentProject);
-  }
+  // Filter employees based on user role (commented - filtering done in renderTable instead)
+  // if (currentRole === 'supervisor' && currentProject) {
+  //   Supervisors only see employees from their project
+  //   emps = emps.filter(e => e.proyecto === currentProject);
+  // }
   // Admin sees all employees - no filtering
 }
 
