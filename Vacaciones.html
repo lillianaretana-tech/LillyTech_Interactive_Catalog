@@ -1007,38 +1007,75 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
 
 <!-- ADMIN PANEL MODAL -->
 <div class="overlay" id="adminOverlay">
-  <div class="modal" style="width:600px; max-height:80vh">
+  <div class="modal" style="width:700px; max-height:85vh">
     <div class="modal-head">
-      <h3>Panel de Administración</h3>
-      <div class="sub">Gestionar proyectos y eliminar grupos de empleados</div>
+      <h3>⚙️ Panel de Administración de Proyectos</h3>
+      <div class="sub">Agregar, editar, renombrar y eliminar proyectos</div>
     </div>
-    <div class="modal-body" style="max-height:60vh; overflow-y:auto">
-      <div class="section-title">Renombrar Proyecto</div>
+    <div class="modal-body" style="max-height:70vh; overflow-y:auto">
+
+      <!-- AGREGAR NUEVO PROYECTO -->
+      <div class="section-title">➕ Agregar Nuevo Proyecto</div>
       <div class="form-row">
-        <div class="form-group">
-          <label>Proyecto actual</label>
+        <div class="form-group" style="flex:2">
+          <label>Nombre del proyecto</label>
+          <input type="text" id="adminNewProjName" placeholder="ej: EMERSON, GRUPO NUEVO">
+        </div>
+        <div class="form-group" style="flex:1">
+          <label>Color (hex)</label>
+          <input type="color" id="adminNewProjColor" value="#00897B" style="width:100%; height:40px; cursor:pointer; border:1px solid var(--border); border-radius:6px;">
+        </div>
+      </div>
+      <button class="btn btn-success" onclick="createNewProject()" style="margin-bottom:20px; width:100%">✅ Crear Proyecto</button>
+
+      <div style="border-top:1px solid var(--border); padding-top:20px; margin-top:20px"></div>
+
+      <!-- RENOMBRAR PROYECTO -->
+      <div class="section-title">✏️ Renombrar Proyecto</div>
+      <div class="form-row">
+        <div class="form-group" style="flex:1">
+          <label>Proyecto a renombrar</label>
           <select id="adminRenameFrom"><option value="">— Seleccione —</option></select>
         </div>
-        <div class="form-group">
+        <div class="form-group" style="flex:1">
           <label>Nuevo nombre</label>
-          <input type="text" id="adminRenameTo" placeholder="Nuevo nombre del proyecto">
+          <input type="text" id="adminRenameTo" placeholder="Nuevo nombre">
         </div>
       </div>
-      <button class="btn btn-info" onclick="renameProject()" style="margin-bottom:20px">✏️ Renombrar</button>
-      <div style="border-top:1px solid var(--border); padding-top:20px; margin-top:20px">
-        <div class="section-title">Eliminar Empleados de un Proyecto</div>
-        <div class="form-group">
-          <label>Proyecto a limpiar</label>
-          <select id="adminDeleteProj"><option value="">— Seleccione —</option></select>
+      <button class="btn btn-info" onclick="renameProject()" style="margin-bottom:20px; width:100%">✏️ Renombrar</button>
+
+      <div style="border-top:1px solid var(--border); padding-top:20px; margin-top:20px"></div>
+
+      <!-- EDITAR COLOR PROYECTO -->
+      <div class="section-title">🎨 Editar Color de Proyecto</div>
+      <div class="form-row">
+        <div class="form-group" style="flex:1">
+          <label>Proyecto</label>
+          <select id="adminEditColorProj"><option value="">— Seleccione —</option></select>
         </div>
-        <div style="background:#3e1111; border:1px solid #7f1d1d; border-radius:6px; padding:12px; margin-bottom:14px; font-size:12px; color:#fb7777">
-          ⚠️ Esto eliminará TODOS los empleados del proyecto. No se puede deshacer.
+        <div class="form-group" style="flex:1">
+          <label>Nuevo color</label>
+          <input type="color" id="adminEditColorValue" value="#00897B" style="width:100%; height:40px; cursor:pointer; border:1px solid var(--border); border-radius:6px;">
         </div>
-        <button class="btn btn-danger" onclick="deleteAllProjectEmployees()">🗑️ Eliminar</button>
       </div>
+      <button class="btn btn-warning" onclick="editProjectColor()" style="margin-bottom:20px; width:100%">🎨 Actualizar Color</button>
+
+      <div style="border-top:1px solid var(--border); padding-top:20px; margin-top:20px"></div>
+
+      <!-- ELIMINAR EMPLEADOS DE PROYECTO -->
+      <div class="section-title">🗑️ Eliminar Todos los Empleados de un Proyecto</div>
+      <div class="form-group">
+        <label>Proyecto</label>
+        <select id="adminDeleteProj"><option value="">— Seleccione —</option></select>
+      </div>
+      <div style="background:#3e1111; border:1px solid #7f1d1d; border-radius:6px; padding:12px; margin-bottom:14px; font-size:12px; color:#fb7777">
+        ⚠️ Esto eliminará TODOS los empleados del proyecto. No se puede deshacer.
+      </div>
+      <button class="btn btn-danger" onclick="deleteAllProjectEmployees()" style="width:100%">🗑️ Eliminar Empleados</button>
+
     </div>
     <div class="modal-foot">
-      <button class="btn btn-secondary" onclick="closeAdminPanel()">Cerrar</button>
+      <button class="btn btn-secondary" onclick="closeAdminPanel()">✕ Cerrar</button>
     </div>
   </div>
 </div>
@@ -3586,12 +3623,24 @@ init();
 // ADMIN PANEL
 // ═══════════════════════════════════════════
 function openAdminPanel() {
-  const r = document.getElementById('adminRenameFrom');
-  const d = document.getElementById('adminDeleteProj');
-  const p = [...new Set(emps.map(e => e.proyecto))].sort();
-  r.innerHTML = '<option value="">— Seleccione —</option>';
-  d.innerHTML = '<option value="">— Seleccione —</option>';
-  p.forEach(x => { r.appendChild(new Option(x, x)); d.appendChild(new Option(x, x)); });
+  const allProjects = [...new Set(emps.map(e => e.proyecto))].sort();
+  const allProjectsWithColor = [...new Set(Object.keys(PC))].sort();
+
+  // Llenar dropdown de Renombrar
+  const renameFrom = document.getElementById('adminRenameFrom');
+  renameFrom.innerHTML = '<option value="">— Seleccione —</option>';
+  allProjects.forEach(x => { renameFrom.appendChild(new Option(x, x)); });
+
+  // Llenar dropdown de Eliminar Empleados
+  const deleteProj = document.getElementById('adminDeleteProj');
+  deleteProj.innerHTML = '<option value="">— Seleccione —</option>';
+  allProjects.forEach(x => { deleteProj.appendChild(new Option(x, x)); });
+
+  // Llenar dropdown de Editar Color
+  const colorProj = document.getElementById('adminEditColorProj');
+  colorProj.innerHTML = '<option value="">— Seleccione —</option>';
+  allProjectsWithColor.forEach(x => { colorProj.appendChild(new Option(x, x)); });
+
   document.getElementById('adminOverlay').classList.add('open');
 }
 
@@ -3599,28 +3648,64 @@ function closeAdminPanel() {
   document.getElementById('adminOverlay').classList.remove('open');
 }
 
+function createNewProject() {
+  const name = document.getElementById('adminNewProjName').value.trim().toUpperCase();
+  const color = document.getElementById('adminNewProjColor').value;
+
+  if (!name) { alert('Ingrese nombre del proyecto'); return; }
+  if (name in PC) { alert('El proyecto ya existe'); return; }
+
+  PC[name] = color;
+  document.getElementById('adminNewProjName').value = '';
+  alert(`✓ Proyecto "${name}" creado`);
+  syncToCloud(); renderLegend();
+  openAdminPanel();
+}
+
 function renameProject() {
-  const o = document.getElementById('adminRenameFrom').value;
-  const n = document.getElementById('adminRenameTo').value.trim();
-  if (!o || !n) { alert('Seleccione proyecto y nombre'); return; }
-  if (o === n) { alert('Nombre igual'); return; }
-  emps.forEach(e => { if (e.proyecto === o) e.proyecto = n; });
-  if (o in PC) { PC[n] = PC[o]; delete PC[o]; }
+  const oldName = document.getElementById('adminRenameFrom').value;
+  const newName = document.getElementById('adminRenameTo').value.trim().toUpperCase();
+
+  if (!oldName || !newName) { alert('Seleccione proyecto y nombre'); return; }
+  if (oldName === newName) { alert('Nombre igual'); return; }
+  if (newName in PC && oldName !== newName) { alert('El nuevo nombre ya existe'); return; }
+
+  // Renombrar empleados
+  emps.forEach(e => { if (e.proyecto === oldName) e.proyecto = newName; });
+
+  // Renombrar en PC (colores)
+  if (oldName in PC) { PC[newName] = PC[oldName]; delete PC[oldName]; }
+
   syncToCloud(); renderTable(); renderLegend();
-  alert(`✓ "${o}" → "${n}"`);
+  alert(`✓ "${oldName}" → "${newName}"`);
   document.getElementById('adminRenameTo').value = '';
   openAdminPanel();
 }
 
-function deleteAllProjectEmployees() {
-  const p = document.getElementById('adminDeleteProj').value;
-  if (!p) { alert('Seleccione proyecto'); return; }
-  const c = emps.filter(e => e.proyecto === p).length;
-  if (c === 0) { alert('Sin empleados'); return; }
-  if (!confirm(`¿Eliminar ${c} empleado(s) de "${p}"? No se puede deshacer.`)) return;
-  emps = emps.filter(e => e.proyecto !== p);
+function editProjectColor() {
+  const projName = document.getElementById('adminEditColorProj').value;
+  const newColor = document.getElementById('adminEditColorValue').value;
+
+  if (!projName) { alert('Seleccione proyecto'); return; }
+
+  PC[projName] = newColor;
   syncToCloud(); renderTable(); renderLegend();
-  alert(`✓ ${c} empleado(s) eliminado(s)`);
+  alert(`✓ Color actualizado para "${projName}"`);
+  openAdminPanel();
+}
+
+function deleteAllProjectEmployees() {
+  const projName = document.getElementById('adminDeleteProj').value;
+  if (!projName) { alert('Seleccione proyecto'); return; }
+
+  const count = emps.filter(e => e.proyecto === projName).length;
+  if (count === 0) { alert('Sin empleados en este proyecto'); return; }
+
+  if (!confirm(`¿Eliminar ${count} empleado(s) de "${projName}"?\n\nNo se puede deshacer.`)) return;
+
+  emps = emps.filter(e => e.proyecto !== projName);
+  syncToCloud(); renderTable(); renderLegend();
+  alert(`✓ ${count} empleado(s) eliminado(s)`);
   closeAdminPanel();
 }
 
