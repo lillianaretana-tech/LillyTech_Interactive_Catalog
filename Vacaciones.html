@@ -1228,7 +1228,11 @@ function loginSuccess() {
   });
   const sub = document.querySelector('.header-brand .sub');
   if (sub) sub.textContent = currentUser.toUpperCase();
+  if (currentRole === 'supervisor') {
+    sub.textContent = currentUser.toUpperCase() + ' · ' + currentProject;
+  }
   syncFromCloud();
+  updateUIByRole();
 }
 
 function doLogout() {
@@ -1245,14 +1249,74 @@ function doLogout() {
   }
 }
 
+// ═══════════════════════════════════════════
+// ROLE-BASED FILTERING & UI CONTROL
+// ═══════════════════════════════════════════
+function applyProjectFilter() {
+  // Filter employees based on user role
+  if (currentRole === 'supervisor' && currentProject) {
+    // Supervisors only see employees from their project
+    emps = emps.filter(e => e.proyecto === currentProject);
+  }
+  // Admin sees all employees - no filtering
+}
+
+function updateUIByRole() {
+  if (currentRole === 'supervisor') {
+    // Filter project dropdown to show only supervisor's project
+    const projFilter = document.getElementById('projFilter');
+    if (projFilter) {
+      const options = projFilter.querySelectorAll('option');
+      options.forEach(opt => {
+        if (opt.value && opt.value !== currentProject) {
+          opt.style.display = 'none';
+        }
+      });
+      projFilter.value = currentProject;
+      projFilter.disabled = true;
+    }
+
+    // Hide vacation editing controls for supervisors
+    document.querySelectorAll('[onclick*="ctxVac"], [onclick*="addVac"]').forEach(btn => {
+      btn.style.display = 'none';
+    });
+
+    // Make table rows non-interactive for supervisors
+    document.querySelectorAll('tbody tr').forEach(row => {
+      row.style.pointerEvents = 'none';
+      row.style.opacity = '0.7';
+    });
+  } else if (currentRole === 'admin') {
+    // Admin can see all projects and edit everything
+    const projFilter = document.getElementById('projFilter');
+    if (projFilter) {
+      projFilter.disabled = false;
+      projFilter.querySelectorAll('option').forEach(opt => {
+        opt.style.display = '';
+      });
+    }
+
+    // Show all vacation controls for admin
+    document.querySelectorAll('[onclick*="ctxVac"], [onclick*="addVac"]').forEach(btn => {
+      btn.style.display = '';
+    });
+
+    // Make table rows interactive for admin
+    document.querySelectorAll('tbody tr').forEach(row => {
+      row.style.pointerEvents = '';
+      row.style.opacity = '';
+    });
+  }
+}
+
 
 // ═══════════════════════════════════════════
 // PROJECT COLORS
 // ═══════════════════════════════════════════
 const PC = {
   'ADVANT':       '#1565C0',
-  'BAYER':        '#E65100',
   'DXC':          '#6A1B9A',
+  'EMERSON':      '#00897B',
   'LSEG':         '#2E7D32',
   'MCK':          '#B71C1C',
   'MULTIPARK':    '#00695C',
@@ -1295,93 +1359,6 @@ const SEED = [
     "fechaIngreso": "2021-03-19",
     "tipoIdentificacion": "Cédula nacional",
     "venceIdentificacion": "2032-05-03",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 2,
-    "saldo": 0,
-    "cedula": "155837245019",
-    "codigo": "CR1-7253",
-    "nombre": "Romero Maylling Del Carmen",
-    "proyecto": "BAYER",
-    "vacaciones": [],
-    "fechaIngreso": "2025-09-17",
-    "tipoIdentificacion": "DIMEX",
-    "venceIdentificacion": "2026-10-10",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 5,
-    "saldo": 0,
-    "cedula": "602770412",
-    "codigo": "CR1-6382",
-    "nombre": "Mendoza Fajardo Matilde",
-    "proyecto": "BAYER",
-    "vacaciones": [
-      {
-        "fin": "2025-09-21",
-        "dias": 13,
-        "notas": "",
-        "inicio": "2025-09-08",
-        "cobertura": "Juana Díaz"
-      }
-    ],
-    "fechaIngreso": "2024-08-22",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2028-08-05",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 7,
-    "saldo": 0,
-    "cedula": "603690027",
-    "codigo": "CR1-6365",
-    "nombre": "Rodríguez Quesada Marilyn",
-    "proyecto": "BAYER",
-    "vacaciones": [
-      {
-        "fin": "2026-02-25",
-        "dias": 5,
-        "notas": "",
-        "inicio": "2026-02-19",
-        "cobertura": "Juana Díaz"
-      }
-    ],
-    "fechaIngreso": "2024-08-16",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2027-01-25",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 8,
-    "saldo": 0,
-    "cedula": "401740300",
-    "codigo": "CR1-6179",
-    "nombre": "Sánchez Salas Andrea Marcela",
-    "proyecto": "BAYER",
-    "vacaciones": [
-      {
-        "fin": "2025-06-01",
-        "dias": 14,
-        "notas": "",
-        "inicio": "2025-05-19",
-        "cobertura": "Juana Díaz"
-      },
-      {
-        "fin": "2026-05-31",
-        "dias": 14,
-        "notas": "",
-        "inicio": "2026-05-18",
-        "cobertura": "Juana Díaz"
-      }
-    ],
-    "fechaIngreso": "2024-05-24",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2026-11-01",
     "cumpleanos": "",
     "uniformes": []
   },
@@ -2139,35 +2116,6 @@ const SEED = [
     "uniformes": []
   },
   {
-    "id": 40,
-    "saldo": 7,
-    "cedula": "134000433200",
-    "codigo": "CR1-3556",
-    "nombre": "Guevara Cruz Celia",
-    "proyecto": "BAYER",
-    "uniformes": [],
-    "vacaciones": [
-      {
-        "fin": "2024-10-06",
-        "dias": 6,
-        "notas": "",
-        "inicio": "2024-10-01",
-        "cobertura": "Juana Díaz"
-      },
-      {
-        "fin": "2025-11-02",
-        "dias": 7,
-        "notas": "",
-        "inicio": "2025-10-27",
-        "cobertura": ""
-      }
-    ],
-    "fechaIngreso": "2019-07-27",
-    "tipoIdentificacion": "DIMEX",
-    "venceIdentificacion": "2028-01-12",
-    "cumpleanos": ""
-  },
-  {
     "id": 41,
     "saldo": 0,
     "cedula": "",
@@ -2207,48 +2155,6 @@ const SEED = [
     "fechaIngreso": "2025-06-23",
     "tipoIdentificacion": "Cédula nacional",
     "venceIdentificacion": "2034-03-06",
-    "cumpleanos": ""
-  },
-  {
-    "id": 44,
-    "saldo": 0,
-    "cedula": "702250818",
-    "codigo": "CR1-6935",
-    "nombre": "Ramírez Jiménez Manuel José",
-    "proyecto": "BAYER",
-    "uniformes": [],
-    "vacaciones": [],
-    "fechaIngreso": "2025-05-19",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2034-02-06",
-    "cumpleanos": ""
-  },
-  {
-    "id": 45,
-    "saldo": 0,
-    "cedula": "155820694405",
-    "codigo": "",
-    "nombre": "Romero Dania",
-    "proyecto": "BAYER",
-    "uniformes": [],
-    "vacaciones": [],
-    "fechaIngreso": "2026-09-17",
-    "tipoIdentificacion": "DIMEX",
-    "venceIdentificacion": "2026-09-17",
-    "cumpleanos": ""
-  },
-  {
-    "id": 46,
-    "saldo": 0,
-    "cedula": "155853401908",
-    "codigo": "",
-    "nombre": "Leiva Muñoz Lisbeth",
-    "proyecto": "BAYER",
-    "uniformes": [],
-    "vacaciones": [],
-    "fechaIngreso": "2025-07-21",
-    "tipoIdentificacion": "DIMEX",
-    "venceIdentificacion": "2026-08-13",
     "cumpleanos": ""
   },
   {
@@ -2375,7 +2281,8 @@ async function init() {
     emps = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(SEED));
     showSyncStatus('⚠ Sin conexión — usando respaldo local', '#B71C1C');
   }
-  normalizeAllCoberturas();
+  applyProjectFilter();
+      normalizeAllCoberturas();
   populateFilter();
   buildLegend();
   // Populate cumpleaños project filter
@@ -2412,11 +2319,13 @@ async function syncFromCloud() {
     if (cloudData && Array.isArray(cloudData)) {
       emps = cloudData;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(emps));
+      applyProjectFilter();
       normalizeAllCoberturas();
       renderTable();
       updateStats();
       populateCovFilter();
       refreshCoberturaList();
+      updateUIByRole();
       showSyncStatus('☁ Actualizado desde Supabase · ' + new Date().toLocaleTimeString('es-CR',{hour:'2-digit',minute:'2-digit'}));
     } else {
       showSyncStatus('⚠ No se encontraron datos en Supabase', '#E65100');
