@@ -635,9 +635,122 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
 }
 .ctx-item:hover { background: #222640; }
 .ctx-item.danger { color: #B71C1C; }
+
+/* ─── LOGIN STYLES ─── */
+.login-container {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(135deg, #0d0f1a 0%, #1a1f3a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.login-container.hidden { display: none !important; }
+.login-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 40px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: var(--shadow-md);
+}
+.login-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.login-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.login-header .sub {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.form-group {
+  margin-bottom: 18px;
+}
+.form-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #0d0f1a;
+  color: var(--text);
+  font-size: 13px;
+}
+.form-group input:focus {
+  outline: none;
+  border-color: var(--header-accent);
+  box-shadow: 0 0 0 2px rgba(79, 156, 249, 0.1);
+}
+.login-btn {
+  width: 100%;
+  padding: 11px;
+  background: var(--header-accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: all 0.2s;
+}
+.login-btn:hover { background: #3f7cc9; }
+.login-error {
+  background: #7f1d1d;
+  border: 1px solid #991b1b;
+  color: #fecaca;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  margin-bottom: 16px;
+  display: none;
+}
+.login-error.show { display: block; }
+
 </style>
+
 </head>
 <body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-container" id="loginContainer">
+  <div class="login-box">
+    <div class="login-header">
+      <h1>Control de Vacaciones</h1>
+      <div class="sub">SBM Corp</div>
+    </div>
+    <div class="login-error" id="loginError"></div>
+    <form onsubmit="doLogin(event)">
+      <div class="form-group">
+        <label>Usuario</label>
+        <input type="text" id="loginUser" placeholder="tu usuario" required autofocus>
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="loginPass" placeholder="tu contraseña" required>
+      </div>
+      <button type="submit" class="login-btn">Acceder</button>
+    </form>
+    <div style="text-align:center; margin-top:20px; font-size:11px; color:var(--text-muted);">
+      v2.1 · Multi-usuario
+    </div>
+  </div>
+</div>
+
+
 
 <!-- HEADER -->
 <div class="header">
@@ -701,7 +814,6 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
   <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📂 Importar</button>
   <button class="btn btn-secondary" onclick="window.print()">🖨 Imprimir</button>
   <button class="btn btn-danger" onclick="resetData()" title="Volver a datos originales">↺ Reset</button>
-  <button class="btn btn-secondary" onclick="openAdminPanel()" title="Administrar proyectos">⚙️ Admin Panel</button>
   <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
 </div>
 
@@ -941,8 +1053,8 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
           <label>Proyecto</label>
           <select id="eProy">
             <option>ADVANT</option>
+            <option>BAYER</option>
             <option>DXC</option>
-            <option>EMERSON</option>
             <option>LSEG</option>
             <option>MCK</option>
             <option>MULTIPARK</option>
@@ -1005,81 +1117,6 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
   </div>
 </div>
 
-<!-- ADMIN PANEL MODAL -->
-<div class="overlay" id="adminOverlay">
-  <div class="modal" style="width:700px; max-height:85vh">
-    <div class="modal-head">
-      <h3>⚙️ Panel de Administración de Proyectos</h3>
-      <div class="sub">Agregar, editar, renombrar y eliminar proyectos</div>
-    </div>
-    <div class="modal-body" style="max-height:70vh; overflow-y:auto">
-
-      <!-- AGREGAR NUEVO PROYECTO -->
-      <div class="section-title">➕ Agregar Nuevo Proyecto</div>
-      <div class="form-row">
-        <div class="form-group" style="flex:2">
-          <label>Nombre del proyecto</label>
-          <input type="text" id="adminNewProjName" placeholder="ej: EMERSON, GRUPO NUEVO">
-        </div>
-        <div class="form-group" style="flex:1">
-          <label>Color (hex)</label>
-          <input type="color" id="adminNewProjColor" value="#00897B" style="width:100%; height:40px; cursor:pointer; border:1px solid var(--border); border-radius:6px;">
-        </div>
-      </div>
-      <button class="btn btn-success" onclick="createNewProject()" style="margin-bottom:20px; width:100%">✅ Crear Proyecto</button>
-
-      <div style="border-top:1px solid var(--border); padding-top:20px; margin-top:20px"></div>
-
-      <!-- RENOMBRAR PROYECTO -->
-      <div class="section-title">✏️ Renombrar Proyecto</div>
-      <div class="form-row">
-        <div class="form-group" style="flex:1">
-          <label>Proyecto a renombrar</label>
-          <select id="adminRenameFrom"><option value="">— Seleccione —</option></select>
-        </div>
-        <div class="form-group" style="flex:1">
-          <label>Nuevo nombre</label>
-          <input type="text" id="adminRenameTo" placeholder="Nuevo nombre">
-        </div>
-      </div>
-      <button class="btn btn-info" onclick="renameProject()" style="margin-bottom:20px; width:100%">✏️ Renombrar</button>
-
-      <div style="border-top:1px solid var(--border); padding-top:20px; margin-top:20px"></div>
-
-      <!-- EDITAR COLOR PROYECTO -->
-      <div class="section-title">🎨 Editar Color de Proyecto</div>
-      <div class="form-row">
-        <div class="form-group" style="flex:1">
-          <label>Proyecto</label>
-          <select id="adminEditColorProj"><option value="">— Seleccione —</option></select>
-        </div>
-        <div class="form-group" style="flex:1">
-          <label>Nuevo color</label>
-          <input type="color" id="adminEditColorValue" value="#00897B" style="width:100%; height:40px; cursor:pointer; border:1px solid var(--border); border-radius:6px;">
-        </div>
-      </div>
-      <button class="btn btn-warning" onclick="editProjectColor()" style="margin-bottom:20px; width:100%">🎨 Actualizar Color</button>
-
-      <div style="border-top:1px solid var(--border); padding-top:20px; margin-top:20px"></div>
-
-      <!-- ELIMINAR EMPLEADOS DE PROYECTO -->
-      <div class="section-title">🗑️ Eliminar Todos los Empleados de un Proyecto</div>
-      <div class="form-group">
-        <label>Proyecto</label>
-        <select id="adminDeleteProj"><option value="">— Seleccione —</option></select>
-      </div>
-      <div style="background:#3e1111; border:1px solid #7f1d1d; border-radius:6px; padding:12px; margin-bottom:14px; font-size:12px; color:#fb7777">
-        ⚠️ Esto eliminará TODOS los empleados del proyecto. No se puede deshacer.
-      </div>
-      <button class="btn btn-danger" onclick="deleteAllProjectEmployees()" style="width:100%">🗑️ Eliminar Empleados</button>
-
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-secondary" onclick="closeAdminPanel()">✕ Cerrar</button>
-    </div>
-  </div>
-</div>
-
 <!-- Context menu -->
 <div class="ctx-menu" id="ctxMenu">
   <div class="ctx-item" onclick="ctxVac()">🗓 Programar vacaciones</div>
@@ -1112,13 +1149,110 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
 </div>
 
 <script>
+
+// AUTENTICACIÓN Y CONTROL DE ACCESO
+let currentUser = null;
+let currentRole = null;
+let currentProject = null;
+
+// Cargar sesión existente
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = sessionStorage.getItem('vacacionesSession');
+  if (saved) {
+    try {
+      const sess = JSON.parse(saved);
+      currentUser = sess.user;
+      currentRole = sess.role;
+      currentProject = sess.project;
+      loginSuccess();
+    } catch {
+      showLoginScreen();
+    }
+  } else {
+    showLoginScreen();
+  }
+});
+
+function showLoginScreen() {
+  const login = document.getElementById('loginContainer');
+  if (login) login.classList.remove('hidden');
+  const h = document.querySelector('.header');
+  if (h) h.style.display = 'none';
+  const tb = document.querySelector('.toolbar');
+  if (tb) tb.style.display = 'none';
+  const tabs = document.querySelector('.tabs');
+  if (tabs) tabs.style.display = 'none';
+  document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+}
+
+async function doLogin(e) {
+  e.preventDefault();
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+  err.classList.remove('show');
+  
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/usuarios?usuario=eq.' + encodeURIComponent(user), {
+      headers: {'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY}
+    });
+    const users = await r.json();
+    
+    if (!users || users.length === 0) { err.textContent = '❌ Usuario no encontrado'; err.classList.add('show'); return; }
+    const u = users[0];
+    if (u.contraseña !== pass) { err.textContent = '❌ Contraseña incorrecta'; err.classList.add('show'); return; }
+    if (!u.activo) { err.textContent = '❌ Cuenta desactivada'; err.classList.add('show'); return; }
+    
+    currentUser = u.usuario;
+    currentRole = u.rol;
+    currentProject = u.proyecto;
+    sessionStorage.setItem('vacacionesSession', JSON.stringify({user: currentUser, role: currentRole, project: currentProject}));
+    loginSuccess();
+  } catch (ex) {
+    err.textContent = '❌ Error: ' + ex.message;
+    err.classList.add('show');
+  }
+}
+
+function loginSuccess() {
+  const login = document.getElementById('loginContainer');
+  if (login) login.classList.add('hidden');
+  const h = document.querySelector('.header');
+  if (h) h.style.display = 'flex';
+  const tb = document.querySelector('.toolbar');
+  if (tb) tb.style.display = 'flex';
+  const tabs = document.querySelector('.tabs');
+  if (tabs) tabs.style.display = 'flex';
+  document.querySelectorAll('.tab-panel').forEach(p => {
+    p.style.display = p.classList.contains('active') ? 'block' : 'none';
+  });
+  const sub = document.querySelector('.header-brand .sub');
+  if (sub) sub.textContent = currentUser.toUpperCase();
+  syncFromCloud();
+}
+
+function doLogout() {
+  if (confirm('¿Cerrar sesión?')) {
+    sessionStorage.removeItem('vacacionesSession');
+    currentUser = null;
+    currentRole = null;
+    currentProject = null;
+    showLoginScreen();
+    emps = [];
+    renderTable();
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginPass').value = '';
+  }
+}
+
+
 // ═══════════════════════════════════════════
 // PROJECT COLORS
 // ═══════════════════════════════════════════
 const PC = {
   'ADVANT':       '#1565C0',
+  'BAYER':        '#E65100',
   'DXC':          '#6A1B9A',
-  'EMERSON':      '#00897B',
   'LSEG':         '#2E7D32',
   'MCK':          '#B71C1C',
   'MULTIPARK':    '#00695C',
@@ -1161,6 +1295,93 @@ const SEED = [
     "fechaIngreso": "2021-03-19",
     "tipoIdentificacion": "Cédula nacional",
     "venceIdentificacion": "2032-05-03",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 2,
+    "saldo": 0,
+    "cedula": "155837245019",
+    "codigo": "CR1-7253",
+    "nombre": "Romero Maylling Del Carmen",
+    "proyecto": "BAYER",
+    "vacaciones": [],
+    "fechaIngreso": "2025-09-17",
+    "tipoIdentificacion": "DIMEX",
+    "venceIdentificacion": "2026-10-10",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 5,
+    "saldo": 0,
+    "cedula": "602770412",
+    "codigo": "CR1-6382",
+    "nombre": "Mendoza Fajardo Matilde",
+    "proyecto": "BAYER",
+    "vacaciones": [
+      {
+        "fin": "2025-09-21",
+        "dias": 13,
+        "notas": "",
+        "inicio": "2025-09-08",
+        "cobertura": "Juana Díaz"
+      }
+    ],
+    "fechaIngreso": "2024-08-22",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2028-08-05",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 7,
+    "saldo": 0,
+    "cedula": "603690027",
+    "codigo": "CR1-6365",
+    "nombre": "Rodríguez Quesada Marilyn",
+    "proyecto": "BAYER",
+    "vacaciones": [
+      {
+        "fin": "2026-02-25",
+        "dias": 5,
+        "notas": "",
+        "inicio": "2026-02-19",
+        "cobertura": "Juana Díaz"
+      }
+    ],
+    "fechaIngreso": "2024-08-16",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2027-01-25",
+    "cumpleanos": "",
+    "uniformes": []
+  },
+  {
+    "id": 8,
+    "saldo": 0,
+    "cedula": "401740300",
+    "codigo": "CR1-6179",
+    "nombre": "Sánchez Salas Andrea Marcela",
+    "proyecto": "BAYER",
+    "vacaciones": [
+      {
+        "fin": "2025-06-01",
+        "dias": 14,
+        "notas": "",
+        "inicio": "2025-05-19",
+        "cobertura": "Juana Díaz"
+      },
+      {
+        "fin": "2026-05-31",
+        "dias": 14,
+        "notas": "",
+        "inicio": "2026-05-18",
+        "cobertura": "Juana Díaz"
+      }
+    ],
+    "fechaIngreso": "2024-05-24",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2026-11-01",
     "cumpleanos": "",
     "uniformes": []
   },
@@ -1918,6 +2139,35 @@ const SEED = [
     "uniformes": []
   },
   {
+    "id": 40,
+    "saldo": 7,
+    "cedula": "134000433200",
+    "codigo": "CR1-3556",
+    "nombre": "Guevara Cruz Celia",
+    "proyecto": "BAYER",
+    "uniformes": [],
+    "vacaciones": [
+      {
+        "fin": "2024-10-06",
+        "dias": 6,
+        "notas": "",
+        "inicio": "2024-10-01",
+        "cobertura": "Juana Díaz"
+      },
+      {
+        "fin": "2025-11-02",
+        "dias": 7,
+        "notas": "",
+        "inicio": "2025-10-27",
+        "cobertura": ""
+      }
+    ],
+    "fechaIngreso": "2019-07-27",
+    "tipoIdentificacion": "DIMEX",
+    "venceIdentificacion": "2028-01-12",
+    "cumpleanos": ""
+  },
+  {
     "id": 41,
     "saldo": 0,
     "cedula": "",
@@ -1957,6 +2207,48 @@ const SEED = [
     "fechaIngreso": "2025-06-23",
     "tipoIdentificacion": "Cédula nacional",
     "venceIdentificacion": "2034-03-06",
+    "cumpleanos": ""
+  },
+  {
+    "id": 44,
+    "saldo": 0,
+    "cedula": "702250818",
+    "codigo": "CR1-6935",
+    "nombre": "Ramírez Jiménez Manuel José",
+    "proyecto": "BAYER",
+    "uniformes": [],
+    "vacaciones": [],
+    "fechaIngreso": "2025-05-19",
+    "tipoIdentificacion": "Cédula nacional",
+    "venceIdentificacion": "2034-02-06",
+    "cumpleanos": ""
+  },
+  {
+    "id": 45,
+    "saldo": 0,
+    "cedula": "155820694405",
+    "codigo": "",
+    "nombre": "Romero Dania",
+    "proyecto": "BAYER",
+    "uniformes": [],
+    "vacaciones": [],
+    "fechaIngreso": "2026-09-17",
+    "tipoIdentificacion": "DIMEX",
+    "venceIdentificacion": "2026-09-17",
+    "cumpleanos": ""
+  },
+  {
+    "id": 46,
+    "saldo": 0,
+    "cedula": "155853401908",
+    "codigo": "",
+    "nombre": "Leiva Muñoz Lisbeth",
+    "proyecto": "BAYER",
+    "uniformes": [],
+    "vacaciones": [],
+    "fechaIngreso": "2025-07-21",
+    "tipoIdentificacion": "DIMEX",
+    "venceIdentificacion": "2026-08-13",
     "cumpleanos": ""
   },
   {
@@ -3617,97 +3909,6 @@ function closePrint() {
 
 // ── START ──
 init();
-
-
-// ═══════════════════════════════════════════
-// ADMIN PANEL
-// ═══════════════════════════════════════════
-function openAdminPanel() {
-  const allProjects = [...new Set(emps.map(e => e.proyecto))].sort();
-  const allProjectsWithColor = [...new Set(Object.keys(PC))].sort();
-
-  // Llenar dropdown de Renombrar
-  const renameFrom = document.getElementById('adminRenameFrom');
-  renameFrom.innerHTML = '<option value="">— Seleccione —</option>';
-  allProjects.forEach(x => { renameFrom.appendChild(new Option(x, x)); });
-
-  // Llenar dropdown de Eliminar Empleados
-  const deleteProj = document.getElementById('adminDeleteProj');
-  deleteProj.innerHTML = '<option value="">— Seleccione —</option>';
-  allProjects.forEach(x => { deleteProj.appendChild(new Option(x, x)); });
-
-  // Llenar dropdown de Editar Color
-  const colorProj = document.getElementById('adminEditColorProj');
-  colorProj.innerHTML = '<option value="">— Seleccione —</option>';
-  allProjectsWithColor.forEach(x => { colorProj.appendChild(new Option(x, x)); });
-
-  document.getElementById('adminOverlay').classList.add('open');
-}
-
-function closeAdminPanel() {
-  document.getElementById('adminOverlay').classList.remove('open');
-}
-
-function createNewProject() {
-  const name = document.getElementById('adminNewProjName').value.trim().toUpperCase();
-  const color = document.getElementById('adminNewProjColor').value;
-
-  if (!name) { alert('Ingrese nombre del proyecto'); return; }
-  if (name in PC) { alert('El proyecto ya existe'); return; }
-
-  PC[name] = color;
-  document.getElementById('adminNewProjName').value = '';
-  alert(`✓ Proyecto "${name}" creado`);
-  syncToCloud(); renderLegend();
-  openAdminPanel();
-}
-
-function renameProject() {
-  const oldName = document.getElementById('adminRenameFrom').value;
-  const newName = document.getElementById('adminRenameTo').value.trim().toUpperCase();
-
-  if (!oldName || !newName) { alert('Seleccione proyecto y nombre'); return; }
-  if (oldName === newName) { alert('Nombre igual'); return; }
-  if (newName in PC && oldName !== newName) { alert('El nuevo nombre ya existe'); return; }
-
-  // Renombrar empleados
-  emps.forEach(e => { if (e.proyecto === oldName) e.proyecto = newName; });
-
-  // Renombrar en PC (colores)
-  if (oldName in PC) { PC[newName] = PC[oldName]; delete PC[oldName]; }
-
-  syncToCloud(); renderTable(); renderLegend();
-  alert(`✓ "${oldName}" → "${newName}"`);
-  document.getElementById('adminRenameTo').value = '';
-  openAdminPanel();
-}
-
-function editProjectColor() {
-  const projName = document.getElementById('adminEditColorProj').value;
-  const newColor = document.getElementById('adminEditColorValue').value;
-
-  if (!projName) { alert('Seleccione proyecto'); return; }
-
-  PC[projName] = newColor;
-  syncToCloud(); renderTable(); renderLegend();
-  alert(`✓ Color actualizado para "${projName}"`);
-  openAdminPanel();
-}
-
-function deleteAllProjectEmployees() {
-  const projName = document.getElementById('adminDeleteProj').value;
-  if (!projName) { alert('Seleccione proyecto'); return; }
-
-  const count = emps.filter(e => e.proyecto === projName).length;
-  if (count === 0) { alert('Sin empleados en este proyecto'); return; }
-
-  if (!confirm(`¿Eliminar ${count} empleado(s) de "${projName}"?\n\nNo se puede deshacer.`)) return;
-
-  emps = emps.filter(e => e.proyecto !== projName);
-  syncToCloud(); renderTable(); renderLegend();
-  alert(`✓ ${count} empleado(s) eliminado(s)`);
-  closeAdminPanel();
-}
-
 </script>
 </body>
+</html>
