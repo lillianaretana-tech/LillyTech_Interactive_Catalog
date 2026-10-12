@@ -806,6 +806,7 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
   <button class="btn btn-success" onclick="openVacModal(null,null)">🗓 Nueva Vacación</button>
   <button class="btn btn-primary" onclick="openAddEmp()">＋ Funcionario</button>
   <button class="btn btn-info" onclick="syncFromCloud()">☁ Actualizar</button>
+  <button class="btn btn-warning" id="adminPanelBtn" style="display:none" onclick="openAdminPanel()" title="Administración de proyectos y usuarios">⚙️ Admin Panel</button>
   <button class="btn btn-secondary" onclick="testConnection()" title="Probar y forzar conexión a Supabase">🔌 Reconectar</button>
   <button class="btn btn-secondary" onclick="exportJSON()">💾 Exportar</button>
   <button class="btn btn-secondary" onclick="exportConflictExcel()" title="Exportar choques de cobertura a Excel">⚠ Choques Excel</button>
@@ -1053,8 +1054,8 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
           <label>Proyecto</label>
           <select id="eProy">
             <option>ADVANT</option>
-            <option>BAYER</option>
             <option>DXC</option>
+            <option>EMERSON</option>
             <option>LSEG</option>
             <option>MCK</option>
             <option>MULTIPARK</option>
@@ -1113,6 +1114,54 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
       <button class="btn btn-secondary" onclick="closeEmp()">Cancelar</button>
       <button class="btn btn-danger" id="deleteEmpBtn" onclick="deleteEmp()" style="display:none; margin-right:auto">🗑 Eliminar</button>
       <button class="btn btn-success" onclick="saveEmp()">✔ Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="overlay" id="adminOverlay">
+  <div class="modal" style="width:600px; max-height:80vh; overflow-y:auto">
+    <div class="modal-head">
+      <h3>⚙️ Panel Administrativo</h3>
+      <div class="sub">Gestión de proyectos</div>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:20px">
+        <h4 style="margin-bottom:12px">Proyectos</h4>
+        <div id="projectList"></div>
+        <button class="btn btn-success" onclick="openAddProjectModal()" style="width:100%;margin-top:10px">＋ Agregar Proyecto</button>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="closeAdminPanel()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT PROJECT MODAL -->
+<div class="overlay" id="projectOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="projTitle">Nuevo Proyecto</h3>
+      <div class="sub" id="projSub"></div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nombre del Proyecto</label>
+        <input type="text" id="projName" placeholder="Ej: EMERSON">
+      </div>
+      <div class="form-group">
+        <label>Color (Hexadecimal)</label>
+        <div style="display:flex; gap:10px">
+          <input type="text" id="projColor" placeholder="#00897B" maxlength="7" style="flex:1">
+          <div id="colorPreview" style="width:50px; height:38px; border-radius:4px; border:1px solid var(--border)"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="closeProjectModal()">Cancelar</button>
+      <button class="btn btn-danger" id="deleteProjectBtn" onclick="deleteProject()" style="display:none; margin-right:auto">🗑 Eliminar</button>
+      <button class="btn btn-success" onclick="saveProject()">✔ Guardar</button>
     </div>
   </div>
 </div>
@@ -1276,16 +1325,28 @@ function updateUIByRole() {
       projFilter.disabled = true;
     }
 
-    // Hide vacation editing controls for supervisors
-    document.querySelectorAll('[onclick*="ctxVac"], [onclick*="addVac"]').forEach(btn => {
-      btn.style.display = 'none';
+    // Hide vacation creation button for supervisors
+    const vacBtn = document.querySelector('[onclick="openVacModal(null,null)"]');
+    if (vacBtn) vacBtn.style.display = 'none';
+
+    // Hide vacation editing in context menu for supervisors
+    const ctxMenu = document.querySelector('.ctx-menu');
+    if (ctxMenu) {
+      const editVacItem = ctxMenu.querySelector('[onclick="ctxEdit()"]');
+      if (editVacItem) editVacItem.style.display = 'none';
+    }
+
+    // Hide Admin Panel button
+    const adminBtn = document.getElementById('adminPanelBtn');
+    if (adminBtn) adminBtn.style.display = 'none';
+
+    // Keep expediente edit buttons visible and functional
+    document.querySelectorAll('[onclick*="openEditEmp"]').forEach(btn => {
+      btn.style.display = '';
+      btn.style.opacity = '1';
+      btn.style.pointerEvents = '';
     });
 
-    // Make table rows non-interactive for supervisors
-    document.querySelectorAll('tbody tr').forEach(row => {
-      row.style.pointerEvents = 'none';
-      row.style.opacity = '0.7';
-    });
   } else if (currentRole === 'admin') {
     // Admin can see all projects and edit everything
     const projFilter = document.getElementById('projFilter');
@@ -1296,15 +1357,26 @@ function updateUIByRole() {
       });
     }
 
-    // Show all vacation controls for admin
-    document.querySelectorAll('[onclick*="ctxVac"], [onclick*="addVac"]').forEach(btn => {
-      btn.style.display = '';
-    });
+    // Show vacation creation button for admin
+    const vacBtn = document.querySelector('[onclick="openVacModal(null,null)"]');
+    if (vacBtn) vacBtn.style.display = '';
 
-    // Make table rows interactive for admin
-    document.querySelectorAll('tbody tr').forEach(row => {
-      row.style.pointerEvents = '';
-      row.style.opacity = '';
+    // Show vacation editing in context menu
+    const ctxMenu = document.querySelector('.ctx-menu');
+    if (ctxMenu) {
+      const editVacItem = ctxMenu.querySelector('[onclick="ctxEdit()"]');
+      if (editVacItem) editVacItem.style.display = '';
+    }
+
+    // Show Admin Panel button
+    const adminBtn = document.getElementById('adminPanelBtn');
+    if (adminBtn) adminBtn.style.display = '';
+
+    // Show all edit buttons
+    document.querySelectorAll('[onclick*="openEditEmp"]').forEach(btn => {
+      btn.style.display = '';
+      btn.style.opacity = '';
+      btn.style.pointerEvents = '';
     });
   }
 }
@@ -3027,6 +3099,127 @@ function closeEmp() {
   document.getElementById('empOverlay').classList.remove('open');
   editEmpId = null;
 }
+
+// ═══════════════════════════════════════════
+// ADMIN PANEL - PROJECT MANAGEMENT
+// ═══════════════════════════════════════════
+let editingProjectName = null;
+
+function openAdminPanel() {
+  renderProjectList();
+  document.getElementById('adminOverlay').classList.add('open');
+}
+
+function closeAdminPanel() {
+  document.getElementById('adminOverlay').classList.remove('open');
+}
+
+function renderProjectList() {
+  const list = document.getElementById('projectList');
+  const projects = [...new Set(emps.map(e => e.proyecto))].sort();
+  list.innerHTML = projects.map(proj => `
+    <div style="padding:10px; background:var(--surface-2); border-radius:4px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center">
+      <div style="display:flex; align-items:center; gap:10px">
+        <div style="width:24px; height:24px; border-radius:3px; background:${PC[proj] || '#999'}; border:1px solid var(--border)"></div>
+        <span>${proj}</span>
+      </div>
+      <div style="display:flex; gap:6px">
+        <button class="btn btn-sm" onclick="openEditProjectModal('${proj}')" style="padding:4px 8px; font-size:11px">✏️ Editar</button>
+        <button class="btn btn-sm" style="padding:4px 8px; font-size:11px; background:#d32f2f" onclick="deleteProjectFromList('${proj}')">🗑 Eliminar</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openAddProjectModal() {
+  editingProjectName = null;
+  document.getElementById('projTitle').textContent = 'Nuevo Proyecto';
+  document.getElementById('projSub').textContent = '';
+  document.getElementById('projName').value = '';
+  document.getElementById('projColor').value = '#00897B';
+  document.getElementById('colorPreview').style.backgroundColor = '#00897B';
+  document.getElementById('deleteProjectBtn').style.display = 'none';
+  document.getElementById('projectOverlay').classList.add('open');
+}
+
+function openEditProjectModal(projName) {
+  editingProjectName = projName;
+  document.getElementById('projTitle').textContent = 'Editar Proyecto';
+  document.getElementById('projSub').textContent = projName;
+  document.getElementById('projName').value = projName;
+  document.getElementById('projColor').value = PC[projName] || '#00897B';
+  document.getElementById('colorPreview').style.backgroundColor = PC[projName] || '#00897B';
+  document.getElementById('deleteProjectBtn').style.display = 'inline-flex';
+  document.getElementById('projectOverlay').classList.add('open');
+}
+
+function closeProjectModal() {
+  document.getElementById('projectOverlay').classList.remove('open');
+  editingProjectName = null;
+}
+
+function saveProject() {
+  const newName = document.getElementById('projName').value.trim().toUpperCase();
+  const color = document.getElementById('projColor').value.trim();
+
+  if (!newName) { alert('Ingrese el nombre del proyecto'); return; }
+  if (!/^#[0-9A-F]{6}$/i.test(color)) { alert('Color inválido. Use formato hexadecimal: #00897B'); return; }
+
+  if (editingProjectName && editingProjectName !== newName) {
+    // Rename project
+    emps.forEach(emp => {
+      if (emp.proyecto === editingProjectName) {
+        emp.proyecto = newName;
+      }
+    });
+    delete PC[editingProjectName];
+  }
+
+  PC[newName] = color;
+  persist();
+  closeProjectModal();
+  renderProjectList();
+  renderTable();
+  populateFilter();
+}
+
+function deleteProject() {
+  const projName = document.getElementById('projName').value.trim().toUpperCase();
+  const empCount = emps.filter(e => e.proyecto === projName).length;
+  if (empCount > 0) {
+    alert(`No se puede eliminar "${projName}" porque tiene ${empCount} funcionario(s) asignado(s)`);
+    return;
+  }
+  if (!confirm(`¿Eliminar el proyecto "${projName}"?`)) return;
+  delete PC[projName];
+  persist();
+  closeProjectModal();
+  renderProjectList();
+  renderTable();
+}
+
+function deleteProjectFromList(projName) {
+  const empCount = emps.filter(e => e.proyecto === projName).length;
+  if (empCount > 0) {
+    alert(`No se puede eliminar "${projName}" porque tiene ${empCount} funcionario(s) asignado(s)`);
+    return;
+  }
+  if (!confirm(`¿Eliminar el proyecto "${projName}"?`)) return;
+  delete PC[projName];
+  persist();
+  renderProjectList();
+  renderTable();
+}
+
+// Update color preview when typing
+document.addEventListener('input', (e) => {
+  if (e.target.id === 'projColor') {
+    const color = e.target.value;
+    if (/^#[0-9A-F]{6}$/i.test(color)) {
+      document.getElementById('colorPreview').style.backgroundColor = color;
+    }
+  }
+});
 
 // ═══════════════════════════════════════════
 // CONTEXT MENU
