@@ -701,8 +701,7 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
   <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📂 Importar</button>
   <button class="btn btn-secondary" onclick="window.print()">🖨 Imprimir</button>
   <button class="btn btn-danger" onclick="resetData()" title="Volver a datos originales">↺ Reset</button>
-  <button class="btn btn-secondary" onclick="openAdminPanel()" title="Administrar proyectos y eliminar grupos de empleados">⚙️ Admin Panel</button>
-
+  <button class="btn btn-secondary" onclick="openAdminPanel()" title="Administrar proyectos">⚙️ Admin Panel</button>
   <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
 </div>
 
@@ -1006,7 +1005,6 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
   </div>
 </div>
 
-
 <!-- ADMIN PANEL MODAL -->
 <div class="overlay" id="adminOverlay">
   <div class="modal" style="width:600px; max-height:80vh">
@@ -1131,44 +1129,6 @@ const SEED = [
     "fechaIngreso": "2021-03-19",
     "tipoIdentificacion": "Cédula nacional",
     "venceIdentificacion": "2032-05-03",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 2,
-    "saldo": 0,
-    "cedula": "155837245019",
-    "codigo": "CR1-7253",
-    "nombre": "Romero Maylling Del Carmen",
-  {
-    "id": 5,
-    "saldo": 0,
-    "cedula": "602770412",
-    "codigo": "CR1-6382",
-    "nombre": "Mendoza Fajardo Matilde",
-  {
-    "id": 7,
-    "saldo": 0,
-    "cedula": "603690027",
-    "codigo": "CR1-6365",
-    "nombre": "Rodríguez Quesada Marilyn",
-  {
-    "id": 8,
-    "saldo": 0,
-    "cedula": "401740300",
-    "codigo": "CR1-6179",
-    "nombre": "Sánchez Salas Andrea Marcela",
-      {
-        "fin": "2026-05-31",
-        "dias": 14,
-        "notas": "",
-        "inicio": "2026-05-18",
-        "cobertura": "Juana Díaz"
-      }
-    ],
-    "fechaIngreso": "2024-05-24",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2026-11-01",
     "cumpleanos": "",
     "uniformes": []
   },
@@ -1926,25 +1886,6 @@ const SEED = [
     "uniformes": []
   },
   {
-    "id": 40,
-    "saldo": 7,
-    "cedula": "134000433200",
-    "codigo": "CR1-3556",
-    "nombre": "Guevara Cruz Celia",
-      {
-        "fin": "2025-11-02",
-        "dias": 7,
-        "notas": "",
-        "inicio": "2025-10-27",
-        "cobertura": ""
-      }
-    ],
-    "fechaIngreso": "2019-07-27",
-    "tipoIdentificacion": "DIMEX",
-    "venceIdentificacion": "2028-01-12",
-    "cumpleanos": ""
-  },
-  {
     "id": 41,
     "saldo": 0,
     "cedula": "",
@@ -1986,24 +1927,6 @@ const SEED = [
     "venceIdentificacion": "2034-03-06",
     "cumpleanos": ""
   },
-  {
-    "id": 44,
-    "saldo": 0,
-    "cedula": "702250818",
-    "codigo": "CR1-6935",
-    "nombre": "Ramírez Jiménez Manuel José",
-  {
-    "id": 45,
-    "saldo": 0,
-    "cedula": "155820694405",
-    "codigo": "",
-    "nombre": "Romero Dania",
-  {
-    "id": 46,
-    "saldo": 0,
-    "cedula": "155853401908",
-    "codigo": "",
-    "nombre": "Leiva Muñoz Lisbeth",
   {
     "id": 47,
     "saldo": 0,
@@ -2925,9 +2848,7 @@ function downloadReportExcel(filename, title, subtitle, headers, rows) {
     ? rows.map(r => `<tr>${headers.map((_, i) => `<td>${excelCell(r[i])}</td>`).join('')}</tr>`).join('')
     : `<tr><td colspan="${headers.length}" class="empty">Sin datos para este reporte.</td></tr>`;
 
-  const html = `<!DOCTYPE html>
 <html>
-<head>
 <meta charset="UTF-8">
 <style>
   body { font-family: Arial, sans-serif; color:#111827; }
@@ -2940,7 +2861,6 @@ function downloadReportExcel(filename, title, subtitle, headers, rows) {
   .empty { text-align:center; color:#64748b; padding:22px; }
 </style>
 </head>
-<body>
   <h1>${escHTML(title)}</h1>
   <div class="meta">${escHTML(subtitle)} · Generado ${escHTML(today)}</div>
   <table>
@@ -3663,8 +3583,9 @@ function closePrint() {
 // ── START ──
 init();
 
+
 // ═══════════════════════════════════════════
-// ADMIN PANEL FUNCTIONS
+// ADMIN PANEL
 // ═══════════════════════════════════════════
 function openAdminPanel() {
   const adminRenameFrom = document.getElementById('adminRenameFrom');
@@ -3700,14 +3621,12 @@ function renameProject() {
     return;
   }
   
-  // Renombrar en employees
   employees.forEach(emp => {
     if (emp.proyecto === oldName) {
       emp.proyecto = newName;
     }
   });
   
-  // Actualizar PC (project colors)
   if (oldName in PC) {
     PC[newName] = PC[oldName];
     delete PC[oldName];
@@ -3719,7 +3638,7 @@ function renameProject() {
   
   alert(`✓ Proyecto "${oldName}" renombrado a "${newName}"`);
   document.getElementById('adminRenameTo').value = '';
-  openAdminPanel(); // Actualizar dropdown
+  openAdminPanel();
 }
 
 function deleteAllProjectEmployees() {
@@ -3741,7 +3660,6 @@ function deleteAllProjectEmployees() {
     return;
   }
   
-  // Eliminar empleados
   employees = employees.filter(e => e.proyecto !== projName);
   
   syncToCloud();
@@ -3751,7 +3669,6 @@ function deleteAllProjectEmployees() {
   alert(`✓ ${count} empleado(s) eliminado(s) del proyecto "${projName}"`);
   closeAdminPanel();
 }
-
 
 </script>
 </body>
