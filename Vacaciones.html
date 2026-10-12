@@ -2843,6 +2843,7 @@ function downloadReportExcel(filename, title, subtitle, headers, rows) {
     ? rows.map(r => `<tr>${headers.map((_, i) => `<td>${excelCell(r[i])}</td>`).join('')}</tr>`).join('')
     : `<tr><td colspan="${headers.length}" class="empty">Sin datos para este reporte.</td></tr>`;
 
+  const html = `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
