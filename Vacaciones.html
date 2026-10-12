@@ -1017,29 +1017,24 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
       <div class="form-row">
         <div class="form-group">
           <label>Proyecto actual</label>
-          <select id="adminRenameFrom">
-            <option value="">— Seleccione —</option>
-          </select>
+          <select id="adminRenameFrom"><option value="">— Seleccione —</option></select>
         </div>
         <div class="form-group">
           <label>Nuevo nombre</label>
           <input type="text" id="adminRenameTo" placeholder="Nuevo nombre del proyecto">
         </div>
       </div>
-      <button class="btn btn-info" onclick="renameProject()" style="margin-bottom:20px">✏️ Renombrar Proyecto</button>
-
+      <button class="btn btn-info" onclick="renameProject()" style="margin-bottom:20px">✏️ Renombrar</button>
       <div style="border-top:1px solid var(--border); padding-top:20px; margin-top:20px">
-        <div class="section-title">Eliminar Todos los Empleados de un Proyecto</div>
+        <div class="section-title">Eliminar Empleados de un Proyecto</div>
         <div class="form-group">
           <label>Proyecto a limpiar</label>
-          <select id="adminDeleteProj">
-            <option value="">— Seleccione —</option>
-          </select>
+          <select id="adminDeleteProj"><option value="">— Seleccione —</option></select>
         </div>
         <div style="background:#3e1111; border:1px solid #7f1d1d; border-radius:6px; padding:12px; margin-bottom:14px; font-size:12px; color:#fb7777">
-          ⚠️ ADVERTENCIA: Esto eliminará TODOS los empleados del proyecto seleccionado. Esta acción NO se puede deshacer.
+          ⚠️ Esto eliminará TODOS los empleados del proyecto. No se puede deshacer.
         </div>
-        <button class="btn btn-danger" onclick="deleteAllProjectEmployees()" style="margin-bottom:20px">🗑️ Eliminar Empleados del Proyecto</button>
+        <button class="btn btn-danger" onclick="deleteAllProjectEmployees()">🗑️ Eliminar</button>
       </div>
     </div>
     <div class="modal-foot">
@@ -2849,6 +2844,7 @@ function downloadReportExcel(filename, title, subtitle, headers, rows) {
     : `<tr><td colspan="${headers.length}" class="empty">Sin datos para este reporte.</td></tr>`;
 
 <html>
+<head>
 <meta charset="UTF-8">
 <style>
   body { font-family: Arial, sans-serif; color:#111827; }
@@ -2861,6 +2857,7 @@ function downloadReportExcel(filename, title, subtitle, headers, rows) {
   .empty { text-align:center; color:#64748b; padding:22px; }
 </style>
 </head>
+<body>
   <h1>${escHTML(title)}</h1>
   <div class="meta">${escHTML(subtitle)} · Generado ${escHTML(today)}</div>
   <table>
@@ -3588,18 +3585,12 @@ init();
 // ADMIN PANEL
 // ═══════════════════════════════════════════
 function openAdminPanel() {
-  const adminRenameFrom = document.getElementById('adminRenameFrom');
-  const adminDeleteProj = document.getElementById('adminDeleteProj');
-  const projects = [...new Set(employees.map(e => e.proyecto))].sort();
-  
-  adminRenameFrom.innerHTML = '<option value="">— Seleccione —</option>';
-  adminDeleteProj.innerHTML = '<option value="">— Seleccione —</option>';
-  
-  projects.forEach(proj => {
-    adminRenameFrom.appendChild(new Option(proj, proj));
-    adminDeleteProj.appendChild(new Option(proj, proj));
-  });
-  
+  const r = document.getElementById('adminRenameFrom');
+  const d = document.getElementById('adminDeleteProj');
+  const p = [...new Set(employees.map(e => e.proyecto))].sort();
+  r.innerHTML = '<option value="">— Seleccione —</option>';
+  d.innerHTML = '<option value="">— Seleccione —</option>';
+  p.forEach(x => { r.appendChild(new Option(x, x)); d.appendChild(new Option(x, x)); });
   document.getElementById('adminOverlay').classList.add('open');
 }
 
@@ -3608,68 +3599,29 @@ function closeAdminPanel() {
 }
 
 function renameProject() {
-  const oldName = document.getElementById('adminRenameFrom').value;
-  const newName = document.getElementById('adminRenameTo').value.trim();
-  
-  if (!oldName || !newName) {
-    alert('Por favor seleccione el proyecto y escriba un nuevo nombre');
-    return;
-  }
-  
-  if (oldName === newName) {
-    alert('El nuevo nombre es igual al anterior');
-    return;
-  }
-  
-  employees.forEach(emp => {
-    if (emp.proyecto === oldName) {
-      emp.proyecto = newName;
-    }
-  });
-  
-  if (oldName in PC) {
-    PC[newName] = PC[oldName];
-    delete PC[oldName];
-  }
-  
-  syncToCloud();
-  renderTable();
-  renderLegend();
-  
-  alert(`✓ Proyecto "${oldName}" renombrado a "${newName}"`);
+  const o = document.getElementById('adminRenameFrom').value;
+  const n = document.getElementById('adminRenameTo').value.trim();
+  if (!o || !n) { alert('Seleccione proyecto y nombre'); return; }
+  if (o === n) { alert('Nombre igual'); return; }
+  employees.forEach(e => { if (e.proyecto === o) e.proyecto = n; });
+  if (o in PC) { PC[n] = PC[o]; delete PC[o]; }
+  syncToCloud(); renderTable(); renderLegend();
+  alert(`✓ "${o}" → "${n}"`);
   document.getElementById('adminRenameTo').value = '';
   openAdminPanel();
 }
 
 function deleteAllProjectEmployees() {
-  const projName = document.getElementById('adminDeleteProj').value;
-  
-  if (!projName) {
-    alert('Por favor seleccione un proyecto');
-    return;
-  }
-  
-  const count = employees.filter(e => e.proyecto === projName).length;
-  
-  if (count === 0) {
-    alert(`El proyecto "${projName}" no tiene empleados`);
-    return;
-  }
-  
-  if (!confirm(`¿Está seguro? Esto eliminará ${count} empleado(s) del proyecto "${projName}". Esta acción NO se puede deshacer.`)) {
-    return;
-  }
-  
-  employees = employees.filter(e => e.proyecto !== projName);
-  
-  syncToCloud();
-  renderTable();
-  renderLegend();
-  
-  alert(`✓ ${count} empleado(s) eliminado(s) del proyecto "${projName}"`);
+  const p = document.getElementById('adminDeleteProj').value;
+  if (!p) { alert('Seleccione proyecto'); return; }
+  const c = employees.filter(e => e.proyecto === p).length;
+  if (c === 0) { alert('Sin empleados'); return; }
+  if (!confirm(`¿Eliminar ${c} empleado(s) de "${p}"? No se puede deshacer.`)) return;
+  employees = employees.filter(e => e.proyecto !== p);
+  syncToCloud(); renderTable(); renderLegend();
+  alert(`✓ ${c} empleado(s) eliminado(s)`);
   closeAdminPanel();
 }
 
 </script>
 </body>
-</html>
