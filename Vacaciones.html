@@ -3355,10 +3355,6 @@ async function saveSupervisor() {
   if (!proyecto) { alert('Seleccione un proyecto'); return; }
 
   try {
-    const btn = event.target;
-    btn.disabled = true;
-    btn.textContent = 'Guardando...';
-
     if (editingSupervisorUser) {
       // Update existing
       const r = await fetch(SB_URL + '/rest/v1/usuarios?usuario=eq.' + encodeURIComponent(editingSupervisorUser), {
@@ -3394,11 +3390,8 @@ async function saveSupervisor() {
     closeSupervisorModal();
     renderSupervisorList();
     showSyncStatus(`✅ Supervisor ${usuario} guardado correctamente`, '#2E7D32');
-    btn.disabled = false;
-    btn.textContent = '✔ Guardar';
   } catch (ex) {
     alert('Error: ' + ex.message);
-    if (btn) { btn.disabled = false; btn.textContent = '✔ Guardar'; }
   }
 }
 
