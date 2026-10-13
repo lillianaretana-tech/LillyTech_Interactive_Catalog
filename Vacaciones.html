@@ -607,6 +607,15 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
 .anniv-today { background:#2e1065; color:#c084fc; }
 .saldo-mode  { display:block; margin-top:2px; font-size:9px; color:#8899c0; font-weight:600; }
 
+/* ── EVALUACIONES ── */
+.th-evals    { min-width:100px; }
+.td-evals    { text-align:center; font-size:11px; }
+.eval-badge  { display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:6px; font-size:10px; font-weight:700; margin:2px; }
+.eval-due    { background:#7f1d1d; color:#fca5a5; }
+.eval-warning { background:#854d0e; color:#fbbf24; }
+.eval-clear  { background:#082f31; color:#5eead4; }
+.eval-list   { font-size:10px; line-height:1.5; }
+
 /* ── RESPONSIVE ── */
 @media (max-width: 700px) {
   .stat-group { display: none; }
@@ -1202,6 +1211,32 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
       <button class="btn btn-secondary" onclick="closeSupervisorModal()">Cancelar</button>
       <button class="btn btn-danger" id="deleteSupervisorBtn" onclick="deleteSupervisor()" style="display:none; margin-right:auto">🗑 Eliminar</button>
       <button class="btn btn-success" onclick="saveSupervisor()">✔ Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- EVALUATION MODAL -->
+<div class="overlay" id="evalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="evalTitle">Evaluaciones Pendientes</h3>
+      <div class="sub" id="evalSub"></div>
+    </div>
+    <div class="modal-body">
+      <div id="evalInfo" style="background:#f0f4f8;border-radius:8px;padding:14px;margin-bottom:16px">
+        <div class="section-title">Funcionario</div>
+        <div style="font-size:13px;font-weight:600" id="evalEmpName"></div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:3px" id="evalEmpProj"></div>
+        <div style="margin-top:10px;padding:10px;background:var(--surface);border-radius:6px;font-size:12px;border:1px solid var(--border)">
+          <strong>Fecha de ingreso:</strong> <span id="evalHireDate"></span>
+        </div>
+      </div>
+      <div class="section-title">Evaluaciones Pendientes</div>
+      <div id="evalList" style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="closeEvalModal()">Cerrar</button>
+      <button class="btn btn-success" onclick="markEvaluationsComplete()" id="markEvalDoneBtn">✔ Marcar como completas</button>
     </div>
   </div>
 </div>
@@ -2596,6 +2631,7 @@ function renderTable() {
   hHtml += '<th class="th-ingreso">Ingreso</th>';
   hHtml += '<th class="th-doc">Identificación</th>';
   hHtml += '<th class="th-uniform">Uniforme</th>';
+  hHtml += '<th class="th-evals">Evaluaciones</th>';
   hHtml += '<th class="th-actions">Acciones</th>';
   months.forEach(({y,mo}) => {
     const cur = y===curY && mo===curM;
@@ -2612,7 +2648,7 @@ function renderTable() {
     if (emp.proyecto !== lastProy) {
       lastProy = emp.proyecto;
       const c = PC[emp.proyecto]||'#666';
-      bHtml += `<tr class="group-row"><td colspan="${months.length+7}" style="border-left:4px solid ${c}; padding-left:14px">${emp.proyecto}</td></tr>`;
+      bHtml += `<tr class="group-row"><td colspan="${months.length+8}" style="border-left:4px solid ${c}; padding-left:14px">${emp.proyecto}</td></tr>`;
     }
 
     const c = PC[emp.proyecto]||'#666';
@@ -2632,6 +2668,7 @@ function renderTable() {
     bHtml += `<td class="td-ingreso">${ingresoDisplay(emp)}</td>`;
     bHtml += `<td class="td-doc">${docStatusHtml(emp)}</td>`;
     bHtml += `<td class="td-uniform">${lastUniformHtml(emp)}</td>`;
+    bHtml += `<td class="td-evals">${evaluationStatusHtml(emp)}</td>`;
     bHtml += `<td class="td-actions"><div class="emp-actions">
       <button class="icon-btn" onclick="event.stopPropagation();openEditEmp(${emp.id})" title="Editar">✏️</button>
       <button class="icon-btn" onclick="event.stopPropagation();openUniformModal(${emp.id})" title="Uniforme">👕</button>
@@ -2675,7 +2712,7 @@ function renderTable() {
   });
 
   if (!rows.length) {
-    bHtml = `<tr><td colspan="${months.length+7}" style="text-align:center;padding:40px;color:#9ca3af">Sin funcionarios para mostrar.</td></tr>`;
+    bHtml = `<tr><td colspan="${months.length+8}" style="text-align:center;padding:40px;color:#9ca3af">Sin funcionarios para mostrar.</td></tr>`;
   }
 
   document.getElementById('tBody').innerHTML = bHtml;
@@ -3118,7 +3155,7 @@ function saveEmp() {
     if (emp) Object.assign(emp, {nombre, proyecto:proy, cedula, codigo, cumpleanos:cumple, tipoIdentificacion:tipoId, venceIdentificacion:venceId, fechaIngreso:ingreso, diasAjuste:ajuste});
   } else {
     const maxId = Math.max(0,...emps.map(e=>e.id));
-    emps.push({id:maxId+1, nombre, proyecto:proy, saldo:0, cedula, codigo, cumpleanos:cumple, tipoIdentificacion:tipoId, venceIdentificacion:venceId, fechaIngreso:ingreso, diasAjuste:ajuste, vacaciones:[], uniformes:[]});
+    emps.push({id:maxId+1, nombre, proyecto:proy, saldo:0, cedula, codigo, cumpleanos:cumple, tipoIdentificacion:tipoId, venceIdentificacion:venceId, fechaIngreso:ingreso, diasAjuste:ajuste, vacaciones:[], uniformes:[], evaluaciones:[]});
   }
   persist();
   closeEmp();
@@ -3992,6 +4029,133 @@ async function deleteUniform(empId, sortedIdx) {
 function closeUniform() {
   document.getElementById('uniformOverlay')?.classList.remove('open');
   curUniformEmpId = null;
+}
+
+// ═══════════════════════════════════════════
+// EMPLOYEE EVALUATION TRACKING
+// ═══════════════════════════════════════════
+function getEvaluationDates(fechaIngreso) {
+  if (!fechaIngreso) return [];
+  const hire = new Date(fechaIngreso+'T12:00:00');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const eval30 = new Date(hire);
+  eval30.setDate(eval30.getDate() + 30);
+  const eval60 = new Date(hire);
+  eval60.setDate(eval60.getDate() + 60);
+  const eval80 = new Date(hire);
+  eval80.setDate(eval80.getDate() + 80);
+  return [
+    {days: 30, date: eval30.toISOString().slice(0,10), label: '30 días'},
+    {days: 60, date: eval60.toISOString().slice(0,10), label: '60 días'},
+    {days: 80, date: eval80.toISOString().slice(0,10), label: '80 días'}
+  ];
+}
+
+function getEvaluationStatus(emp) {
+  if (!emp.fechaIngreso) return [];
+  const evals = getEvaluationDates(emp.fechaIngreso);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const completed = emp.evaluaciones || [];
+  return evals.map(e => {
+    const evalDate = new Date(e.date+'T12:00:00');
+    evalDate.setHours(0,0,0,0);
+    const daysFromNow = Math.ceil((evalDate - today) / 86400000);
+    const isCompleted = completed.includes(e.days);
+    const isWarning = daysFromNow >= -3 && daysFromNow <= 3 && !isCompleted;
+    const isDue = daysFromNow < -3 && !isCompleted;
+    return {
+      ...e,
+      daysFromNow,
+      isCompleted,
+      isWarning,
+      isDue,
+      status: isCompleted ? 'completed' : isDue ? 'overdue' : isWarning ? 'warning' : 'future'
+    };
+  });
+}
+
+function evaluationStatusHtml(emp) {
+  const evals = getEvaluationStatus(emp);
+  const pending = evals.filter(e => !e.isCompleted);
+  if (!pending.length) return '<span class="status-pill status-muted">Todas completas ✓</span>';
+
+  const badges = pending.map(e => {
+    const cls = e.isDue ? 'eval-due' : e.isWarning ? 'eval-warning' : 'eval-clear';
+    const label = e.label + (e.daysFromNow <= 3 && e.daysFromNow >= -3 ? ` (${e.daysFromNow}d)` : '');
+    return `<div class="eval-badge ${cls}">📋 ${label}</div>`;
+  }).join('');
+
+  return `<div class="eval-list" onclick="event.stopPropagation();openEvalModal(${emp.id})">${badges}</div>`;
+}
+
+function openEvalModal(empId) {
+  const emp = emps.find(e => e.id === empId);
+  if (!emp) return;
+  document.getElementById('evalTitle').textContent = 'Evaluaciones';
+  document.getElementById('evalSub').textContent = emp.nombre;
+  document.getElementById('evalEmpName').textContent = emp.nombre;
+  document.getElementById('evalEmpProj').textContent = emp.proyecto;
+  document.getElementById('evalHireDate').textContent = emp.fechaIngreso ? fmtFullDate(emp.fechaIngreso) : 'Sin registrar';
+
+  const evals = getEvaluationStatus(emp);
+  const listHtml = evals.map(e => {
+    const badge = e.isCompleted ? '✅' : e.isDue ? '⚠️' : e.isWarning ? '🟡' : '📋';
+    const cls = e.isCompleted ? 'eval-clear' : e.isDue ? 'eval-due' : e.isWarning ? 'eval-warning' : '';
+    const statusText = e.isCompleted ? 'Completada' : e.isDue ? 'Vencida' : e.isWarning ? 'Próxima' : 'Futura';
+    return `
+      <div style="padding:10px 12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:${e.isCompleted?'rgba(46,125,50,0.1)':''}">
+        <div>
+          <div style="font-weight:600;font-size:12px">${badge} ${e.label}</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Vence: ${fmtFullDate(e.date)} (${e.daysFromNow > 0 ? 'en '+e.daysFromNow+'d' : e.daysFromNow === 0 ? 'hoy' : 'hace '+Math.abs(e.daysFromNow)+'d'})</div>
+        </div>
+        <input type="checkbox" ${e.isCompleted ? 'checked' : ''} onchange="toggleEvaluation(${emp.id},${e.days})" style="cursor:pointer;width:18px;height:18px">
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('evalList').innerHTML = listHtml || '<div style="padding:20px;text-align:center;color:var(--text-muted)">Sin evaluaciones pendientes</div>';
+  curEmpId = empId;
+  document.getElementById('evalOverlay').classList.add('open');
+}
+
+function toggleEvaluation(empId, evalDays) {
+  const emp = emps.find(e => e.id === empId);
+  if (!emp) return;
+  if (!emp.evaluaciones) emp.evaluaciones = [];
+
+  const idx = emp.evaluaciones.indexOf(evalDays);
+  if (idx === -1) {
+    emp.evaluaciones.push(evalDays);
+  } else {
+    emp.evaluaciones.splice(idx, 1);
+  }
+  persist();
+  openEvalModal(empId);
+  renderTable();
+}
+
+async function markEvaluationsComplete() {
+  const empId = curEmpId;
+  if (!empId) return;
+  const emp = emps.find(e => e.id === empId);
+  if (!emp) return;
+
+  if (!emp.evaluaciones) emp.evaluaciones = [];
+  const evals = getEvaluationStatus(emp);
+  const pendingDays = evals.filter(e => !e.isCompleted).map(e => e.days);
+  pendingDays.forEach(d => {
+    if (!emp.evaluaciones.includes(d)) emp.evaluaciones.push(d);
+  });
+
+  await persist();
+  closeEvalModal();
+  renderTable();
+  showSyncStatus(`✅ Evaluaciones marcadas como completas para ${emp.nombre}`, '#2E7D32');
+}
+
+function closeEvalModal() {
+  document.getElementById('evalOverlay').classList.remove('open');
+  curEmpId = null;
 }
 function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
