@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Control de Vacaciones — SBM Corp</title>
+<title>v2.0 · Control de Vacaciones — SBM Corp</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
@@ -737,15 +737,15 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
 <!-- LOGIN SCREEN -->
 <div class="login-container" id="loginContainer">
   <div class="login-box">
-    <div class="login-header">
+    <div class="login-header"><small>Versión 2.0 · Acceso por correo</small>
       <h1>Control de Vacaciones</h1>
       <div class="sub">SBM Corp</div>
     </div>
     <div class="login-error" id="loginError"></div>
     <form onsubmit="doLogin(event)">
       <div class="form-group">
-        <label>Usuario</label>
-        <input type="text" id="loginUser" placeholder="tu usuario" required autofocus>
+        <label>Correo electrónico</label>
+        <input type="email" id="loginUser" placeholder="tu correo electrónico" autocomplete="username" required autofocus>
       </div>
       <div class="form-group">
         <label>Contraseña</label>
@@ -1263,7 +1263,7 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
   <div id="ps-body"></div>
   <div class="ps-footer">
     <span id="ps-footer-left"></span>
-    <span>Control de Vacaciones · SBM Corp · LRETANA</span>
+    <span>Control de Vacaciones · SBM Corp · v2.0</span>
   </div>
   <div class="no-print-bar">
     <span>Vista previa de impresión para <strong id="ps-name-bar"></strong></span>
@@ -1279,24 +1279,29 @@ let currentUser = null;
 let currentRole = null;
 let currentProject = null;
 
-// Cargar sesión existente
+let authSession = null;
+let cloudBaseline = new Map();
 window.addEventListener('DOMContentLoaded', () => {
-  const saved = sessionStorage.getItem('vacacionesSession');
-  if (saved) {
-    try {
-      const sess = JSON.parse(saved);
-      currentUser = sess.user;
-      currentRole = sess.role;
-      currentProject = sess.project;
-      loginSuccess();
-    } catch {
-      showLoginScreen();
-    }
-  } else {
-    showLoginScreen();
-  }
+  sessionStorage.removeItem('vacacionesSession');
+  localStorage.removeItem('sbm_vac_v3');
+  showLoginScreen();
 });
-
+async function api(path, options = {}) {
+  if (!authSession) throw new Error('Inicia sesión con tu correo.');
+  if (authSession.expires_at < Date.now() + 60000) {
+    const r = await fetch(SB_URL + '/auth/v1/token?grant_type=refresh_token', {
+      method:'POST', headers:{apikey:SB_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({refresh_token:authSession.refresh_token})
+    });
+    const d = await r.json();
+    if (!r.ok) { authSession=null; emps=[]; showLoginScreen(); throw new Error('Tu sesión venció. Ingresa de nuevo.'); }
+    authSession={...d,expires_at:Date.now()+d.expires_in*1000};
+  }
+  const r=await fetch(SB_URL+'/rest/v1/'+path,{...options,headers:{apikey:SB_KEY,Authorization:'Bearer '+authSession.access_token,'Content-Type':'application/json',...options.headers}});
+  const body=await r.text();
+  if(!r.ok) throw new Error((body && (()=>{try{return JSON.parse(body).message}catch{return body}})()) || 'No se pudo completar la operación');
+  return body ? JSON.parse(body) : null;
+}
 function showLoginScreen() {
   const login = document.getElementById('loginContainer');
   if (login) login.classList.remove('hidden');
@@ -1311,30 +1316,24 @@ function showLoginScreen() {
 
 async function doLogin(e) {
   e.preventDefault();
-  const user = document.getElementById('loginUser').value.trim();
-  const pass = document.getElementById('loginPass').value;
-  const err = document.getElementById('loginError');
-  err.classList.remove('show');
-  
+  const err=document.getElementById('loginError'); err.classList.remove('show');
   try {
-    const r = await fetch(SB_URL + '/rest/v1/usuarios?usuario=eq.' + encodeURIComponent(user), {
-      headers: {'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY}
+    const r=await fetch(SB_URL+'/auth/v1/token?grant_type=password',{
+      method:'POST',headers:{apikey:SB_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({email:document.getElementById('loginUser').value.trim(),password:document.getElementById('loginPass').value})
     });
-    const users = await r.json();
-    
-    if (!users || users.length === 0) { err.textContent = '❌ Usuario no encontrado'; err.classList.add('show'); return; }
-    const u = users[0];
-    if (u.contraseña !== pass) { err.textContent = '❌ Contraseña incorrecta'; err.classList.add('show'); return; }
-    if (!u.activo) { err.textContent = '❌ Cuenta desactivada'; err.classList.add('show'); return; }
-    
-    currentUser = u.usuario;
-    currentRole = u.rol;
-    currentProject = u.proyecto;
-    sessionStorage.setItem('vacacionesSession', JSON.stringify({user: currentUser, role: currentRole, project: currentProject}));
-    loginSuccess();
-  } catch (ex) {
-    err.textContent = '❌ Error: ' + ex.message;
-    err.classList.add('show');
+    const d=await r.json();
+    if(!r.ok) throw new Error('Correo o contraseña incorrectos. Usa el acceso con correo configurado para esta aplicación.');
+    authSession={...d,expires_at:Date.now()+d.expires_in*1000};
+    const profiles=await api('vacaciones_perfiles_v2?select=usuario,rol,proyecto,activo');
+    const p=profiles && profiles[0];
+    if(!p || !p.activo || !['admin','supervisor'].includes(p.rol) || (p.rol==='supervisor'&&!p.proyecto)) throw new Error('Tu cuenta no tiene un proyecto activo asignado.');
+    currentUser=p.usuario; currentRole=p.rol; currentProject=p.proyecto;
+    await init(); loginSuccess();
+    document.getElementById('loginPass').value='';
+  } catch(ex) {
+    authSession=null; currentUser=null; currentRole=null; currentProject=null; emps=[];
+    showLoginScreen(); err.textContent=ex.message; err.classList.add('show');
   }
 }
 
@@ -1355,22 +1354,16 @@ function loginSuccess() {
   if (currentRole === 'supervisor') {
     sub.textContent = currentUser.toUpperCase() + ' · ' + currentProject;
   }
-  syncFromCloud();
   updateUIByRole();
 }
 
-function doLogout() {
-  if (confirm('¿Cerrar sesión?')) {
-    sessionStorage.removeItem('vacacionesSession');
-    currentUser = null;
-    currentRole = null;
-    currentProject = null;
-    showLoginScreen();
-    emps = [];
-    renderTable();
-    document.getElementById('loginUser').value = '';
-    document.getElementById('loginPass').value = '';
-  }
+async function doLogout() {
+  if(!confirm('¿Cerrar sesión?')) return;
+  if(authSession) await fetch(SB_URL+'/auth/v1/logout',{method:'POST',headers:{apikey:SB_KEY,Authorization:'Bearer '+authSession.access_token}}).catch(()=>{});
+  authSession=null; currentUser=null; currentRole=null; currentProject=null; emps=[]; cloudBaseline.clear();
+  document.querySelectorAll('.overlay').forEach(e=>e.classList.remove('open'));
+  document.getElementById('tableBody')?.replaceChildren();
+  showLoginScreen(); location.reload();
 }
 
 // ═══════════════════════════════════════════
@@ -1387,6 +1380,7 @@ function applyProjectFilter() {
 
 function updateUIByRole() {
   if (currentRole === 'supervisor') {
+    document.querySelectorAll('[onclick]').forEach(el=>{ if(/^(openAddEmp|openVacModal|resetData|deleteEmp|ctxVac|ctxDelete)\(/.test(el.getAttribute('onclick'))) el.style.display='none'; });
     // Filter project dropdown to show only supervisor's project
     const projFilter = document.getElementById('projFilter');
     if (projFilter) {
@@ -1479,846 +1473,7 @@ const MONTHS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov
 // ═══════════════════════════════════════════
 // INITIAL DATA (loaded from company files)
 // ═══════════════════════════════════════════
-const SEED = [
-  {
-    "id": 1,
-    "saldo": 6,
-    "cedula": "603390072",
-    "codigo": "CR1-5038",
-    "nombre": "Quesada Tenorio Evelyn Priscilla",
-    "proyecto": "ADVANT",
-    "vacaciones": [
-      {
-        "fin": "2025-02-11",
-        "dias": 56,
-        "notas": "",
-        "inicio": "2024-12-16",
-        "cobertura": ""
-      },
-      {
-        "fin": "2026-05-29",
-        "dias": 1,
-        "notas": "",
-        "inicio": "2026-05-29",
-        "cobertura": "Juana Díaz"
-      }
-    ],
-    "fechaIngreso": "2021-03-19",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2032-05-03",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 9,
-    "saldo": 9,
-    "cedula": "155809915904",
-    "codigo": "CR2-1447",
-    "nombre": "Córdoba Martínez Gioconda del Socorro",
-    "proyecto": "DXC",
-    "vacaciones": [
-      {
-        "fin": "2025-10-06",
-        "dias": 6,
-        "notas": "",
-        "inicio": "2025-10-01",
-        "cobertura": "Juana Díaz"
-      },
-      {
-        "fin": "2025-05-23",
-        "dias": 1,
-        "notas": "",
-        "inicio": "2025-05-23",
-        "cobertura": ""
-      }
-    ],
-    "fechaIngreso": "2024-01-10",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2028-01-09",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 11,
-    "saldo": 11,
-    "cedula": "155836412304",
-    "codigo": "CR2-1469",
-    "nombre": "Castillo Henriquez Catalina",
-    "proyecto": "LSEG",
-    "vacaciones": [
-      {
-        "fin": "2026-06-07",
-        "dias": 7,
-        "notas": "",
-        "inicio": "2026-06-01",
-        "cobertura": "Juana Díaz"
-      }
-    ],
-    "fechaIngreso": "2025-01-20",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2028-11-10",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 12,
-    "saldo": 9,
-    "cedula": "401870281",
-    "codigo": "CR1-0305",
-    "nombre": "Solano Castro Olga María",
-    "proyecto": "LSEG",
-    "vacaciones": [
-      {
-        "fin": "2025-04-12",
-        "dias": 70,
-        "notas": "",
-        "inicio": "2025-02-01",
-        "cobertura": "Juana Díaz"
-      },
-      {
-        "fin": "2025-09-28",
-        "dias": 2,
-        "notas": "",
-        "inicio": "2025-09-27",
-        "cobertura": "Juana Díaz"
-      },
-      {
-        "fin": "2026-07-19",
-        "dias": 14,
-        "notas": "",
-        "inicio": "2026-07-06",
-        "cobertura": "Juana Díaz"
-      }
-    ],
-    "fechaIngreso": "2019-05-22",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2032-02-04",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 13,
-    "saldo": 8,
-    "cedula": "155819584722",
-    "codigo": "CR1-4642",
-    "nombre": "Alemán Mendoza Griselda del Carmen",
-    "proyecto": "MCK",
-    "vacaciones": [
-      {
-        "fin": "2026-01-28",
-        "dias": 28,
-        "notas": "",
-        "inicio": "2025-12-31",
-        "cobertura": "Rocio Romero"
-      },
-      {
-        "fin": "2025-09-10",
-        "dias": 6,
-        "notas": "",
-        "inicio": "2025-09-05",
-        "cobertura": ""
-      },
-      {
-        "fin": "2025-12-28",
-        "dias": 6,
-        "notas": "",
-        "inicio": "2025-12-22",
-        "cobertura": ""
-      }
-    ],
-    "fechaIngreso": "2022-06-30",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2029-08-06",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 14,
-    "saldo": 10,
-    "cedula": "115230399",
-    "codigo": "CR1-6872",
-    "nombre": "Calderón Salas William Gerardo",
-    "proyecto": "MCK",
-    "vacaciones": [],
-    "fechaIngreso": "2025-04-14",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2033-02-02",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 15,
-    "saldo": 11,
-    "cedula": "155816599620",
-    "codigo": "CR1-4475",
-    "nombre": "Duarte Fonseca Elizabeth",
-    "proyecto": "MCK",
-    "vacaciones": [
-      {
-        "fin": "2025-12-24",
-        "dias": 28,
-        "notas": "",
-        "inicio": "2025-11-27",
-        "cobertura": "Juana Díaz"
-      },
-      {
-        "fin": "2025-11-23",
-        "dias": 13,
-        "notas": "",
-        "inicio": "2025-11-11",
-        "cobertura": ""
-      }
-    ],
-    "fechaIngreso": "2022-03-15",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2026-12-27",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 16,
-    "saldo": 2,
-    "cedula": "402750525",
-    "codigo": "CR1-7325",
-    "nombre": "Fernández Acevedo Jason Daniel",
-    "proyecto": "MCK",
-    "vacaciones": [
-      {
-        "fin": "2025-12-27",
-        "dias": 2,
-        "notas": "",
-        "inicio": "2025-12-26",
-        "cobertura": "Juana Díaz"
-      }
-    ],
-    "fechaIngreso": "2025-10-13",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2036-02-04",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 21,
-    "saldo": 2,
-    "cedula": "155806587505",
-    "codigo": "CR1-2876",
-    "nombre": "Ruiz Treminio Arlen Melisa",
-    "proyecto": "MCK",
-    "vacaciones": [
-      {
-        "fin": "2024-12-27",
-        "dias": 56,
-        "notas": "",
-        "inicio": "2024-11-01",
-        "cobertura": "Juana Díaz"
-      },
-      {
-        "fin": "2025-12-28",
-        "dias": 4,
-        "notas": "",
-        "inicio": "2025-12-24",
-        "cobertura": ""
-      }
-    ],
-    "fechaIngreso": "2020-12-02",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2030-11-13",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 22,
-    "saldo": 4,
-    "cedula": "106840521",
-    "codigo": "CR1-6065",
-    "nombre": "Sáenz Cruz Iris",
-    "proyecto": "MCK",
-    "vacaciones": [
-      {
-        "fin": "2026-05-25",
-        "dias": 8,
-        "notas": "",
-        "inicio": "2026-05-18",
-        "cobertura": "Juana Díaz"
-      },
-      {
-        "fin": "2025-12-14",
-        "dias": 14,
-        "notas": "",
-        "inicio": "2025-12-01",
-        "cobertura": "Juana Díaz"
-      },
-      {
-        "fin": "2026-01-04",
-        "dias": 6,
-        "notas": "",
-        "inicio": "2025-12-29",
-        "cobertura": ""
-      }
-    ],
-    "fechaIngreso": "2024-04-02",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2034-05-15",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 23,
-    "saldo": 4,
-    "cedula": "118330702",
-    "codigo": "CR1-6513",
-    "nombre": "Tenorio Solano Ashly Francela",
-    "proyecto": "MCK",
-    "vacaciones": [
-      {
-        "fin": "2025-12-19",
-        "dias": 9,
-        "notas": "",
-        "inicio": "2025-12-11",
-        "cobertura": "Juana Díaz"
-      }
-    ],
-    "fechaIngreso": "2024-10-23",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2034-03-06",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 24,
-    "saldo": 9,
-    "cedula": "155820756118",
-    "codigo": "CR1-4591",
-    "nombre": "Zúñiga González Johana Verónica",
-    "proyecto": "MCK",
-    "vacaciones": [
-      {
-        "fin": "2025-12-29",
-        "dias": 36,
-        "notas": "",
-        "inicio": "2025-11-23",
-        "cobertura": "Juana Díaz"
-      },
-      {
-        "fin": "2026-05-29",
-        "dias": 1,
-        "notas": "",
-        "inicio": "2026-05-29",
-        "cobertura": "Melissa Ruiz"
-      }
-    ],
-    "fechaIngreso": "2022-05-31",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2029-04-25",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 27,
-    "saldo": 2,
-    "cedula": "303350906",
-    "codigo": "CR2-1651",
-    "nombre": "Fernandez Hernández Lilliana",
-    "proyecto": "UBER BAMBU",
-    "vacaciones": [],
-    "fechaIngreso": "2025-12-12",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2028-02-07",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 29,
-    "saldo": 14,
-    "cedula": "155810401823",
-    "codigo": "CR2-1159",
-    "nombre": "Domínguez Narvaéz Rosa Idalia",
-    "proyecto": "UBER CEDRAL",
-    "vacaciones": [
-      {
-        "fin": "2021-03-22",
-        "dias": 4,
-        "notas": "",
-        "inicio": "2021-03-19",
-        "cobertura": "Juana Díaz"
-      },
-      {
-        "fin": "2021-03-31",
-        "dias": 8,
-        "notas": "",
-        "inicio": "2021-03-24",
-        "cobertura": ""
-      },
-      {
-        "fin": "2021-04-05",
-        "dias": 2,
-        "notas": "",
-        "inicio": "2021-04-04",
-        "cobertura": ""
-      },
-      {
-        "fin": "2022-02-27",
-        "dias": 14,
-        "notas": "",
-        "inicio": "2022-02-14",
-        "cobertura": ""
-      },
-      {
-        "fin": "2022-12-31",
-        "dias": 1,
-        "notas": "",
-        "inicio": "2022-12-31",
-        "cobertura": ""
-      },
-      {
-        "fin": "2023-07-16",
-        "dias": 13,
-        "notas": "",
-        "inicio": "2023-07-04",
-        "cobertura": ""
-      },
-      {
-        "fin": "2025-10-26",
-        "dias": 14,
-        "notas": "",
-        "inicio": "2025-10-13",
-        "cobertura": "Juana Díaz"
-      }
-    ],
-    "fechaIngreso": "2020-02-29",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2026-01-04",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 30,
-    "saldo": 7,
-    "cedula": "109460223",
-    "codigo": "CR2-1581",
-    "nombre": "Mena Fonseca Yesenia",
-    "proyecto": "UBER CEDRAL",
-    "vacaciones": [],
-    "fechaIngreso": "2025-07-07",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2036-02-04",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 31,
-    "saldo": 5,
-    "cedula": "603660875",
-    "codigo": "CR2-1226",
-    "nombre": "Acevedo Ramos Kriseidy",
-    "proyecto": "UBER COE",
-    "vacaciones": [
-      {
-        "fin": "2025-02-28",
-        "dias": 6,
-        "notas": "",
-        "inicio": "2025-02-23",
-        "cobertura": ""
-      },
-      {
-        "fin": "2022-08-22",
-        "dias": 7,
-        "notas": "",
-        "inicio": "2022-08-16",
-        "cobertura": "Juana Díaz"
-      },
-      {
-        "fin": "2022-12-31",
-        "dias": 1,
-        "notas": "",
-        "inicio": "2022-12-31",
-        "cobertura": ""
-      },
-      {
-        "fin": "2023-11-05",
-        "dias": 8,
-        "notas": "",
-        "inicio": "2023-10-29",
-        "cobertura": ""
-      },
-      {
-        "fin": "2024-01-07",
-        "dias": 6,
-        "notas": "",
-        "inicio": "2024-01-02",
-        "cobertura": ""
-      },
-      {
-        "fin": "2024-08-03",
-        "dias": 1,
-        "notas": "",
-        "inicio": "2024-08-03",
-        "cobertura": ""
-      },
-      {
-        "fin": "2024-09-07",
-        "dias": 2,
-        "notas": "",
-        "inicio": "2024-09-06",
-        "cobertura": ""
-      },
-      {
-        "fin": "2025-01-30",
-        "dias": 4,
-        "notas": "",
-        "inicio": "2025-01-27",
-        "cobertura": ""
-      },
-      {
-        "fin": "2025-07-20",
-        "dias": 6,
-        "notas": "",
-        "inicio": "2025-07-15",
-        "cobertura": ""
-      },
-      {
-        "fin": "2025-07-21",
-        "dias": 1,
-        "notas": "",
-        "inicio": "2025-07-21",
-        "cobertura": ""
-      },
-      {
-        "fin": "2026-01-11",
-        "dias": 7,
-        "notas": "",
-        "inicio": "2026-01-05",
-        "cobertura": ""
-      }
-    ],
-    "fechaIngreso": "2021-09-06",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2028-02-07",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 32,
-    "saldo": 3,
-    "cedula": "155844923805",
-    "codigo": "CR2-1454",
-    "nombre": "Contreras Blandón Orquidia Vanessa",
-    "proyecto": "UBER COE",
-    "vacaciones": [
-      {
-        "fin": "2025-12-21",
-        "dias": 7,
-        "notas": "",
-        "inicio": "2025-12-15",
-        "cobertura": "Juana Díaz"
-      },
-      {
-        "fin": "2026-01-11",
-        "dias": 7,
-        "notas": "",
-        "inicio": "2026-01-05",
-        "cobertura": ""
-      }
-    ],
-    "fechaIngreso": "2024-11-04",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2026-10-01",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 33,
-    "saldo": 7,
-    "cedula": "155836161334",
-    "codigo": "CR2-1439",
-    "nombre": "Díaz Guadamuz Griselda María",
-    "proyecto": "UBER COE",
-    "vacaciones": [
-      {
-        "fin": "2024-08-01",
-        "dias": 4,
-        "notas": "",
-        "inicio": "2024-07-29",
-        "cobertura": "Juana Díaz"
-      },
-      {
-        "fin": "2024-08-04",
-        "dias": 2,
-        "notas": "",
-        "inicio": "2024-08-03",
-        "cobertura": ""
-      },
-      {
-        "fin": "2024-08-09",
-        "dias": 1,
-        "notas": "",
-        "inicio": "2024-08-09",
-        "cobertura": ""
-      },
-      {
-        "fin": "2024-09-06",
-        "dias": 1,
-        "notas": "",
-        "inicio": "2024-09-06",
-        "cobertura": ""
-      },
-      {
-        "fin": "2024-09-08",
-        "dias": 1,
-        "notas": "",
-        "inicio": "2024-09-08",
-        "cobertura": ""
-      },
-      {
-        "fin": "2025-03-24",
-        "dias": 1,
-        "notas": "",
-        "inicio": "2025-03-24",
-        "cobertura": ""
-      },
-      {
-        "fin": "2025-04-26",
-        "dias": 4,
-        "notas": "",
-        "inicio": "2025-04-23",
-        "cobertura": ""
-      },
-      {
-        "fin": "2026-02-02",
-        "dias": 8,
-        "notas": "",
-        "inicio": "2026-01-26",
-        "cobertura": "Juana Díaz"
-      },
-      {
-        "fin": "2026-05-07",
-        "dias": 2,
-        "notas": "",
-        "inicio": "2026-05-06",
-        "cobertura": "Juana Díaz"
-      }
-    ],
-    "fechaIngreso": "2023-07-20",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2026-12-06",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 34,
-    "saldo": 8,
-    "cedula": "112440122",
-    "codigo": "CR2-1569",
-    "nombre": "Espinoza Villegas María Luisa",
-    "proyecto": "UBER COE",
-    "vacaciones": [],
-    "fechaIngreso": "2025-06-09",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2034-02-06",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 35,
-    "saldo": 9,
-    "cedula": "209260008",
-    "codigo": "CR2-1566",
-    "nombre": "Regalado Malespin David",
-    "proyecto": "UBER COE",
-    "vacaciones": [],
-    "fechaIngreso": "2025-05-26",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2035-01-16",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 36,
-    "saldo": 3,
-    "cedula": "113880143",
-    "codigo": "CR2-1455",
-    "nombre": "Torrentes Cordero Eufemia Tatiana",
-    "proyecto": "UBER COE",
-    "vacaciones": [
-      {
-        "fin": "2025-11-23",
-        "dias": 14,
-        "notas": "",
-        "inicio": "2025-11-10",
-        "cobertura": "Juana Díaz"
-      }
-    ],
-    "fechaIngreso": "2024-11-04",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2034-02-06",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 37,
-    "saldo": 10,
-    "cedula": "115760561",
-    "codigo": "CR2-1142",
-    "nombre": "Torres Marín Bryan Josué",
-    "proyecto": "UBER COE",
-    "vacaciones": [
-      {
-        "fin": "2026-01-06",
-        "dias": 5,
-        "notas": "",
-        "inicio": "2026-01-02",
-        "cobertura": "Juana Díaz"
-      },
-      {
-        "fin": "2025-05-27",
-        "dias": 84,
-        "notas": "",
-        "inicio": "2025-03-01",
-        "cobertura": "Juana Díaz"
-      }
-    ],
-    "fechaIngreso": "2019-04-06",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2034-02-06",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 38,
-    "saldo": 0,
-    "cedula": "155808383703",
-    "codigo": "CR2-1192",
-    "nombre": "Reyes Sánchez Melba María",
-    "proyecto": "WPLACES AV",
-    "vacaciones": [
-      {
-        "fin": "2025-08-04",
-        "dias": 42,
-        "notas": "14 días calendario; se excluyen feriados 25 de julio y 2 de agosto",
-        "inicio": "2025-06-22",
-        "cobertura": "Juana Díaz"
-      },
-      {
-        "fin": "2025-04-30",
-        "dias": 3,
-        "notas": "",
-        "inicio": "2025-04-28",
-        "cobertura": "Juana Díaz"
-      },
-      {
-        "fin": "2025-04-04",
-        "dias": 3,
-        "notas": "",
-        "inicio": "2025-04-02",
-        "cobertura": ""
-      },
-      {
-        "fin": "2025-05-11",
-        "dias": 7,
-        "notas": "",
-        "inicio": "2025-05-05",
-        "cobertura": ""
-      },
-      {
-        "fin": "2026-08-05",
-        "dias": 15,
-        "notas": "",
-        "inicio": "2026-07-20",
-        "cobertura": "Juana Díaz"
-      }
-    ],
-    "fechaIngreso": "2020-08-11",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2026-02-02",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 39,
-    "saldo": 0,
-    "cedula": "108730854",
-    "codigo": "",
-    "nombre": "Retana Villalobos Lilliana",
-    "proyecto": "Operaciones",
-    "vacaciones": [
-      {
-        "fin": "2024-12-30",
-        "dias": 6,
-        "notas": "",
-        "inicio": "2024-12-23",
-        "cobertura": ""
-      },
-      {
-        "fin": "2025-01-13",
-        "dias": 1,
-        "notas": "",
-        "inicio": "2025-01-13",
-        "cobertura": ""
-      }
-    ],
-    "fechaIngreso": "2018-04-09",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2032-09-28",
-    "cumpleanos": "",
-    "uniformes": []
-  },
-  {
-    "id": 41,
-    "saldo": 0,
-    "cedula": "",
-    "codigo": "",
-    "nombre": "Cruz María",
-    "proyecto": "MCK",
-    "uniformes": [],
-    "vacaciones": [],
-    "fechaIngreso": "",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "",
-    "cumpleanos": ""
-  },
-  {
-    "id": 42,
-    "saldo": 0,
-    "cedula": "155856737021",
-    "codigo": "",
-    "nombre": "Rodríguez Sánchez Julia",
-    "proyecto": "MCK",
-    "uniformes": [],
-    "vacaciones": [],
-    "fechaIngreso": "2025-11-16",
-    "tipoIdentificacion": "DIMEX",
-    "venceIdentificacion": "2027-09-17",
-    "cumpleanos": ""
-  },
-  {
-    "id": 43,
-    "saldo": 0,
-    "cedula": "11830498",
-    "codigo": "",
-    "nombre": "Diaz Carrero Juana Francisca",
-    "proyecto": "Operaciones",
-    "uniformes": [],
-    "vacaciones": [],
-    "fechaIngreso": "2025-06-23",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2034-03-06",
-    "cumpleanos": ""
-  },
-  {
-    "id": 47,
-    "saldo": 0,
-    "cedula": "113390424",
-    "codigo": "",
-    "nombre": "Vargas Castillo Yahaira",
-    "proyecto": "MCK",
-    "uniformes": [],
-    "vacaciones": [],
-    "fechaIngreso": "2026-04-16",
-    "tipoIdentificacion": "Cédula nacional",
-    "venceIdentificacion": "2032-02-02",
-    "cumpleanos": ""
-  }
-];
+const SEED = [];
 
 // ═══════════════════════════════════════════
 // SUPABASE CONFIG
@@ -2335,55 +1490,40 @@ const SB_HEADERS = {
 };
 
 async function sbGet() {
-  const r = await fetch(
-    `${SB_URL}/rest/v1/${SB_TABLE}?id=eq.${SB_ROW_ID}&select=data`,
-    { headers: SB_HEADERS }
-  );
-  if (!r.ok) {
-    const txt = await r.text();
-    throw new Error(`HTTP ${r.status}: ${txt}`);
-  }
-  const rows = await r.json();
-  return (rows && rows[0] && rows[0].data) ? rows[0].data : null;
+  const rows=await api('vacaciones_expedientes_v2?select=id,expediente,updated_at&order=id');
+  cloudBaseline=new Map(rows.map(r=>[r.id,{data:JSON.stringify(r.expediente),updated_at:r.updated_at}]));
+  return rows.map(r=>r.expediente);
 }
 
 async function sbSave(data) {
-  const r = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}`, {
-    method: 'POST',
-    headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates' },
-    body: JSON.stringify({
-      id: SB_ROW_ID,
-      app_key: SB_ROW_ID,
-      data: data,
-      updated_at: new Date().toISOString()
-    })
-  });
-  if (!r.ok) {
-    const txt = await r.text();
-    throw new Error(`HTTP ${r.status}: ${txt}`);
+  const allowed=['nombre','cedula','codigo','cumpleanos','tipoIdentificacion','venceIdentificacion','fechaIngreso','uniformes','evaluaciones'];
+  for(const emp of data) {
+    const id=String(emp.id), old=cloudBaseline.get(id);
+    if(old && old.data===JSON.stringify(emp)) continue;
+    let payload={id,proyecto:emp.proyecto,expediente:emp,updated_at:new Date().toISOString()};
+    if(currentRole!=='admin') {
+      if(!old) throw new Error('Solo administración puede agregar funcionarios.');
+      const merged=JSON.parse(old.data);
+      for(const key of allowed) { if(Object.hasOwn(emp,key)) merged[key]=emp[key]; else delete merged[key]; }
+      payload={expediente:merged};
+    }
+    const rows=await api('vacaciones_expedientes_v2'+(old?'?id=eq.'+encodeURIComponent(id)+'&updated_at=eq.'+encodeURIComponent(old.updated_at):''),{
+      method:old?'PATCH':'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(payload)
+    });
+    if(!rows?.length) throw new Error('Otro usuario actualizó este expediente. Actualiza la pantalla antes de guardar.');
+    cloudBaseline.set(id,{data:JSON.stringify(rows[0].expediente),updated_at:rows[0].updated_at});
+  }
+  if(currentRole==='admin') for(const [id,old] of [...cloudBaseline]) {
+    if(data.some(e=>String(e.id)===id)) continue;
+    const rows=await api('vacaciones_expedientes_v2?id=eq.'+encodeURIComponent(id)+'&updated_at=eq.'+encodeURIComponent(old.updated_at),{method:'DELETE',headers:{Prefer:'return=representation'}});
+    if(!rows?.length) throw new Error('El expediente cambió. Actualiza antes de eliminar.');
+    cloudBaseline.delete(id);
   }
 }
 
 async function testConnection() {
-  showSyncStatus('⏳ Probando conexión...', '#F57F17');
-  try {
-    const r = await fetch(
-      `${SB_URL}/rest/v1/${SB_TABLE}?select=id&limit=1`,
-      { headers: SB_HEADERS }
-    );
-    const txt = await r.text();
-    if (r.ok) {
-      showSyncStatus(`✅ Conexión OK (${r.status}) — subiendo datos...`);
-      await sbSave(emps);
-      showSyncStatus('☁ Datos guardados en Supabase · ' + new Date().toLocaleTimeString('es-CR',{hour:'2-digit',minute:'2-digit'}));
-    } else {
-      showSyncStatus(`❌ Error ${r.status}: ${txt.slice(0,120)}`, '#B71C1C');
-      alert(`Error de Supabase (${r.status}):\n${txt}\n\nPosible causa: RLS activo sin políticas. Vaya a Supabase → Authentication → Policies y desactive RLS en la tabla sbm_control_state.`);
-    }
-  } catch(e) {
-    showSyncStatus(`❌ Sin conexión: ${e.message}`, '#B71C1C');
-    alert(`Error de conexión:\n${e.message}`);
-  }
+  try { await api('vacaciones_perfiles_v2?select=usuario'); showSyncStatus('Conexión segura activa'); }
+  catch(e) { showSyncStatus(e.message,'#B71C1C'); }
 }
 
 // ═══════════════════════════════════════════
@@ -2404,32 +1544,10 @@ function showSyncStatus(msg, color='#2E7D32') {
 }
 
 async function init() {
-  showSyncStatus('⏳ Cargando desde Supabase...', '#F57F17');
-  try {
-    const cloudData = await sbGet();
-    if (cloudData && Array.isArray(cloudData) && cloudData.length > 0) {
-      emps = cloudData;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(emps));
-      showSyncStatus(`☁ Sincronizado — ${emps.length} funcionarios · ` + new Date().toLocaleTimeString('es-CR',{hour:'2-digit',minute:'2-digit'}));
-    } else {
-      // Supabase vacío — cargar local o SEED y subir automáticamente
-      const raw = localStorage.getItem(STORAGE_KEY);
-      emps = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(SEED));
-      showSyncStatus('⏳ Supabase vacío — subiendo datos...', '#F57F17');
-      try {
-        await sbSave(emps);
-        showSyncStatus('☁ Datos subidos a Supabase · ' + new Date().toLocaleTimeString('es-CR',{hour:'2-digit',minute:'2-digit'}));
-      } catch(e) {
-        showSyncStatus('⚠ Datos cargados localmente (sin conexión)', '#B71C1C');
-      }
-    }
-  } catch(e) {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    emps = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(SEED));
-    showSyncStatus('⚠ Sin conexión — usando respaldo local', '#B71C1C');
-  }
+  emps = await sbGet();
+  showSyncStatus('☁ Datos cargados · '+emps.length+' funcionarios');
   applyProjectFilter();
-      normalizeAllCoberturas();
+
   populateFilter();
   buildLegend();
   // Populate cumpleaños project filter
@@ -2448,14 +1566,13 @@ async function init() {
 }
 
 async function persist() {
-  // Save to localStorage immediately (instant)
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(emps));
+  // Persistir en la base de datos con permisos y control de concurrencia.
   showSyncStatus('⏳ Guardando en Supabase...', '#F57F17');
   try {
     await sbSave(emps);
     showSyncStatus('☁ Guardado en Supabase · ' + new Date().toLocaleTimeString('es-CR',{hour:'2-digit',minute:'2-digit'}));
   } catch(e) {
-    showSyncStatus('⚠ Guardado solo local (sin conexión)', '#B71C1C');
+    showSyncStatus('❌ No se guardaron los cambios: '+e.message, '#B71C1C'); alert('No se guardaron todos los cambios. '+e.message); await syncFromCloud();
   }
 }
 
@@ -2465,9 +1582,9 @@ async function syncFromCloud() {
     const cloudData = await sbGet();
     if (cloudData && Array.isArray(cloudData)) {
       emps = cloudData;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(emps));
+      populateFilter();
       applyProjectFilter();
-      normalizeAllCoberturas();
+
       renderTable();
       updateStats();
       populateCovFilter();
@@ -2785,6 +1902,7 @@ function buildLegend() {
 // VACATION MODAL
 // ═══════════════════════════════════════════
 function openVacModal(empId, ym) {
+  if(currentRole!=='admin') { alert('Acción reservada para administración.'); return; }
   curEmpId = empId;
   setVacEditMode(null);
 
@@ -2912,6 +2030,7 @@ function setVacEditMode(idx) {
 }
 
 function editVac(empId, idx) {
+  if(currentRole!=='admin') { alert('Acción reservada para administración.'); return; }
   const emp = emps.find(e=>e.id===empId);
   if (!emp || !emp.vacaciones || !emp.vacaciones[idx]) return;
   curEmpId = empId;
@@ -3034,6 +2153,7 @@ function renderConflictBar() {
 }
 
 function saveVac() {
+  if(currentRole!=='admin') { alert('Acción reservada para administración.'); return; }
   if (!curEmpId) { alert('Seleccione un empleado primero.'); return; }
   const emp = emps.find(e=>e.id===curEmpId);
   if (!emp) return;
@@ -3078,6 +2198,7 @@ function saveVac() {
 }
 
 function delVac(empId, idx) {
+  if(currentRole!=='admin') { alert('Acción reservada para administración.'); return; }
   const emp = emps.find(e=>e.id===empId);
   const v = emp.vacaciones[idx];
   if (!confirm(`¿Eliminar vacaciones del ${fmtDate(v.inicio)} al ${fmtDate(v.fin)}?`)) return;
@@ -3101,6 +2222,7 @@ function closeVac() {
 // EMPLOYEE MODAL
 // ═══════════════════════════════════════════
 function openAddEmp() {
+  if(currentRole!=='admin') { alert('Acción reservada para administración.'); return; }
   editEmpId = null;
   document.getElementById('empTitle').textContent = 'Agregar Funcionario';
   document.getElementById('empSub').textContent = 'Nuevo funcionario';
@@ -3135,6 +2257,7 @@ function openEditEmp(empId) {
   document.getElementById('eIngreso').value = emp.fechaIngreso||'';
   document.getElementById('eAjuste').value  = emp.diasAjuste||0;
   document.getElementById('deleteEmpBtn').style.display='inline-flex';
+  if(currentRole==='supervisor') { ['eProy','eSaldo','eAjuste'].forEach(id=>document.getElementById(id).disabled=true); document.getElementById('deleteEmpBtn').style.display='none'; }
   document.getElementById('empOverlay').classList.add('open');
 }
 
@@ -3163,6 +2286,7 @@ function saveEmp() {
 }
 
 function deleteEmp() {
+  if(currentRole!=='admin') { alert('Acción reservada para administración.'); return; }
   const emp = emps.find(e=>e.id===editEmpId);
   if (!emp) return;
   if (!confirm(`¿Eliminar a "${emp.nombre}" y todas sus vacaciones programadas?`)) return;
@@ -3183,6 +2307,7 @@ function closeEmp() {
 let editingProjectName = null;
 
 function openAdminPanel() {
+  if(currentRole!=='admin') { alert('Acción reservada para administración.'); return; }
   renderProjectList();
   renderSupervisorList();
   document.getElementById('adminOverlay').classList.add('open');
@@ -3237,6 +2362,7 @@ function closeProjectModal() {
 }
 
 function saveProject() {
+  if(currentRole!=='admin') { alert('Acción reservada para administración.'); return; }
   const newName = document.getElementById('projName').value.trim().toUpperCase();
   const color = document.getElementById('projColor').value.trim();
 
@@ -3262,6 +2388,7 @@ function saveProject() {
 }
 
 function deleteProject() {
+  if(currentRole!=='admin') { alert('Acción reservada para administración.'); return; }
   const projName = document.getElementById('projName').value.trim().toUpperCase();
   const empCount = emps.filter(e => e.proyecto === projName).length;
   if (empCount > 0) {
@@ -3277,6 +2404,7 @@ function deleteProject() {
 }
 
 function deleteProjectFromList(projName) {
+  if(currentRole!=='admin') { alert('Acción reservada para administración.'); return; }
   const empCount = emps.filter(e => e.proyecto === projName).length;
   if (empCount > 0) {
     alert(`No se puede eliminar "${projName}" porque tiene ${empCount} funcionario(s) asignado(s)`);
@@ -3305,69 +2433,12 @@ document.addEventListener('input', (e) => {
 let editingSupervisorUser = null;
 
 async function renderSupervisorList() {
-  const list = document.getElementById('supervisorList');
-  try {
-    const r = await fetch(SB_URL + '/rest/v1/usuarios?rol=eq.supervisor', {
-      headers: {'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY}
-    });
-    const supervisors = await r.json();
-    if (!supervisors || supervisors.length === 0) {
-      list.innerHTML = '<div style="padding:10px; color:var(--text-muted); text-align:center">No hay supervisores registrados</div>';
-      return;
-    }
-    list.innerHTML = supervisors.map(sup => `
-      <div style="padding:12px; background:var(--surface-2); border-radius:4px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center">
-        <div>
-          <div style="font-weight:600">${sup.usuario}</div>
-          <div style="font-size:11px; color:var(--text-muted); margin-top:3px">${sup.proyecto} · ${sup.contraseña ? '🔒 Con contraseña' : '⚠️ Sin contraseña'}</div>
-        </div>
-        <div style="display:flex; gap:6px">
-          <button class="btn btn-sm" onclick="openEditSupervisorModal('${sup.usuario}')" style="padding:4px 8px; font-size:11px">✏️ Editar</button>
-          <button class="btn btn-sm" style="padding:4px 8px; font-size:11px; background:#d32f2f" onclick="deleteSupervisorFromList('${sup.usuario}')">🗑 Eliminar</button>
-        </div>
-      </div>
-    `).join('');
-  } catch (ex) {
-    list.innerHTML = '<div style="padding:10px; color:#f44336">Error al cargar supervisores: ' + ex.message + '</div>';
-  }
+  document.getElementById('supervisorList').innerHTML='Los accesos con correo se administran en Supabase Authentication y vacaciones_perfiles_v2. Las claves no se muestran en la aplicación.';
 }
 
-function openAddSupervisorModal() {
-  editingSupervisorUser = null;
-  document.getElementById('supTitle').textContent = 'Nuevo Supervisor';
-  document.getElementById('supSub').textContent = '';
-  document.getElementById('supUser').value = '';
-  document.getElementById('supName').value = '';
-  document.getElementById('supPass').value = '';
-  document.getElementById('supProj').value = '';
-  populateSupervisorProjects();
-  document.getElementById('deleteSupervisorBtn').style.display = 'none';
-  document.getElementById('supervisorOverlay').classList.add('open');
-}
+function openAddSupervisorModal() { alert('Los accesos con correo se administran en Supabase.'); }
 
-async function openEditSupervisorModal(usuario) {
-  try {
-    editingSupervisorUser = usuario;
-    const r = await fetch(SB_URL + '/rest/v1/usuarios?usuario=eq.' + encodeURIComponent(usuario), {
-      headers: {'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY}
-    });
-    const users = await r.json();
-    if (!users || users.length === 0) { alert('Supervisor no encontrado'); return; }
-    const sup = users[0];
-
-    document.getElementById('supTitle').textContent = 'Editar Supervisor';
-    document.getElementById('supSub').textContent = usuario;
-    document.getElementById('supUser').value = sup.usuario;
-    document.getElementById('supName').value = sup.nombre || '';
-    document.getElementById('supPass').value = sup.contraseña || '';
-    document.getElementById('supProj').value = sup.proyecto || '';
-    populateSupervisorProjects();
-    document.getElementById('deleteSupervisorBtn').style.display = 'inline-flex';
-    document.getElementById('supervisorOverlay').classList.add('open');
-  } catch (ex) {
-    alert('Error al cargar supervisor: ' + ex.message);
-  }
-}
+function openEditSupervisorModal() { alert('Los accesos con correo se administran en Supabase.'); }
 
 function populateSupervisorProjects() {
   const sel = document.getElementById('supProj');
@@ -3381,92 +2452,11 @@ function closeSupervisorModal() {
   editingSupervisorUser = null;
 }
 
-async function saveSupervisor() {
-  const usuario = document.getElementById('supUser').value.trim().toLowerCase();
-  const nombre = document.getElementById('supName').value.trim();
-  const contraseña = document.getElementById('supPass').value;
-  const proyecto = document.getElementById('supProj').value.trim();
+function saveSupervisor() { alert('Los accesos con correo se administran en Supabase.'); }
 
-  if (!usuario) { alert('Ingrese el usuario (nombre de acceso)'); return; }
-  if (!contraseña) { alert('Ingrese la contraseña'); return; }
-  if (!proyecto) { alert('Seleccione un proyecto'); return; }
+function deleteSupervisor() { alert('Los accesos con correo se administran en Supabase.'); }
 
-  try {
-    if (editingSupervisorUser) {
-      // Update existing
-      const r = await fetch(SB_URL + '/rest/v1/usuarios?usuario=eq.' + encodeURIComponent(editingSupervisorUser), {
-        method: 'PATCH',
-        headers: SB_HEADERS,
-        body: JSON.stringify({
-          usuario: usuario,
-          nombre: nombre,
-          contraseña: contraseña,
-          proyecto: proyecto,
-          rol: 'supervisor',
-          activo: true
-        })
-      });
-      if (!r.ok) throw new Error('Error al actualizar: ' + r.status);
-    } else {
-      // Create new
-      const r = await fetch(SB_URL + '/rest/v1/usuarios', {
-        method: 'POST',
-        headers: SB_HEADERS,
-        body: JSON.stringify({
-          usuario: usuario,
-          nombre: nombre,
-          contraseña: contraseña,
-          proyecto: proyecto,
-          rol: 'supervisor',
-          activo: true
-        })
-      });
-      if (!r.ok) throw new Error('Error al crear: ' + r.status);
-    }
-
-    closeSupervisorModal();
-    renderSupervisorList();
-    showSyncStatus(`✅ Supervisor ${usuario} guardado correctamente`, '#2E7D32');
-  } catch (ex) {
-    alert('Error: ' + ex.message);
-  }
-}
-
-async function deleteSupervisor() {
-  const usuario = document.getElementById('supUser').value.trim();
-  if (!confirm(`¿Eliminar el supervisor "${usuario}"?`)) return;
-
-  try {
-    const r = await fetch(SB_URL + '/rest/v1/usuarios?usuario=eq.' + encodeURIComponent(usuario), {
-      method: 'DELETE',
-      headers: SB_HEADERS
-    });
-    if (!r.ok) throw new Error('Error al eliminar: ' + r.status);
-
-    closeSupervisorModal();
-    renderSupervisorList();
-    showSyncStatus(`🗑 Supervisor ${usuario} eliminado`, '#d32f2f');
-  } catch (ex) {
-    alert('Error: ' + ex.message);
-  }
-}
-
-async function deleteSupervisorFromList(usuario) {
-  if (!confirm(`¿Eliminar el supervisor "${usuario}"?`)) return;
-
-  try {
-    const r = await fetch(SB_URL + '/rest/v1/usuarios?usuario=eq.' + encodeURIComponent(usuario), {
-      method: 'DELETE',
-      headers: SB_HEADERS
-    });
-    if (!r.ok) throw new Error('Error al eliminar: ' + r.status);
-
-    renderSupervisorList();
-    showSyncStatus(`🗑 Supervisor ${usuario} eliminado`, '#d32f2f');
-  } catch (ex) {
-    alert('Error: ' + ex.message);
-  }
-}
+function deleteSupervisorFromList() { alert('Los accesos con correo se administran en Supabase.'); }
 
 // ═══════════════════════════════════════════
 // CONTEXT MENU
@@ -3680,6 +2670,7 @@ function printProjectVacations() {
 }
 
 function importJSON(ev) {
+  if(currentRole!=='admin') { alert('Acción reservada para administración.'); return; }
   const f = ev.target.files[0]; if(!f) return;
   const r = new FileReader();
   r.onload = e => {
@@ -3695,6 +2686,7 @@ function importJSON(ev) {
 }
 
 function resetData() {
+  if(currentRole!=='admin') { alert('Acción reservada para administración.'); return; }
   if (!confirm('¿Restaurar los datos originales? Se perderán todos los cambios guardados.')) return;
   localStorage.removeItem(STORAGE_KEY);
   location.reload();
@@ -3784,6 +2776,7 @@ function ingresoDisplay(emp) {
 }
 
 function deleteEmpById(empId) {
+  if(currentRole!=='admin') { alert('Acción reservada para administración.'); return; }
   editEmpId = empId;
   deleteEmp();
 }
@@ -4393,7 +3386,7 @@ function closePrint() {
 }
 
 // ── START ──
-init();
+showLoginScreen();
 </script>
 </body>
 </html>
