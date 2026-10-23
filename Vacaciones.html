@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>v2.0 · Control de Vacaciones — SBM Corp</title>
+<title>v17.2 · Control de Vacaciones — SBM Corp · Horario unificado</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
@@ -731,6 +731,34 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
 
 </style>
 
+
+<style>
+/* RH-F-27: contraste de calendario y edición semanal adaptable a celular */
+#laborOverlay input[type="date"] { color-scheme:dark; background:#141827; color:#f3f6ff; }
+#laborOverlay input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.6); opacity:1; cursor:pointer;
+}
+#laborOverlay .modal { max-width:96vw; }
+.labor-day-row {display:grid;grid-template-columns:100px 95px minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:center;margin-bottom:9px}
+.labor-day-row input[type="time"] {min-width:0;width:100%;font-size:13px}
+.labor-day-check {display:flex;align-items:center;gap:4px;font-size:11px}
+@media(max-width:650px) {
+  #laborOverlay .modal-body {padding:14px}
+  #laborOverlay .form-row {grid-template-columns:1fr}
+  .labor-day-row {grid-template-columns:1fr 1fr;gap:7px;padding:10px 0;border-bottom:1px solid var(--border)}
+  .labor-day-name {grid-column:1}
+  .labor-day-check {grid-column:2;justify-self:end}
+  .labor-day-row .labor-time-in,.labor-day-row .labor-time-out {grid-row:2}
+  #laborOverlay .modal-foot {flex-wrap:wrap}
+}
+</style>
+<style>
+#laborOverlay .labor-date-wrap {position:relative;width:100%;min-width:0}
+#laborOverlay .labor-date-wrap input[type=date] {width:100%;box-sizing:border-box;padding-right:58px;color-scheme:dark}
+#laborOverlay .labor-date-wrap input[type=date]::-webkit-calendar-picker-indicator {opacity:0}
+#laborOverlay .labor-calendar-btn {position:absolute;right:7px;top:50%;transform:translateY(-50%);width:42px;height:38px;display:flex;align-items:center;justify-content:center;background:#394a77;border:1px solid #8699ca;border-radius:9px;color:white;font-size:22px;cursor:pointer;z-index:2;padding:0}
+#laborOverlay .labor-calendar-btn:focus-visible {outline:2px solid white;outline-offset:2px}
+</style>
 </head>
 <body>
 
@@ -865,7 +893,7 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
     <label>Filtrar backup:</label>
     <select id="covFilter" onchange="renderCoverage()"><option value="">Todas</option></select>
   </div>
-  <div class="cov-grid" id="covGrid"></div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0"><label for="covPrintPerson" style="font-weight:600">Programación completa para entregar:</label><select id="covPrintPerson" style="min-width:170px;padding:8px"><option value="">Seleccione una persona</option></select><button class="btn btn-success" type="button" onclick="printSelectedCoverage()">🖨 Preparar PDF de coberturas</button></div><div class="cov-grid" id="covGrid"></div>
 </div>
 </div>
 
@@ -1046,6 +1074,47 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
   </div>
 </div>
 
+<!-- CONFIGURACIÓN LABORAL HISTÓRICA -->
+<div class="overlay" id="laborOverlay">
+ <div class="modal" style="width:760px">
+  <div class="modal-head"><h3 style="color:var(--text)">🕒 Configuración laboral · RH-F-27</h3><div class="sub" id="laborEmployeeName"></div></div>
+  <div class="modal-body">
+   <div class="form-row">
+    <div class="form-group"><label>Fecha de vigencia</label><div class="labor-date-wrap"><input id="laborVigencia" type="date"><button type="button" class="labor-calendar-btn" aria-label="Abrir calendario de fecha de vigencia" title="Elegir fecha" onclick="laborOpenCalendar()">📅</button></div></div>
+    <div class="form-group"><label>Turno</label><select id="laborTurno" onchange="laborUpdateJornadas()"><option value="">— Seleccionar —</option><option value="diurno">Diurno</option><option value="mixto">Mixto (tarde-noche)</option><option value="nocturno">Nocturno</option></select></div>
+   </div>
+   <div class="form-group"><label>Tipo de jornada · clasificación RH-F-27</label><select id="laborJornada"><option value="">— Seleccionar turno primero —</option></select><div class="small-note">Jornada parcial no equivale automáticamente a medio tiempo.</div></div>
+   <div class="small-note" style="margin-bottom:8px">Indique cada día laborable y sus horas. Si la salida es anterior a la entrada, se interpreta como salida al día siguiente.</div>
+   <div id="laborWeek"></div>
+   <div id="laborStatus" class="small-note" style="margin-top:10px"></div>
+   <hr class="divider"><div class="section-title">Historial de configuraciones</div><div id="laborHistory" class="vac-list"></div>
+  </div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeLabor()">Cerrar</button><button class="btn btn-success" id="laborSaveBtn" onclick="saveLabor()">✔ Guardar nueva vigencia</button></div>
+ </div>
+</div>
+
+<!-- CONSULTA Y CORRECCIÓN DE HORARIOS IMPORTADOS -->
+<div class="overlay" id="importedHoursOverlay">
+ <div class="modal" style="width:820px;max-width:96vw">
+  <div class="modal-head"><h3>📋 Horarios importados · SBM</h3><div class="sub" id="ihName"></div></div>
+  <div class="modal-body">
+   <p class="small-note">Registro principal de horarios del expediente (vacaciones_horarios_v2). Las correcciones de un registro existente requieren confirmación. No modifica las vacaciones.</p>
+   <div id="ihMessage" class="small-note"></div>
+   <div id="ihForm" style="display:none">
+    <div class="form-row">
+     <div class="form-group"><label>Vigente desde</label><input id="ihDate" type="date" readonly></div>
+     <div class="form-group"><label>Turno</label><select id="ihTurno"><option value="diurno">Diurno</option><option value="mixto">Mixto</option><option value="nocturno">Nocturno</option></select></div>
+    </div>
+    <div class="form-group"><label>Clasificación de jornada</label><input id="ihJornada" type="text" style="width:100%" placeholder="Clasificación RH-F-27"></div>
+    <div class="form-group"><label>Observaciones</label><input id="ihObs" type="text" style="width:100%"></div>
+    <div id="ihDays"></div>
+    <div id="ihPending" class="small-note"></div>
+   </div>
+  </div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeImportedHours()">Cerrar</button><button id="ihSave" class="btn btn-success" onclick="saveImportedHours()" style="display:none">✔ Guardar corrección</button></div>
+ </div>
+</div>
+
 <!-- ── EMPLOYEE MODAL ── -->
 <div class="overlay" id="empOverlay">
   <div class="modal">
@@ -1054,6 +1123,13 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
       <div class="sub" id="empSub"></div>
     </div>
     <div class="modal-body">
+      <div id="importVacBox" style="padding:12px;border:1px solid var(--border);border-radius:9px;margin-bottom:14px;background:var(--surface-2)">
+        <label style="display:block;font-weight:700;margin-bottom:6px">Importar datos de Entrevistas</label>
+        <input id="importVacFile" type="file" accept=".json,application/json" style="max-width:100%" onchange="importVacCandidate(this)">
+        <div id="importVacMsg" class="small-note">Seleccioná el JSON de contratación. Revisá los datos y completá los campos faltantes antes de guardar.</div>
+        <div id="importLaborSuggestion" class="small-note" style="display:none;margin-top:8px"></div>
+      </div>
+
       <div class="form-group">
         <label>Nombre completo (Apellidos Nombre)</label>
         <input type="text" id="eName" placeholder="Ej: Solano Castro Olga María">
@@ -1109,6 +1185,12 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
           <input type="date" id="eVenceId">
           <div class="small-note">Opcional. Genera alertas de vencimiento.</div>
         </div>
+      </div>
+      <div class="form-group" style="padding:12px;border:1px solid var(--border);border-radius:8px">
+        <label>🕒 Configuración laboral · RH-F-27</label>
+        <div class="small-note">Horario semanal del expediente, consultado desde el registro de los 37 colaboradores. Las correcciones requieren acceso de administración.</div>
+        <button type="button" class="btn btn-info" id="laborOpenFromEmp" onclick="openImportedHours()" style="margin-top:10px">🕒 Ver / corregir horario laboral</button>
+        <div id="laborEmployeeHint" class="small-note"></div>
       </div>
       <div class="form-group">
         <label>Fecha de ingreso a la empresa</label>
@@ -1285,6 +1367,7 @@ window.addEventListener('DOMContentLoaded', () => {
   sessionStorage.removeItem('vacacionesSession');
   localStorage.removeItem('sbm_vac_v3');
   showLoginScreen();
+  try { document.getElementById('loginUser').value = localStorage.getItem('sbm_vac_ultimo_correo') || ''; } catch (_) {}
 });
 async function api(path, options = {}) {
   if (!authSession) throw new Error('Inicia sesión con tu correo.');
@@ -1330,6 +1413,7 @@ async function doLogin(e) {
     if(!p || !p.activo || !['admin','supervisor'].includes(p.rol) || (p.rol==='supervisor'&&!p.proyecto)) throw new Error('Tu cuenta no tiene un proyecto activo asignado.');
     currentUser=p.usuario; currentRole=p.rol; currentProject=p.proyecto;
     await init(); loginSuccess();
+    try { localStorage.setItem('sbm_vac_ultimo_correo', document.getElementById('loginUser').value.trim()); } catch (_) {}
     document.getElementById('loginPass').value='';
   } catch(ex) {
     authSession=null; currentUser=null; currentRole=null; currentProject=null; emps=[];
@@ -1571,8 +1655,9 @@ async function persist() {
   try {
     await sbSave(emps);
     showSyncStatus('☁ Guardado en Supabase · ' + new Date().toLocaleTimeString('es-CR',{hour:'2-digit',minute:'2-digit'}));
+    return true;
   } catch(e) {
-    showSyncStatus('❌ No se guardaron los cambios: '+e.message, '#B71C1C'); alert('No se guardaron todos los cambios. '+e.message); await syncFromCloud();
+    showSyncStatus('❌ No se guardaron los cambios: '+e.message, '#B71C1C'); alert('No se guardaron todos los cambios. '+e.message); await syncFromCloud(); return false;
   }
 }
 
@@ -2218,12 +2303,326 @@ function closeVac() {
   setVacEditMode(null);
 }
 
+// CONFIGURACIÓN LABORAL: independiente del JSON de vacaciones.
+const LABOR_CATALOG = [
+ ['completa-dia-discontinua','Completa-Día-Discontinua (F=48)','diurno'],
+ ['completa-dia-continua','Completa-Día-Continua (H=48)','diurno'],
+ ['parcial-dia-discontinua','Parcial-Día-Discontinua (F=42)','diurno'],
+ ['completa-mixta-discontinua','Completa-Mixta-Discontinua (F=42)','mixto'],
+ ['completa-mixta-continua','Completa-Mixta-Continua (H=42)','mixto'],
+ ['parcial-mixta-discontinua','Parcial-Mixta-Discontinua (F=36:45)','mixto'],
+ ['completa-noche-discontinua','Completa-Noche-Discontinua (F=36)','nocturno'],
+ ['completa-noche-continua','Completa-Noche-Continua (H=36)','nocturno'],
+ ['parcial-noche-discontinua','Parcial-Noche-Discontinua (F=31:50)','nocturno'],
+ ['parcial-noche-discontinua-especial','Parcial-Noche-Discontinua (F=30:00) Autorización Esp.','nocturno']
+];
+const LABOR_DAYS = [['lunes','Lunes'],['martes','Martes'],['miercoles','Miércoles'],['jueves','Jueves'],['viernes','Viernes'],['sabado','Sábado'],['domingo','Domingo']];
+let laborEmpId=null, laborReturnToEmployee=false, laborHistoryRows=[], laborCorrectionId=null;
+let importCandidateLabor=null;
+let pendingImportedEmployee=null;
+function laborUpdateJornadas(){
+ const t=document.getElementById('laborTurno').value, j=document.getElementById('laborJornada');
+ j.replaceChildren(new Option('— Seleccionar jornada —',''));
+ LABOR_CATALOG.filter(x=>x[2]===t).forEach(x=>j.add(new Option(x[1],x[0])));
+}
+function laborRenderWeek(){
+ document.getElementById('laborWeek').innerHTML=LABOR_DAYS.map(([key,label])=>`
+ <div class="labor-day-row">
+ <strong class="labor-day-name">${label}</strong>
+ <label class="labor-day-check"><input type="checkbox" id="lab-${key}-on" onchange="laborToggleDay('${key}')"> Laborable</label>
+ <input class="labor-time-in" aria-label="Entrada ${label}" type="time" id="lab-${key}-in" disabled>
+ <input class="labor-time-out" aria-label="Salida ${label}" type="time" id="lab-${key}-out" disabled>
+ </div>`).join('');
+}
+function laborToggleDay(day){
+ const on=document.getElementById('lab-'+day+'-on').checked;
+ for(const suffix of ['in','out']){
+  const el=document.getElementById('lab-'+day+'-'+suffix);
+  el.disabled=!on; if(!on) el.value='';
+ }
+}
+function laborOpenCalendar(){
+ const input=document.getElementById('laborVigencia');
+ try {if(typeof input.showPicker==='function') input.showPicker(); else {input.focus();input.click();}}
+ catch(e){input.focus();input.click();}
+}
+
+// Horarios importados en vacaciones_horarios_v2: lectura y corrección administrada.
+let ihCurrent=null;
+const IH_DAYS=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+function ihEscape(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+async function openImportedHours(){
+ if(!editEmpId){alert('Abrí primero el expediente de un colaborador existente.');return;}
+ const emp=emps.find(e=>String(e.id)===String(editEmpId));if(!emp)return;
+ ihCurrent=null;
+ document.getElementById('ihName').textContent=emp.nombre+' · '+emp.proyecto;
+ document.getElementById('ihMessage').textContent='Consultando horarios…';
+ document.getElementById('ihForm').style.display='none';
+ document.getElementById('ihSave').style.display='none';
+ document.getElementById('empOverlay').classList.remove('open');
+ document.getElementById('importedHoursOverlay').classList.add('open');
+ try{
+  const rows=await api('vacaciones_horarios_v2?select=id,expediente_id,vigente_desde,turno,jornada,horario,observaciones,continuidad_pendiente&expediente_id=eq.'+encodeURIComponent(String(emp.id))+'&order=vigente_desde.desc');
+  if(!rows.length){document.getElementById('ihMessage').textContent='Este expediente no tiene un horario en el registro principal. No se creará automáticamente otro registro en una tabla diferente. Consultá con administración para darlo de alta.';return;}
+  const r=rows[0];ihCurrent=r;
+  document.getElementById('ihDate').value=r.vigente_desde;
+  document.getElementById('ihTurno').value=r.turno;
+  document.getElementById('ihJornada').value=r.jornada||'';
+  document.getElementById('ihObs').value=r.observaciones||'';
+  document.getElementById('ihDays').innerHTML=IH_DAYS.map((day,i)=>{
+   const d=Array.isArray(r.horario)?(r.horario[i]||{}):{};
+   return '<div class="labor-day-row"><strong>'+day+'</strong><label class="labor-day-check"><input type="checkbox" id="ihOn'+i+'" '+(d.trabaja?'checked':'')+' onchange="ihToggle('+i+')"> Laborable</label><input type="time" id="ihIn'+i+'" value="'+ihEscape(d.entrada||'')+'" '+(!d.trabaja?'disabled':'')+'><input type="time" id="ihOut'+i+'" value="'+ihEscape(d.salida||'')+'" '+(!d.trabaja?'disabled':'')+'></div>';
+  }).join('');
+  document.getElementById('ihPending').textContent=r.continuidad_pendiente?'⚠ Continua/discontinua pendiente de confirmar.':'Clasificación marcada como revisada.';
+  document.getElementById('ihMessage').textContent='Horario vigente desde '+r.vigente_desde+'. Mostrando el registro más reciente.'+(rows.length>1?' Hay '+rows.length+' vigencias registradas.':'');
+  document.getElementById('ihForm').style.display='block';
+  document.getElementById('ihSave').style.display=currentRole==='admin'?'':'none';
+  if(currentRole!=='admin')document.querySelectorAll('#ihForm input,#ihForm select').forEach(el=>el.disabled=true);
+ }catch(e){document.getElementById('ihMessage').textContent='No se pudo consultar el horario: '+e.message;}
+}
+function ihToggle(i){const on=document.getElementById('ihOn'+i).checked;for(const t of ['In','Out']){const el=document.getElementById('ih'+t+i);el.disabled=!on;if(!on)el.value='';}}
+function closeImportedHours(){document.getElementById('importedHoursOverlay').classList.remove('open');document.getElementById('empOverlay').classList.add('open');ihCurrent=null;}
+async function saveImportedHours(){
+ if(currentRole!=='admin'||!ihCurrent)return;
+ const turno=document.getElementById('ihTurno').value,jornada=document.getElementById('ihJornada').value.trim(),obs=document.getElementById('ihObs').value.trim();
+ if(!jornada){alert('Indica la clasificación de jornada.');return;}
+ const horario=[];
+ for(let i=0;i<7;i++){
+  const trabaja=document.getElementById('ihOn'+i).checked;
+  const entrada=document.getElementById('ihIn'+i).value,salida=document.getElementById('ihOut'+i).value;
+  if(trabaja&&(!entrada||!salida||entrada===salida)){alert('Revisá las horas de '+IH_DAYS[i]);return;}
+  horario.push({trabaja,entrada:trabaja?entrada:null,salida:trabaja?salida:null});
+ }
+ if(!horario.some(d=>d.trabaja)){alert('Debe haber al menos un día laborable.');return;}
+ if(!confirm('¿Confirmás corregir el horario vigente desde '+ihCurrent.vigente_desde+'? Esta operación reemplaza los datos de ese registro.'))return;
+ const btn=document.getElementById('ihSave');btn.disabled=true;
+ try{
+  const result=await api('vacaciones_horarios_v2?id=eq.'+encodeURIComponent(ihCurrent.id),{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({turno,jornada,horario,observaciones:obs,continuidad_pendiente:true})});
+  if(!Array.isArray(result)||result.length!==1)throw new Error('Supabase no confirmó la actualización.');
+  document.getElementById('ihMessage').textContent='✔ Corrección guardada y confirmada en Supabase. La clasificación permanece pendiente de validación final.';
+  ihCurrent=result[0];
+ }catch(e){document.getElementById('ihMessage').textContent='No se pudo guardar: '+e.message;}
+ finally{btn.disabled=false;}
+}
+
+async function openLaborFromEmployee(){
+ // Acceso único para expedientes existentes: tabla principal de horarios.
+ return openImportedHours();
+}
+async function openLabor(id,fromEmployee=false){
+ const emp=emps.find(e=>String(e.id)===String(id));
+ if(!emp) return;
+ laborEmpId=String(id); laborReturnToEmployee=fromEmployee; laborHistoryRows=[]; laborCorrectionId=null;
+ document.getElementById('laborEmployeeName').textContent=emp.nombre+' · '+emp.proyecto;
+ document.getElementById('laborVigencia').value='';
+ document.getElementById('laborTurno').value='';
+ laborUpdateJornadas(); laborRenderWeek();
+ document.getElementById('laborStatus').textContent='';
+ document.getElementById('laborHistory').textContent='Cargando historial…';
+ document.getElementById('laborSaveBtn').disabled=true;
+ document.getElementById('laborStatus').textContent='Esperá mientras se carga el horario registrado.';
+ if(fromEmployee) document.getElementById('empOverlay').classList.remove('open');
+ document.getElementById('laborOverlay').classList.add('open');
+ await laborLoadHistory();
+}
+function closeLabor(){
+ document.getElementById('laborOverlay').classList.remove('open');
+ if(pendingImportedEmployee){
+   // Cancelar el horario no crea ningún expediente; permite volver a los datos importados.
+   pendingImportedEmployee=null;
+   document.getElementById('empOverlay').classList.add('open');
+ }else if(laborReturnToEmployee) document.getElementById('empOverlay').classList.add('open');
+ laborEmpId=null; laborReturnToEmployee=false;
+}
+async function laborLoadHistory(){
+ try {
+  const rows=await api('vacaciones_configuracion_laboral?select=id,fecha_vigencia,turno,jornada_codigo,horario,creado_en&expediente_id=eq.'+encodeURIComponent(laborEmpId)+'&order=fecha_vigencia.desc,creado_en.desc');
+  laborHistoryRows=rows;
+  const el=document.getElementById('laborHistory'); el.replaceChildren();
+  if(!rows.length){
+   el.textContent='Sin horarios registrados todavía.';
+   const emp=emps.find(e=>String(e.id)===String(laborEmpId));
+   const datos=emp?.datosContratacion;
+   if(datos?.turno){document.getElementById('laborTurno').value=datos.turno;laborUpdateJornadas();}
+   document.getElementById('laborStatus').textContent=datos?'Datos de contratación recuperados: '+(datos.jornadaContratacion||'jornada no indicada')+(datos.horaPrimerDia?', ingreso primer día '+datos.horaPrimerDia:'')+'. Completá la clasificación RH-F-27 y el horario semanal real.':'Sin horario previo: completá los datos para crear la primera vigencia.';
+   document.getElementById('laborSaveBtn').disabled=false;
+   return;
+  }
+  // Para editar, copiar el horario vigente; nunca actualizar el registro histórico.
+  // Si hay vigencias futuras, preferir la que está vigente hoy.
+  const today=new Date().toLocaleDateString('en-CA',{timeZone:'America/Costa_Rica'});
+  const vigente=rows.find(r=>r.fecha_vigencia<=today) || rows[0];
+  document.getElementById('laborTurno').value=vigente.turno;
+  laborUpdateJornadas();
+  document.getElementById('laborJornada').value=vigente.jornada_codigo;
+  LABOR_DAYS.forEach(([key])=>{
+    const day=vigente.horario?.[key]||{};
+    const checkbox=document.getElementById('lab-'+key+'-on');
+    checkbox.checked=day.laborable===true;
+    laborToggleDay(key);
+    if(checkbox.checked){
+      document.getElementById('lab-'+key+'-in').value=day.entrada||'';
+      document.getElementById('lab-'+key+'-out').value=day.salida||'';
+    }
+  });
+  document.getElementById('laborVigencia').value='';
+  laborCorrectionId=null;
+  document.getElementById('laborSaveBtn').textContent='✔ Guardar nueva vigencia';
+  document.getElementById('laborStatus').textContent='Horario del '+vigente.fecha_vigencia+' cargado para copiar. Modificá lo necesario y elegí la fecha de la nueva vigencia; el anterior se conserva.';
+  document.getElementById('laborSaveBtn').disabled=false;
+  rows.forEach((r,i)=>{
+   const box=document.createElement('div');box.className='vac-item';
+   const title=document.createElement('div');
+   const label=LABOR_CATALOG.find(x=>x[0]===r.jornada_codigo)?.[1]||r.jornada_codigo;
+   title.textContent=r.fecha_vigencia+' · '+label+(i===0?' · Último registro':'');
+   const detail=document.createElement('div');detail.className='small-note';
+   detail.textContent=LABOR_DAYS.map(([k,n])=>r.horario[k]?.laborable ? n+': '+r.horario[k].entrada+'–'+r.horario[k].salida+(r.horario[k].dia_siguiente?' (+1 día)':'') : n+': libre').join(' | ');
+   box.style.display='block';box.append(title,detail);
+   if(currentRole==='admin'){
+    const edit=document.createElement('button');edit.type='button';edit.className='btn btn-secondary';
+    edit.textContent='✎ Corregir este registro';edit.style.marginTop='8px';
+    edit.onclick=()=>laborSelectCorrection(r);
+    box.append(edit);
+   }
+   el.append(box);
+  });
+ } catch(e){document.getElementById('laborHistory').textContent='No se pudo leer el historial: '+e.message;document.getElementById('laborStatus').textContent='No se permite guardar hasta recuperar el historial.';document.getElementById('laborSaveBtn').disabled=true;}
+}
+function laborSelectCorrection(r){
+ if(currentRole!=='admin')return;
+ laborCorrectionId=r.id;
+ document.getElementById('laborVigencia').value=r.fecha_vigencia;
+ document.getElementById('laborTurno').value=r.turno;
+ laborUpdateJornadas();
+ document.getElementById('laborJornada').value=r.jornada_codigo;
+ LABOR_DAYS.forEach(([key])=>{
+  const day=r.horario?.[key]||{};
+  document.getElementById('lab-'+key+'-on').checked=day.laborable===true;
+  laborToggleDay(key);
+  if(day.laborable){document.getElementById('lab-'+key+'-in').value=day.entrada||'';document.getElementById('lab-'+key+'-out').value=day.salida||'';}
+ });
+ document.getElementById('laborSaveBtn').textContent='✔ Guardar corrección auditada';
+ document.getElementById('laborStatus').textContent='Corrigiendo horario del '+r.fecha_vigencia+'. La fecha debe mantenerse; se registrará el motivo y el cambio.';
+}
+async function saveLabor(){
+ const fecha=document.getElementById('laborVigencia').value;
+ const turno=document.getElementById('laborTurno').value;
+ const jornada=document.getElementById('laborJornada').value;
+ if(!fecha||!turno||!jornada){alert('Selecciona fecha de vigencia, turno y jornada.');return;}
+ if(!laborCorrectionId && laborHistoryRows.some(r=>r.fecha_vigencia===fecha)){
+  alert('Ya existe un horario con esa fecha de vigencia. Elegí otra fecha para no crear versiones ambiguas.');return;
+ }
+ const horario={};
+ for(const [key,label] of LABOR_DAYS){
+  const laborable=document.getElementById('lab-'+key+'-on').checked;
+  const entrada=document.getElementById('lab-'+key+'-in').value;
+  const salida=document.getElementById('lab-'+key+'-out').value;
+  if(laborable&&(!entrada||!salida||entrada===salida)){alert('Revisa las horas de '+label+'.');return;}
+  horario[key]=laborable?{laborable:true,entrada,salida,dia_siguiente:salida<entrada}:{laborable:false,entrada:null,salida:null};
+ }
+ if(!Object.values(horario).some(d=>d.laborable)){alert('Marca al menos un día laborable.');return;}
+ const original=laborCorrectionId?laborHistoryRows.find(r=>r.id===laborCorrectionId):null;
+ if(laborCorrectionId && (!original || original.fecha_vigencia!==fecha)){
+  alert('Para corregir un registro se conserva su fecha de vigencia original.');return;
+ }
+ let motivo='';
+ if(laborCorrectionId){
+  motivo=prompt('Motivo de la corrección (mínimo 5 caracteres):')||'';
+  if(motivo.trim().length<5){alert('Es necesario indicar el motivo de la corrección.');return;}
+ }
+ if(pendingImportedEmployee){
+  if(currentRole!=='admin'){alert('Solo administración puede registrar contrataciones.');return;}
+  if(!confirm('¿Crear el funcionario y su horario juntos en Supabase? Si falla cualquiera, no se guardará ninguno.'))return;
+  const btn=document.getElementById('laborSaveBtn');btn.disabled=true;
+  try{
+   const nuevo=pendingImportedEmployee;
+   const id=await api('rpc/vacaciones_crear_funcionario_con_horario',{
+    method:'POST',body:JSON.stringify({p_expediente:nuevo,p_fecha:fecha,p_turno:turno,p_jornada:jornada,p_horario:horario})
+   });
+   if(String(id)!==String(nuevo.id))throw new Error('Supabase no devolvió el identificador esperado. Verificá antes de repetir.');
+   pendingImportedEmployee=null;
+   importCandidateLabor=null;
+   document.getElementById('laborOverlay').classList.remove('open');
+   document.getElementById('empOverlay').classList.remove('open');
+   laborEmpId=null;laborReturnToEmployee=false;
+   await syncFromCloud();
+   alert('✔ Funcionario y configuración laboral guardados juntos en Supabase.');
+  }catch(e){
+   document.getElementById('laborStatus').textContent='No se completó el registro: '+e.message;
+  }finally{btn.disabled=false;}
+  return;
+ }
+ if(!confirm(laborCorrectionId?'¿Confirmar corrección del horario del '+fecha+' y registrar auditoría?':'¿Guardar este horario desde '+fecha+'? Se conservarán los horarios anteriores.'))return;
+ const btn=document.getElementById('laborSaveBtn');btn.disabled=true;
+ try{
+  if(laborCorrectionId){
+   const result=await api('rpc/vacaciones_corregir_horario',{method:'POST',body:JSON.stringify({p_id:laborCorrectionId,p_fecha:fecha,p_turno:turno,p_jornada:jornada,p_horario:horario,p_motivo:motivo})});
+   if(!result)throw new Error('Supabase no confirmó la corrección.');
+  }else{
+   const inserted=await api('vacaciones_configuracion_laboral',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({expediente_id:laborEmpId,fecha_vigencia:fecha,turno,jornada_codigo:jornada,horario})});
+   if(!Array.isArray(inserted)||inserted.length!==1)throw new Error('Supabase no confirmó el registro del horario.');
+  }
+  document.getElementById('laborStatus').textContent='✔ Horario registrado correctamente.';
+  await laborLoadHistory();
+  document.getElementById('laborStatus').textContent='✔ Operación confirmada por Supabase. Historial actualizado.';
+ }catch(e){document.getElementById('laborStatus').textContent='Error al guardar: '+e.message;}
+ finally{btn.disabled=false;}
+}
 // ═══════════════════════════════════════════
 // EMPLOYEE MODAL
 // ═══════════════════════════════════════════
+
+async function importVacCandidate(input){
+ if(currentRole!=='admin'){alert('Solo administración puede importar contrataciones.');input.value='';return;}
+ const msg=document.getElementById('importVacMsg');
+ if(!input.files?.length)return;
+ if(editEmpId){msg.textContent='La importación solo está disponible al crear un funcionario.';input.value='';return;}
+ try{
+  const file=input.files[0];if(file.size>20000)throw Error('El archivo es demasiado grande para ser una ficha de ingreso.');
+  const d=JSON.parse(await file.text());
+  if(d.tipo!=='SBM_ENTREVISTA_A_VACACIONES'||d.version!==1)throw Error('Este no es un archivo de transferencia de Entrevistas a Vacaciones.');
+  const nombre=String(d.nombre||'').trim(),cedula=String(d.cedula||'').trim();
+  if(!nombre||!cedula||nombre.length>200||cedula.length>50)throw Error('Nombre o cédula inválidos.');
+  const normal=x=>String(x||'').replace(/[^a-z0-9]/gi,'').toLowerCase();
+  if(emps.some(e=>normal(e.cedula)===normal(cedula))){throw Error('Ya existe un funcionario con esa cédula. No se importó para evitar duplicados.');}
+  document.getElementById('eName').value=nombre;
+  document.getElementById('eCedula').value=cedula;
+  const ingreso=String(d.fecha_ingreso||'');
+  if(/^\d{4}-\d{2}-\d{2}$/.test(ingreso))document.getElementById('eIngreso').value=ingreso;
+  const fecha=String(d.fecha_nacimiento||'');
+  if(/^\d{4}-\d{2}-\d{2}$/.test(fecha))document.getElementById('eCumple').value=fecha.slice(8,10)+'/'+fecha.slice(5,7);
+  const suggested=String(d.proyecto_sugerido||'').trim();
+  const sel=document.getElementById('eProy');
+  const opt=Array.from(sel.options).find(o=>o.value.toLowerCase()===suggested.toLowerCase());
+  if(opt)sel.value=opt.value;
+  // Datos de contratación: turno sugerido, no horario semanal inventado.
+  const turnos={'dia':'diurno','día':'diurno','tarde-noche':'mixto','noche':'nocturno'};
+  const turnoOrigen=String(d.horario_contrato||'').trim().toLowerCase();
+  const turnoSugerido=turnos[turnoOrigen]||'';
+  const jornadaOrigen=String(d.jornada_contrato||'').trim();
+  const horaPrimerDia=String(d.hora_ingreso||'').trim();
+  importCandidateLabor={turno:turnoSugerido,jornadaContratacion:jornadaOrigen,horaPrimerDia,origen:'Entrevistas SBM'};
+  const aviso=document.getElementById('importLaborSuggestion');
+  if(aviso){
+    aviso.dataset.turno=turnoSugerido;
+    aviso.dataset.jornada=jornadaOrigen;
+    aviso.dataset.hora=horaPrimerDia;
+    aviso.textContent=(turnoSugerido?'Turno de contratación: '+d.horario_contrato+'. ':'')+(jornadaOrigen?'Jornada de contratación: '+jornadaOrigen+'. ':'')+(horaPrimerDia?'Hora de ingreso del primer día: '+horaPrimerDia+'. ':'')+'El horario semanal y la clasificación RH-F-27 se completan al configurar el horario laboral.';
+    aviso.style.display=(turnoSugerido||jornadaOrigen||horaPrimerDia)?'block':'none';
+  }
+  msg.textContent='✓ Nombre, cédula'+(fecha?' y cumpleaños':'')+(ingreso?' y fecha de ingreso':'')+' importados. '+(opt?'Proyecto sugerido seleccionado. ':'Revisá el proyecto asignado. ')+'Completá los campos pendientes y guardá cuando estés lista.';
+ }catch(e){msg.textContent='No se importó: '+e.message;}
+ finally{input.value='';}
+}
+
 function openAddEmp() {
   if(currentRole!=='admin') { alert('Acción reservada para administración.'); return; }
   editEmpId = null;
+  importCandidateLabor=null;
+  pendingImportedEmployee=null;
+  document.getElementById('importVacBox').style.display='block';
+  document.getElementById('importVacMsg').textContent='Seleccioná el JSON de contratación. Revisá los datos y completá los campos faltantes antes de guardar.';
+  const laborSuggestion=document.getElementById('importLaborSuggestion');laborSuggestion.style.display='none';laborSuggestion.textContent='';laborSuggestion.dataset.turno='';
   document.getElementById('empTitle').textContent = 'Agregar Funcionario';
   document.getElementById('empSub').textContent = 'Nuevo funcionario';
   document.getElementById('eName').value='';
@@ -2237,13 +2636,16 @@ function openAddEmp() {
   document.getElementById('eIngreso').value='';
   document.getElementById('eAjuste').value='0';
   document.getElementById('deleteEmpBtn').style.display='none';
+  document.getElementById('laborEmployeeHint').textContent='Guarda el funcionario primero para registrar su horario.';
   document.getElementById('empOverlay').classList.add('open');
 }
 
 function openEditEmp(empId) {
+  document.getElementById('importVacBox').style.display='none';
   editEmpId = empId;
   const emp = emps.find(e=>e.id===empId);
   if (!emp) return;
+  document.getElementById('laborEmployeeHint').textContent='Podés consultar o registrar una nueva vigencia sin modificar vacaciones.';
   document.getElementById('empTitle').textContent = 'Editar Funcionario';
   document.getElementById('empSub').textContent = emp.nombre;
   document.getElementById('eName').value = emp.nombre;
@@ -2261,7 +2663,10 @@ function openEditEmp(empId) {
   document.getElementById('empOverlay').classList.add('open');
 }
 
-function saveEmp() {
+let savingEmployee=false;
+async function saveEmp() {
+  if(savingEmployee)return;
+  if(!editEmpId && currentRole!=='admin'){alert('Solo administración puede crear funcionarios.');return;}
   const nombre = document.getElementById('eName').value.trim();
   if (!nombre) { alert('Ingrese el nombre.'); return; }
   const proy   = document.getElementById('eProy').value;
@@ -2273,16 +2678,60 @@ function saveEmp() {
   const venceId = document.getElementById('eVenceId').value;
   const ingreso = document.getElementById('eIngreso').value;
   const ajuste  = parseInt(document.getElementById('eAjuste').value)||0;
+  const normalized=x=>String(x||'').replace(/[^a-z0-9]/gi,'').toLowerCase();
+  if(cedula && emps.some(e=>String(e.id)!==String(editEmpId)&&normalized(e.cedula)===normalized(cedula))){alert('Ya existe otro funcionario con esa cédula. No se guardó.');return;}
+  const nuevoImportado=!editEmpId && !!importCandidateLabor;
+  if(nuevoImportado){
+    if(!cedula){alert('La cédula es obligatoria para importar desde Entrevistas.');return;}
+    const maxId=Math.max(0,...emps.map(e=>Number(e.id)||0));
+    pendingImportedEmployee={id:maxId+1,nombre,proyecto:proy,saldo:0,cedula,codigo,cumpleanos:cumple,
+      tipoIdentificacion:tipoId,venceIdentificacion:venceId,fechaIngreso:ingreso,diasAjuste:ajuste,
+      datosContratacion:{...importCandidateLabor},vacaciones:[],uniformes:[],evaluaciones:[]};
+    // Todavía NO se agrega a emps ni se llama persist(): ambos registros se crean juntos al confirmar horario.
+    laborEmpId=String(pendingImportedEmployee.id);
+    laborReturnToEmployee=false;laborHistoryRows=[];laborCorrectionId=null;
+    document.getElementById('laborEmployeeName').textContent=nombre+' · '+proy+' · Pendiente de guardar';
+    document.getElementById('laborVigencia').value=ingreso||'';
+    document.getElementById('laborTurno').value=importCandidateLabor.turno||'';
+    laborUpdateJornadas();laborRenderWeek();
+    document.getElementById('laborHistory').textContent='Funcionario nuevo: todavía no se ha guardado ningún dato.';
+    document.getElementById('laborSaveBtn').textContent='✔ Guardar funcionario y horario juntos';
+    document.getElementById('laborSaveBtn').disabled=false;
+    document.getElementById('laborStatus').textContent='Completá la jornada RH-F-27 y el horario semanal. La hora del primer día no define automáticamente la semana. Al guardar se registrarán ambos datos juntos.';
+    document.getElementById('empOverlay').classList.remove('open');
+    document.getElementById('laborOverlay').classList.add('open');
+    return;
+  }
+  savingEmployee=true;
+  const saveButton=document.querySelector('#empOverlay [onclick="saveEmp()"]');
+  if(saveButton)saveButton.disabled=true;
   if (editEmpId) {
     const emp = emps.find(e=>e.id===editEmpId);
     if (emp) Object.assign(emp, {nombre, proyecto:proy, cedula, codigo, cumpleanos:cumple, tipoIdentificacion:tipoId, venceIdentificacion:venceId, fechaIngreso:ingreso, diasAjuste:ajuste});
   } else {
-    const maxId = Math.max(0,...emps.map(e=>e.id));
-    emps.push({id:maxId+1, nombre, proyecto:proy, saldo:0, cedula, codigo, cumpleanos:cumple, tipoIdentificacion:tipoId, venceIdentificacion:venceId, fechaIngreso:ingreso, diasAjuste:ajuste, vacaciones:[], uniformes:[], evaluaciones:[]});
+    const maxId = Math.max(0,...emps.map(e=>Number(e.id)||0));
+    emps.push({id:maxId+1, nombre, proyecto:proy, saldo:0, cedula, codigo, cumpleanos:cumple, tipoIdentificacion:tipoId, venceIdentificacion:venceId, fechaIngreso:ingreso, diasAjuste:ajuste, datosContratacion:importCandidateLabor?{...importCandidateLabor}:null, vacaciones:[], uniformes:[], evaluaciones:[]});
   }
-  persist();
-  closeEmp();
-  renderTable();
+  try {
+    const saved=await persist();
+    if(!saved){
+      // persist() ya sincroniza desde Supabase cuando falla. No cerramos el formulario.
+      // Evita anunciar éxito o avanzar a la configuración laboral sin confirmación.
+      document.getElementById('empSub').textContent='No se pudo guardar. Revisá el aviso de sincronización e intentá de nuevo.';
+      return;
+    }
+    const nuevoId=nuevoImportado?String(emps[emps.length-1]?.id||''):null;
+    importCandidateLabor=null;
+    closeEmp();
+    renderTable();
+    if(nuevoId){
+      // Continuar con el horario, sin dar a entender que ya quedó registrado.
+      await openLabor(nuevoId,false);
+    }
+  } finally {
+    savingEmployee=false;
+    if(saveButton)saveButton.disabled=false;
+  }
 }
 
 function deleteEmp() {
@@ -3152,10 +3601,18 @@ function closeEvalModal() {
 }
 function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('tab-'+name).classList.add('active');
-  document.getElementById('panel-'+name).classList.add('active');
-  if (name === 'cov') renderCoverage();
+  // El inicio de sesión oculta paneles con style.display; cambiar solo la clase no los mostraba.
+  document.querySelectorAll('.tab-panel').forEach(p => {
+    p.classList.remove('active');
+    p.style.display = 'none';
+  });
+  const tab=document.getElementById('tab-'+name);
+  const panel=document.getElementById('panel-'+name);
+  if(!tab||!panel){console.error('Pestaña inexistente:',name);return;}
+  tab.classList.add('active');
+  panel.classList.add('active');
+  panel.style.display = 'block';
+  if (name === 'cov') { populateCovFilter(); renderCoverage(); }
   if (name === 'docs') renderDocs();
   if (name === 'uniforms') renderUniforms();
   if (name === 'cumple') renderCumpleanos();
@@ -3208,6 +3665,18 @@ function populateCovFilter() {
   // keep existing first option, rebuild rest
   while (sel.options.length > 1) sel.remove(1);
   [...backups].sort().forEach(b => { const o = document.createElement('option'); o.value=b; o.textContent=b; sel.appendChild(o); });
+  const printSel = document.getElementById('covPrintPerson');
+  if (printSel) {
+    const previous = printSel.value;
+    printSel.replaceChildren(new Option('Seleccione una persona', ''));
+    [...backups].sort().forEach(b => printSel.add(new Option(b,b)));
+    if ([...backups].includes(previous)) printSel.value = previous;
+  }
+}
+function printSelectedCoverage() {
+  const backup = document.getElementById('covPrintPerson')?.value;
+  if (!backup) { alert('Seleccione primero la persona que cubrirá las vacaciones.'); return; }
+  printCoverage(backup);
 }
 
 function renderCoverage() {
@@ -3289,7 +3758,7 @@ function renderCoverage() {
         <div class="person"><span class="icon">👤</span>${backup}</div>
         <div style="display:flex;align-items:center;gap:8px">
           <span class="count">${sorted.length} cobertura${sorted.length>1?'s':''}</span>
-          <button class="print-btn" onclick="printCoverage('${backup.replace(/'/g,"\\'")}')">🖨 Imprimir</button>
+          <button class="print-btn" onclick="printCoverage(decodeURIComponent('${encodeURIComponent(backup)}'))">🖨 Imprimir</button>
         </div>
       </div>
       ${rows}
@@ -3309,8 +3778,6 @@ function hashColor(str) {
 // ═══════════════════════════════════════════
 function printCoverage(backup) {
   const now = new Date(); now.setHours(0,0,0,0);
-  const filterDays = covDays;
-  const cutoff = new Date(now); cutoff.setDate(cutoff.getDate() + filterDays);
 
   // Gather ALL future entries for this backup (not limited by covDays filter)
   const entries = [];
@@ -3351,7 +3818,7 @@ function printCoverage(backup) {
 
   const today = new Date().toLocaleDateString('es-CR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
 
-  document.getElementById('ps-meta').textContent = `Generado el ${today} · Período: próximos ${filterDays} días`;
+  document.getElementById('ps-meta').textContent = `Generado el ${today} · Todas las coberturas pendientes`;
   document.getElementById('ps-person').innerHTML = `👤 ${backup}`;
   document.getElementById('ps-name-bar').textContent = backup;
   document.getElementById('ps-footer-left').textContent = `${entries.length} cobertura(s) programada(s) · Generado ${today}`;
