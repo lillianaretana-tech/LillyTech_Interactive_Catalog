@@ -2627,7 +2627,8 @@ function openAddEmp() {
   const laborSuggestion=document.getElementById('importLaborSuggestion');laborSuggestion.style.display='none';laborSuggestion.textContent='';laborSuggestion.dataset.turno='';
   document.getElementById('empTitle').textContent = 'Agregar Funcionario';
   document.getElementById('empSub').textContent = 'Nuevo funcionario';
-  document.getElementById('eName').value='';\n  document.getElementById('ePosicion').value='';
+  document.getElementById('eName').value='';
+  document.getElementById('ePosicion').value='';
   document.getElementById('eProy').value='MCK';
   document.getElementById('eSaldo').value='0';
   document.getElementById('eCedula').value='';
@@ -2650,7 +2651,8 @@ function openEditEmp(empId) {
   document.getElementById('laborEmployeeHint').textContent='Podés consultar o registrar una nueva vigencia sin modificar vacaciones.';
   document.getElementById('empTitle').textContent = 'Editar Funcionario';
   document.getElementById('empSub').textContent = emp.nombre;
-  document.getElementById('eName').value = emp.nombre;\n  document.getElementById('ePosicion').value = emp.posicion||'';
+  document.getElementById('eName').value = emp.nombre;
+  document.getElementById('ePosicion').value = emp.posicion||'';
   document.getElementById('eProy').value = emp.proyecto;
   document.getElementById('eSaldo').value = emp.saldo||0;
   document.getElementById('eCedula').value = emp.cedula||'';
