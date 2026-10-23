@@ -2673,7 +2673,8 @@ async function saveEmp() {
   if(!editEmpId && currentRole!=='admin'){alert('Solo administración puede crear funcionarios.');return;}
   const nombre = document.getElementById('eName').value.trim();
   if (!nombre) { alert('Ingrese el nombre.'); return; }
-  const posicion = document.getElementById('ePosicion').value.trim();\n  const proy   = document.getElementById('eProy').value;
+  const posicion = document.getElementById('ePosicion').value.trim();
+  const proy   = document.getElementById('eProy').value;
   const saldo  = parseInt(document.getElementById('eSaldo').value)||0;
   const cedula = document.getElementById('eCedula').value.trim();
   const codigo = document.getElementById('eCodigo').value.trim();
