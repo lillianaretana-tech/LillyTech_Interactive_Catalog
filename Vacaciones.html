@@ -1132,7 +1132,7 @@ tr:hover td.td-saldo { background: #1a2744 !important; }
 
       <div class="form-group">
         <label>Nombre completo (Apellidos Nombre)</label>
-        <input type="text" id="eName" placeholder="Ej: Solano Castro Olga María">
+        <input type="text" id="eName" placeholder="Ej: Solano Castro Olga María">\n      </div>\n      <div class="form-group"><label>Posición / Puesto</label><input type="text" id="ePosicion" placeholder="Ej: Operario de Limpieza">
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -2625,7 +2625,7 @@ function openAddEmp() {
   const laborSuggestion=document.getElementById('importLaborSuggestion');laborSuggestion.style.display='none';laborSuggestion.textContent='';laborSuggestion.dataset.turno='';
   document.getElementById('empTitle').textContent = 'Agregar Funcionario';
   document.getElementById('empSub').textContent = 'Nuevo funcionario';
-  document.getElementById('eName').value='';
+  document.getElementById('eName').value='';\n  document.getElementById('ePosicion').value='';
   document.getElementById('eProy').value='MCK';
   document.getElementById('eSaldo').value='0';
   document.getElementById('eCedula').value='';
@@ -2648,7 +2648,7 @@ function openEditEmp(empId) {
   document.getElementById('laborEmployeeHint').textContent='Podés consultar o registrar una nueva vigencia sin modificar vacaciones.';
   document.getElementById('empTitle').textContent = 'Editar Funcionario';
   document.getElementById('empSub').textContent = emp.nombre;
-  document.getElementById('eName').value = emp.nombre;
+  document.getElementById('eName').value = emp.nombre;\n  document.getElementById('ePosicion').value = emp.posicion||'';
   document.getElementById('eProy').value = emp.proyecto;
   document.getElementById('eSaldo').value = emp.saldo||0;
   document.getElementById('eCedula').value = emp.cedula||'';
@@ -2669,7 +2669,7 @@ async function saveEmp() {
   if(!editEmpId && currentRole!=='admin'){alert('Solo administración puede crear funcionarios.');return;}
   const nombre = document.getElementById('eName').value.trim();
   if (!nombre) { alert('Ingrese el nombre.'); return; }
-  const proy   = document.getElementById('eProy').value;
+  const posicion = document.getElementById('ePosicion').value.trim();\n  const proy   = document.getElementById('eProy').value;
   const saldo  = parseInt(document.getElementById('eSaldo').value)||0;
   const cedula = document.getElementById('eCedula').value.trim();
   const codigo = document.getElementById('eCodigo').value.trim();
@@ -2684,7 +2684,7 @@ async function saveEmp() {
   if(nuevoImportado){
     if(!cedula){alert('La cédula es obligatoria para importar desde Entrevistas.');return;}
     const maxId=Math.max(0,...emps.map(e=>Number(e.id)||0));
-    pendingImportedEmployee={id:maxId+1,nombre,proyecto:proy,saldo:0,cedula,codigo,cumpleanos:cumple,
+    pendingImportedEmployee={id:maxId+1,nombre,posicion,proyecto:proy,saldo:0,cedula,codigo,cumpleanos:cumple,
       tipoIdentificacion:tipoId,venceIdentificacion:venceId,fechaIngreso:ingreso,diasAjuste:ajuste,
       datosContratacion:{...importCandidateLabor},vacaciones:[],uniformes:[],evaluaciones:[]};
     // Todavía NO se agrega a emps ni se llama persist(): ambos registros se crean juntos al confirmar horario.
@@ -2707,10 +2707,10 @@ async function saveEmp() {
   if(saveButton)saveButton.disabled=true;
   if (editEmpId) {
     const emp = emps.find(e=>e.id===editEmpId);
-    if (emp) Object.assign(emp, {nombre, proyecto:proy, cedula, codigo, cumpleanos:cumple, tipoIdentificacion:tipoId, venceIdentificacion:venceId, fechaIngreso:ingreso, diasAjuste:ajuste});
+    if (emp) Object.assign(emp, {nombre, posicion, proyecto:proy, cedula, codigo, cumpleanos:cumple, tipoIdentificacion:tipoId, venceIdentificacion:venceId, fechaIngreso:ingreso, diasAjuste:ajuste});
   } else {
     const maxId = Math.max(0,...emps.map(e=>Number(e.id)||0));
-    emps.push({id:maxId+1, nombre, proyecto:proy, saldo:0, cedula, codigo, cumpleanos:cumple, tipoIdentificacion:tipoId, venceIdentificacion:venceId, fechaIngreso:ingreso, diasAjuste:ajuste, datosContratacion:importCandidateLabor?{...importCandidateLabor}:null, vacaciones:[], uniformes:[], evaluaciones:[]});
+    emps.push({id:maxId+1, nombre, posicion, proyecto:proy, saldo:0, cedula, codigo, cumpleanos:cumple, tipoIdentificacion:tipoId, venceIdentificacion:venceId, fechaIngreso:ingreso, diasAjuste:ajuste, datosContratacion:importCandidateLabor?{...importCandidateLabor}:null, vacaciones:[], uniformes:[], evaluaciones:[]});
   }
   try {
     const saved=await persist();
