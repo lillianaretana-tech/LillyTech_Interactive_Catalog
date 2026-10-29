@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>v17.3 · Control de Vacaciones — SBM Corp · Horario unificado</title>
+<title>v17.4 · Control de Vacaciones — SBM Corp · Horario unificado</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
@@ -2624,6 +2624,15 @@ async function importVacCandidate(input){
  finally{input.value='';}
 }
 
+function refreshEmployeeProjectOptions(selected){
+  const sel=document.getElementById('eProy');
+  const current=selected || sel.value;
+  sel.innerHTML='';
+  allProjectNames().forEach(p=>{const opt=document.createElement('option');opt.value=p;opt.textContent=p;sel.appendChild(opt);});
+  if(current && !allProjectNames().includes(current)){const opt=document.createElement('option');opt.value=current;opt.textContent=current;sel.appendChild(opt);}
+  if(current) sel.value=current;
+}
+
 function openAddEmp() {
   if(currentRole!=='admin') { alert('Acción reservada para administración.'); return; }
   editEmpId = null;
@@ -2636,7 +2645,7 @@ function openAddEmp() {
   document.getElementById('empSub').textContent = 'Nuevo funcionario';
   document.getElementById('eName').value='';
   document.getElementById('ePosicion').value='';
-  document.getElementById('eProy').value='MCK';
+  refreshEmployeeProjectOptions('MCK');
   document.getElementById('eSaldo').value='0';
   document.getElementById('eCedula').value='';
   document.getElementById('eCodigo').value='';
@@ -2660,7 +2669,7 @@ function openEditEmp(empId) {
   document.getElementById('empSub').textContent = emp.nombre;
   document.getElementById('eName').value = emp.nombre;
   document.getElementById('ePosicion').value = emp.posicion||'';
-  document.getElementById('eProy').value = emp.proyecto;
+  refreshEmployeeProjectOptions(emp.proyecto);
   document.getElementById('eSaldo').value = emp.saldo||0;
   document.getElementById('eCedula').value = emp.cedula||'';
   document.getElementById('eCodigo').value = emp.codigo||'';
