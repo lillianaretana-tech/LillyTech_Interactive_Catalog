@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>v17.2 · Control de Vacaciones — SBM Corp · Horario unificado</title>
+<title>v17.3 · Control de Vacaciones — SBM Corp · Horario unificado</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
@@ -1554,6 +1554,10 @@ const PC = {
   'Operaciones':  '#37474F'
 };
 
+function allProjectNames(){ return [...new Set([...Object.keys(PC),...emps.map(e=>e.proyecto).filter(Boolean)])].sort(); }
+async function loadSavedProjects(){ try { const rows=await api('vacaciones_proyectos_v2?select=nombre,color'); rows.forEach(r=>{PC[r.nombre]=r.color;}); } catch(e){ console.error('Proyectos:',e); showSyncStatus('⚠ No se pudieron cargar proyectos: '+e.message,'#B71C1C'); } }
+async function saveProjectRecord(name,color,oldName){ await api('vacaciones_proyectos_v2',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=representation'},body:JSON.stringify({nombre:name,color})}); if(oldName && oldName!==name) await api('vacaciones_proyectos_v2?nombre=eq.'+encodeURIComponent(oldName),{method:'DELETE'}); }
+async function deleteProjectRecord(name){await api('vacaciones_proyectos_v2?nombre=eq.'+encodeURIComponent(name),{method:'DELETE'});}
 const MONTHS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
 // ═══════════════════════════════════════════
@@ -1576,7 +1580,9 @@ const SB_HEADERS = {
 };
 
 async function sbGet() {
-  const rows=await api('vacaciones_expedientes_v2?select=id,expediente,updated_at&order=id');
+  const allRows=await api('vacaciones_expedientes_v2?select=id,expediente,updated_at&order=id');
+  // Payroll-only historical records must not enter vacation rosters or deletion baselines.
+  const rows=allRows.filter(r=>r.expediente?.planillasHistorico!==true);
   cloudBaseline=new Map(rows.map(r=>[r.id,{data:JSON.stringify(r.expediente),updated_at:r.updated_at}]));
   return rows.map(r=>r.expediente);
 }
@@ -1631,6 +1637,7 @@ function showSyncStatus(msg, color='#2E7D32') {
 
 async function init() {
   emps = await sbGet();
+  await loadSavedProjects();
   showSyncStatus('☁ Datos cargados · '+emps.length+' funcionarios');
   applyProjectFilter();
 
@@ -1640,7 +1647,7 @@ async function init() {
   const cumpleProy = document.getElementById('cumpleProy');
   if (cumpleProy) {
     cumpleProy.innerHTML = '<option value="">Todos</option>';
-    [...new Set(emps.map(e=>e.proyecto))].sort().forEach(p => {
+    allProjectNames().forEach(p => {
       const o=document.createElement('option'); o.value=p; o.textContent=p; cumpleProy.appendChild(o);
     });
   }
@@ -2773,7 +2780,7 @@ function closeAdminPanel() {
 
 function renderProjectList() {
   const list = document.getElementById('projectList');
-  const projects = [...new Set(emps.map(e => e.proyecto))].sort();
+  const projects = allProjectNames();
   list.innerHTML = projects.map(proj => `
     <div style="padding:10px; background:var(--surface-2); border-radius:4px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center">
       <div style="display:flex; align-items:center; gap:10px">
@@ -2815,7 +2822,7 @@ function closeProjectModal() {
   editingProjectName = null;
 }
 
-function saveProject() {
+async function saveProject() {
   if(currentRole!=='admin') { alert('Acción reservada para administración.'); return; }
   const newName = document.getElementById('projName').value.trim().toUpperCase();
   const color = document.getElementById('projColor').value.trim();
@@ -2833,15 +2840,17 @@ function saveProject() {
     delete PC[editingProjectName];
   }
 
+  try { await saveProjectRecord(newName,color,editingProjectName); }
+  catch(e){ alert('No se pudo guardar el proyecto: '+e.message); return; }
   PC[newName] = color;
-  persist();
+  if(editingProjectName && editingProjectName!==newName) await persist();
   closeProjectModal();
   renderProjectList();
   renderTable();
   populateFilter();
 }
 
-function deleteProject() {
+async function deleteProject() {
   if(currentRole!=='admin') { alert('Acción reservada para administración.'); return; }
   const projName = document.getElementById('projName').value.trim().toUpperCase();
   const empCount = emps.filter(e => e.proyecto === projName).length;
@@ -2850,14 +2859,14 @@ function deleteProject() {
     return;
   }
   if (!confirm(`¿Eliminar el proyecto "${projName}"?`)) return;
+  try { await deleteProjectRecord(projName); } catch(e){alert('No se pudo eliminar: '+e.message);return;}
   delete PC[projName];
-  persist();
   closeProjectModal();
   renderProjectList();
   renderTable();
 }
 
-function deleteProjectFromList(projName) {
+async function deleteProjectFromList(projName) {
   if(currentRole!=='admin') { alert('Acción reservada para administración.'); return; }
   const empCount = emps.filter(e => e.proyecto === projName).length;
   if (empCount > 0) {
@@ -2865,8 +2874,8 @@ function deleteProjectFromList(projName) {
     return;
   }
   if (!confirm(`¿Eliminar el proyecto "${projName}"?`)) return;
+  try { await deleteProjectRecord(projName); } catch(e){alert('No se pudo eliminar: '+e.message);return;}
   delete PC[projName];
-  persist();
   renderProjectList();
   renderTable();
 }
@@ -2896,7 +2905,7 @@ function openEditSupervisorModal() { alert('Los accesos con correo se administra
 
 function populateSupervisorProjects() {
   const sel = document.getElementById('supProj');
-  const projects = [...new Set(emps.map(e => e.proyecto))].sort();
+  const projects = allProjectNames();
   sel.innerHTML = '<option value="">Seleccionar proyecto...</option>' +
     projects.map(p => `<option value="${p}">${p}</option>`).join('');
 }
